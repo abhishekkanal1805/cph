@@ -1,0 +1,41 @@
+# package directory and external module
+node_modules
+jspm_packages
+
+# more dirs
+/.build
+/.idea/
+.idea/workspace.xml
+
+# Serverless directories
+.serverless
+
+
+# Typescript compiled files
+**/*.js
+**/*.js.map
+
+# Logs
+logs
+*.log
+
+# IntelliJ files
+.idea
+workspace.xml
+
+# NPM files
+package-lock.json
+
+#serverless log file
+filelogs.txt
+
+#vscode files 
+.vscode
+
+#local dyanmodb
+temp
+Test
+.db
+.dynamodb
+#OSX
+.DS_Store
