@@ -1,5 +1,5 @@
 {
-  "name": "CPH-Common-Code",
+  "name": "cph-common-service",
   "version": "0.0.1",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "^0.7.3",
