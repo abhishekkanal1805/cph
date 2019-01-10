@@ -7,6 +7,62 @@ const data = {
     { poolId: "us-east-1_TvzUmxgeq", region: "us-east-1" }, // Mobile Env
     { poolId: "us-east-1_IChCUdoMz", region: "us-east-1" }  // Mobile Env
   ],
+  consent: {
+    requiredParams: [
+      "resourceType",
+      "name",
+      "version",
+      "consentingParty",
+      "consentingParty.reference",
+      "consentDateTime"
+    ],
+    acceptedAttributes: ["consentingParty", "status", "version", "name", "isDeleted", "lastUpdated"],
+    attachmentParams: "attachment",
+    withdrawParams: "$withdraw",
+    searchAttributes: ["status", "version", "name", "isDeleted", "lastUpdated"]
+  },
+  controlGroupParams: {
+    rwe: "switch1234",
+    controlGroup: "ControlGroup",
+    rweGroupName: "Patient",
+    control: 1,
+    enhanced: 2,
+    profileInfo: {
+      itemId: "SiteInformation",
+      text: "Study Site Information",
+      type: "group",
+      profileItem: [
+        {
+          itemId: "site",
+          text: "site code",
+          type: "text",
+          isInternal: true,
+          answer: [{ valueInteger: "" }]
+        },
+        {
+          itemId: "cohort",
+          text: "Study cohort",
+          type: "text",
+          isInternal: true,
+          answer: [{ valueInteger: "" }]
+        },
+        {
+          itemId: "patientId",
+          text: "Patient Identifier for the study",
+          type: "text",
+          isInternal: true,
+          answer: [{ valueString: "" }]
+        },
+        {
+          itemId: "switchCode",
+          text: "Switch Code",
+          type: "text",
+          isInternal: true,
+          answer: [{ valueString: "" }]
+        }
+      ]
+    }
+  },
   headers: {
     types: {
       contentType: "Content-Type"
@@ -16,7 +72,34 @@ const data = {
       pdf: "application/pdf"
     }
   },
-  displayFields: ["informationSource", "subject", "patient"]
+  dateFields: [
+    "lastUpdated",
+    "dateAsserted",
+    "plannedDateTime",
+    "effectiveDateTime",
+    "effectiveDate",
+    "date",
+    "period",
+    "authored",
+    "siteExpiryDate",
+    "siteActivationDate",
+    "withdrawalDate"
+  ],
+  displayFields: ["informationSource", "subject", "patient"],
+  searchContent: {
+    projectionExpression: [
+      { key: "articleId", type: "string" },
+      { key: "format", type: "string" },
+      { key: "title", type: "string" },
+      { key: "desc", type: "string" },
+      { key: "type", type: "string" },
+      { key: "subType", type: "string" },
+      { key: "popularity", type: "object" }
+    ]
+  },
+  fileDownload: {
+    requiredAttributes: ["articleId", "fileName", "format"]
+  }
 };
 const settings = {
   consent: {
