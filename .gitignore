@@ -5,6 +5,7 @@ jspm_packages
 # more dirs
 /.build
 /.idea/
+/dist
 .idea/workspace.xml
 
 # Serverless directories
