@@ -1,6 +1,8 @@
 {
   "name": "cph-common-service",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@types/aws-lambda": "^8.10.15",
