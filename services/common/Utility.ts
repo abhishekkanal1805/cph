@@ -2,14 +2,11 @@ import * as Hashids from "hashids";
 import * as log from "lambda-log";
 import * as lodash from "lodash";
 import * as moment from "moment";
-import * as requestPromise from "request-promise";
-import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { errorCode } from "../../common/constants/error-codes";
 import { ApiEvent } from "../../common/objects/api-interfaces";
 import * as config from "../../common/objects/config";
 import { BadRequestResult } from "../../common/objects/custom-errors";
-import { UnprocessableEntityErrorResult } from "../../common/objects/unprocessableEntityErrorResult";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
@@ -40,132 +37,6 @@ export class Utility {
       prefix: date.slice(0, offset),
       date: date.slice(offset, dateLength)
     };
-  }
-
-  /**
-   * Receives queryParams and validParams and check whether all the queryParams are valid or not
-   * @param {*} queryParams
-   * @param {*} validParams
-   * @example
-   * @returns {boolean}
-   */
-  public static validateQueryParams(queryParams: any, validParams: any) {
-    log.info("Inside Utility: validateQueryParams()");
-    const result: boolean = true;
-    for (const key in queryParams) {
-      const attrIdx = lodash.findIndex(validParams, (d: any) => d.map === key);
-      if (attrIdx === -1) {
-        log.error("Failed for attribute: " + key);
-        return false;
-      }
-      const paramDataType = validParams[attrIdx]["type"];
-      let paramValue = queryParams[key];
-      if (paramDataType === "date") {
-        if (paramValue.includes(",")) {
-          for (const value of paramValue.split(",")) {
-            paramValue = this.getPrefixDate(value).date;
-            const dateTime = moment(paramValue, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
-            const date = moment(paramValue, "YYYY-MM-DD", true).isValid();
-            if (!(dateTime || date)) {
-              log.error("Failed for attribute: " + key + " as it is not a ISOString.");
-              return false;
-            }
-          }
-        } else if (paramValue.includes("&")) {
-          for (const value of paramValue.split("&")) {
-            paramValue = this.getPrefixDate(value).date;
-            const dateTime = moment(paramValue, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
-            const date = moment(paramValue, "YYYY-MM-DD", true).isValid();
-            if (!(dateTime || date)) {
-              log.error("Failed for attribute: " + key + " as it is not a ISOString.");
-              return false;
-            }
-          }
-        } else {
-          paramValue = this.getPrefixDate(paramValue).date;
-          const dateTime = moment(paramValue, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
-          const date = moment(paramValue, "YYYY-MM-DD", true).isValid();
-          if (!(dateTime || date)) {
-            log.error("Failed for attribute: " + key + " as it is not a ISOString.");
-            return false;
-          }
-        }
-      } else if (paramDataType === "number") {
-        paramValue = this.getPrefixDate(paramValue).date;
-        const numberStatus = lodash.isNaN(lodash.toNumber(paramValue));
-        if (numberStatus) {
-          log.error("Failed for attribute: " + key + " as it is not a number.");
-          return false;
-        }
-      } else if (paramDataType === "boolean") {
-        const boolStatus = ["true", "false"].indexOf(paramValue.toLowerCase());
-        if (boolStatus === -1) {
-          log.error("Failed for attribute: " + key + " as it is not a boolean value.");
-          return false;
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   *
-   * @param queryParams
-   * @param {string} errorLogRef
-   * @returns {UnprocessableEntity}
-   */
-  public static validateMultiValueQueryParams(queryParams: any, errorLogRef: string) {
-    log.info("Inside Utility: validateMultiValueQueryParams()");
-    for (const param in queryParams) {
-      if (queryParams[param].includes("&")) {
-        const dateValues: string[] = queryParams[param].split("&");
-        if (dateValues.length > 2) {
-          log.error("Failed for attribute: " + param + " as it contains more than 2 dates");
-          return new UnprocessableEntityErrorResult(
-            errorCode.UnprocessableEntity,
-            "Failed for attribute: " + param + " as it contains more than 2 dates",
-            errorLogRef
-          );
-        }
-        if (
-          Utility.getPrefixDate(dateValues[0]).prefix.length === 0 ||
-          Utility.getPrefixDate(dateValues[1]).prefix.length === 0
-        ) {
-          log.error("Failed for attribute: " + param + " as all input dates do not have prefixes.");
-          return new UnprocessableEntityErrorResult(
-            errorCode.UnprocessableEntity,
-            "Failed for attribute: " + param + " as all input dates do not have prefixes.",
-            errorLogRef
-          );
-        }
-        if (
-          Utility.getPrefixDate(dateValues[0]).prefix === Utility.getPrefixDate(dateValues[1]).prefix ||
-          Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) ===
-            Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
-        ) {
-          log.error("Failed for attribute: " + param + " as all input dates have same prefixes.");
-          return new UnprocessableEntityErrorResult(
-            errorCode.UnprocessableEntity,
-            "Failed for attribute: " + param + " as all input dates have same prefixes.",
-            errorLogRef
-          );
-        }
-        for (const value of dateValues) {
-          if (
-            lodash.findIndex(config.data.validDatePrefixes, (d: any) => d === Utility.getPrefixDate(value).prefix) ===
-            -1
-          ) {
-            log.error("Failed for attribute: " + param + " as input dates have invalid prefix.");
-            return new UnprocessableEntityErrorResult(
-              errorCode.UnprocessableEntity,
-              "Failed for attribute: " + param + " as input dates have invalid prefix.",
-              errorLogRef
-            );
-          }
-        }
-      }
-    }
-    return "Success";
   }
 
   /**
@@ -288,21 +159,6 @@ export class Utility {
   }
 
   /**
-   * Removes the internal attributes which starts with _ i.e. underscore.
-   * @param {Object} object
-   * @returns {Promise<Object>}
-   */
-  static removeInternalAttributes(object: any) {
-    const objectKeys = Object.keys(object);
-    objectKeys.forEach((item) => {
-      if (item.indexOf("_") == 0) {
-        delete object[item];
-      }
-    });
-    return object;
-  }
-
-  /**
    * Gets the resource URL.
    * @param {ApiEvent} event
    * @returns {string}
@@ -314,23 +170,6 @@ export class Utility {
     const path = event.requestContext["path"];
     const fullUrl = scheme + "://" + hostName + path;
     return fullUrl;
-  }
-
-  /**
-   * Converts the provided attributes of the Object to lower case.
-   * @param {Object} object
-   * @param attributes
-   * @returns {Promise<Object>}
-   */
-  public static async convertToLowerCase(object: any, attributes) {
-    log.info("Inside Utility: convertToLowerCase()");
-    for (const each of attributes) {
-      const item = object[each];
-      if (item) {
-        object[each] = new Date(item).toString() !== "Invalid Date" ? item : item.toLowerCase();
-      }
-    }
-    return object;
   }
 
   /**
@@ -361,67 +200,6 @@ export class Utility {
      })
    );
    return foundIDs;
-  }
-
-  /**
-   * Get Internal Attributes i.e. User Id and Unique Id for provided Resource Id.
-   * @param {string} id
-   * @returns {object}
-   */
-  public static getInternalAttributes(id: string, partitionKey?: string, sortKey?: string, sepatator?: string): object {
-    log.info("Inside Utility: getInternalAttributes()");
-    sepatator = sepatator || ".";
-    partitionKey = partitionKey || "userId";
-    sortKey = sortKey || "uniqueId";
-    const userAttributes: any = {};
-    const idsArr: any = id.split(sepatator);
-    userAttributes[partitionKey] = idsArr[0];
-    // Added to handel invitation and connection
-    userAttributes[sortKey] = idsArr.slice(1).join(sepatator);
-    return userAttributes;
-  }
-
-  /**
-   * Gets Unique Id for provided Resource Id.
-   * @param {string} id
-   * @returns {string}
-   */
-  public static getUniqueId(id: string): string {
-    return id.split(".")[1];
-  }
-
-  /**
-   * Gets Resource Id from userID and uniqueId of the provided object.
-   * @param {object} obj
-   * @returns {string}
-   */
-  public static getResourceId(obj: object, partitionKey?: string, sortKey?: string): string {
-    partitionKey = partitionKey || "_userId";
-    sortKey = sortKey || "_uniqueId";
-    const userId = obj[partitionKey];
-    const uniqueId = obj[sortKey];
-    // Modified to support consent
-    return [userId, uniqueId].filter((d) => d).join(".");
-  }
-
-  /**
-   * Creates a bundle of resources from the provided event body if there are multiple resources.
-   * Returns a resource if the there only one resource present in event body.
-   * @param {string} eventBody
-   * @returns {Promise<any[]>}
-   */
-  public static async getResourceArray(eventBody: string) {
-    log.info("Inside Utility: getResourceArray()");
-    const requestBody = JSON.parse(eventBody);
-    let resourceArray = [];
-    if (!(requestBody.entry instanceof Array)) {
-      log.debug("Single resource received");
-      resourceArray.push(requestBody);
-      return resourceArray;
-    }
-    const resources = requestBody.entry;
-    resourceArray = await resources.map((entry) => entry.resource);
-    return resourceArray;
   }
 
   /**
@@ -499,122 +277,6 @@ export class Utility {
       );
     }
     return resourceArray;
-  }
-
-  public static setInternalAttributes(obj: any, userId: string, partitionKey?: string, sortKey?: string) {
-    partitionKey = partitionKey || "_userId";
-    obj[partitionKey] = userId;
-    // Modified to support consent and other service until migration
-    if (sortKey === undefined) {
-      sortKey = "_uniqueId";
-      obj[sortKey] = uuid();
-    } else if (sortKey) {
-      obj[sortKey] = uuid();
-    } else {
-      obj[sortKey] = undefined;
-    }
-    // Uncomment after migration setInternalAttributesNew
-    obj["id"] = this.getResourceId(obj, partitionKey, sortKey);
-    return obj;
-  }
-
-  public static setInternalAttributesNew(obj: any, userId: string, partitionKey?: string, sortKey?: string) {
-    userId = obj[partitionKey];
-    const uniqueId = obj[sortKey] || "";
-    if (uniqueId) {
-      return [userId, uniqueId].join(".");
-    }
-    return userId;
-  }
-
-  /**
-   * Reads the bundle and Returns the Ids present in resource bundle.
-   * @param {any[]} bundle
-   * @returns {Promise<any[]>}
-   */
-  public static findIds(bundle: any[], userId?: string): any {
-    log.info("Inside Utility: findIds()");
-    userId = userId || "informationSource.reference";
-    const foundIDs = lodash.uniq(
-      lodash.map(bundle, (item) => {
-        const value = this.getAttributeValue(item, userId);
-        if (value && value.toString().toLowerCase().startsWith("userprofile")) {
-          return value.toString().split("/")[1];
-        } else {
-          return value;
-        }
-      })
-    );
-    return foundIDs.length ? foundIDs : [];
-  }
-
-  /**
-   * Reads the bundle and Returns the Record Ids.
-   * @param {any[]} bundle
-   * @returns {Promise<any[]>}
-   */
-  public static getSpecificAttribute(bundle: any[], key: string): any {
-    log.info("Inside Utility: getIds()");
-    const foundIDs = lodash.map(bundle, (item) => {
-      return this.getAttributeValue(item, key);
-    });
-    return foundIDs.length ? foundIDs : [];
-  }
-
-  /**
-   *
-   * Reads the bundle and validate all Ids present in resource bundle belongs to loggedin user.
-   * @param {any[]} bundle
-   * @param {string} loggedinId
-   * @returns {Promise<any>}
-   */
-  public static async validateRecordIds(bundle: any[], loggedinId: string): Promise<any> {
-    log.info("Entering Utility: validateRecordIds()");
-    const recordIds = lodash.uniq(lodash.map(bundle, (item) => {
-        // id should present in input json as per json schema validation
-        return item.id.trim().split(".")[0];
-    }));
-
-    if (recordIds.length != 1) {
-      log.error("Error occoured as request contains multiple uniqIds");
-      return new Error("request contains multiple uniqIds");
-    }
-    if (recordIds[0] != loggedinId) {
-      log.error("Error occoured as request id doesn't belong to loggedIn user");
-      return new Error("request id doesn't belong to loggedIn user");
-    }
-    log.info("Exiting Utility: validateRecordIds()");
-    return true;
-  }
-
-  /**
-   * Convert ["informationSource", "subject", "patient"].reference to camelcase
-   * convert any variation of userprofile to "UserProfile" before save
-   * @param {any[]} record can be a object or bundle
-   * @returns {Promise<any>}
-   */
-  public static async convertToCamelCase(record: any) {
-    log.info("Entering utility: convertToCamelCase()");
-    const isBundle = lodash.isArray(record);
-    // if not bundle then convert it bundle and update reference
-    if (!isBundle) {
-      record = [record];
-    }
-    for (const eachEntry of record) {
-      for (const displayAttribute of config.data.displayFields) {
-        if (eachEntry.hasOwnProperty(displayAttribute) && eachEntry[displayAttribute].hasOwnProperty("reference")) {
-          const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
-          if (serviceObj.resourceType.toLowerCase() != "userprofile") {
-            log.error("Error occoured as resourceType is not userprofile");
-            throw new Error("UserProfile missing in reference");
-          }
-          eachEntry[displayAttribute].reference = ["UserProfile", serviceObj.id].join("/");
-        }
-      }
-    }
-    // if input is bundle then return updated bundle else return object
-    log.info("Exiting utility: convertToCamelCase()");
-    return isBundle ? record : record[0];
   }
 
   public static getAttributeValue(obj: object, key: string) {
@@ -704,15 +366,6 @@ export class Utility {
     return paramObject;
   }
 
-  public static async validateDateParameters(...datesToValidate) {
-    for (const eachDate of datesToValidate) {
-      if (typeof eachDate == "undefined" || new Date(eachDate).toString() == "Invalid Date") {
-        return false;
-      }
-    }
-    return true;
-  }
-
   /**
    * Checks if the email is valid
    * @param {string} email
@@ -735,26 +388,6 @@ export class Utility {
         .substr(2, 15);
     return new Hashids(randomisedIdentifier).encode(1, 2, 3);
   }
-
-  /**
-   * Returns html body
-   * @param {number} code
-   * @returns {string}
-   */
-  public static generateVerificationCodeMailBody(code: string): string {
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8' />
-            <title>title</title>
-        </head>
-        <body>
-            <span>Dear user, your verification code is ${code}</span>
-        </body>
-        </html>`;
-  }
-
   /**
    * Returns html body
    * @param {number} code
@@ -792,21 +425,6 @@ export class Utility {
       }
     }
     return result;
-  }
-
-  public static createEvent(eventObj: object) {
-    const event: any = {};
-    const parameter = [];
-    const keys = Object.keys(eventObj);
-    for (const eachKey of keys) {
-      const eachObject = {};
-      eachObject["name"] = eachKey;
-      eachObject["valueString"] = eventObj[eachKey];
-      parameter.push(eachObject);
-    }
-    event.resourceType = "Parameters";
-    event.parameter = parameter;
-    return event;
   }
 
   /**
@@ -851,32 +469,6 @@ export class Utility {
   }
 
   /**
-   * Return an array of numbers from a comma separated string
-   * @param {string} commaSeparatedString
-   * @returns {Number[]}
-   */
-  public static getArrayFromCommaSeparatedString(commaSeparatedString: string, convertToNumber?: boolean): any[] {
-    if (!commaSeparatedString) {
-      return [];
-    }
-    const trimmedArray = commaSeparatedString.split(",").map((stringChar: string) => {
-      return convertToNumber ? Number(stringChar.trim()) : stringChar.trim();
-    });
-    return trimmedArray.filter((elem) => {
-      return elem > 0 || isNaN(Number(elem));
-    });
-  }
-
-  public static async fetchResponse(options: any) {
-    try {
-      const body = await requestPromise(options);
-      return Promise.resolve(body);
-    } catch (err) {
-      return Promise.reject(new Error("Error: " + err));
-    }
-  }
-
-  /**
    * Checks if Date has expired.
    * @param {string} date
    * @returns {boolean}
@@ -909,90 +501,6 @@ export class Utility {
       response[paramArr[i]["name"]] = paramArr[i]["valueString"];
     }
     return response;
-  }
-
-  /**
-   * Checks if object contains non empty values for specific keys
-   * @param {any[]} paramArr
-   * @returns {object}
-   */
-  public static hasRequiredAttributes(obj: any, keys: string[]): any {
-    const hasAttribute = (key) => lodash.has(obj, key);
-    return lodash.every(keys, hasAttribute);
-  }
-
-  /**
-   * Validates studyCode for Control group and Site specific consent service.
-   * @param studyCode
-   * @returns  {boolean}
-   */
-  public static validateStudyCodeFormat(studyCode: string): boolean {
-    log.info("Inside validateStudyCodeFormat: Received studyCode is" + studyCode);
-    if (studyCode == config.data.controlGroupParams.rwe) {
-      return true;
-    }
-    const pattern = /^[0-9]{3}\-[0-9]\-[0-9]{6}$/;
-    const result = pattern.test(studyCode);
-    const siteCode = Number(studyCode.split("-")[0]);
-    if (isNaN(siteCode) || result == false) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Validates validateCohort for Control group and Site specific consent service.
-   * @param cohort
-   * @returns  {boolean}
-   */
-  public static validateCohort(cohort: number) {
-    log.info("Entered validateCohort method: cohort that came: " + cohort);
-    if (
-      (cohort == config.data.controlGroupParams.control || cohort == config.data.controlGroupParams.enhanced) &&
-      typeof cohort !== "undefined"
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  /**
-   * Trims the whitespaces from the object values
-   * @param {any} obj
-   * @returns  {any}
-   */
-  public static trimObjectValues(obj: any) {
-    if (!obj) {
-      return {};
-    }
-    lodash.forEach(Object.keys(obj), (key) => {
-      obj[key] = obj[key].trim();
-    });
-    return obj;
-  }
-
-  public static capitalizeObjectValues(obj: any) {
-    if (!obj) {
-      return {};
-    }
-    lodash.forEach(Object.keys(obj), (key) => {
-      if (typeof obj[key] === "string") {
-        obj[key] = obj[key].toUpperCase();
-      }
-    });
-    return obj;
-  }
-
-  /**
-   * Capitalize the string elements inside an array
-   * @param {string[]} arr
-   * @returns {string[]}
-   */
-  public static capitalizeStringArray(arr: string[]) {
-    return lodash.map(arr, (elem) => {
-      return elem.toUpperCase();
-    });
   }
 
   // TODO: Code review : Seems like this method should also return an updated queryParams without the pagination attributes -

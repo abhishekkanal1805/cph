@@ -7,7 +7,7 @@ import { DataService } from "../common/dataService";
 
 const profileDisplay: any = {};
 
-export class ConenctionService {
+export class ConnectionService {
 
   /**
    * To search connection record for the provided query string

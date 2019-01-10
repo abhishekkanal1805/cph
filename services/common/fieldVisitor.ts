@@ -77,7 +77,4 @@ export class FieldVisitor {
     return null;
   }
 
-  public hasDuplicates(): boolean {
-    return this.getAllDuplicates().length > 0;
-  }
 }

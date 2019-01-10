@@ -10,6 +10,7 @@ import {
   InsufficientAccountPermissions,
   InternalServerErrorResult,
   NotFoundResult,
+  UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
 import { Bundle } from "../../models/common/bundle";
@@ -105,6 +106,10 @@ class ResponseBuilderService {
       case ForbiddenResult:
       case InsufficientAccountPermissions:
         response.responseType = Constants.RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS;
+        break;
+      case UnAuthorizedResult:
+        response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
+        break;
       case UnprocessableEntityResult:
         response.responseType = Constants.UNPROCESSABLE_ENTITY;
     }

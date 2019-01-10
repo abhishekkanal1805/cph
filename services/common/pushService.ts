@@ -62,9 +62,6 @@ export class PushService {
         });
     }
 
-    public static getAndroidPayload(message, category, action) {
-        return null;
-    }
 
     public static getApplePayload(message, category, action) {
 

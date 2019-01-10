@@ -17,19 +17,6 @@ export class GatewayUtility {
     return apiEvent.queryStringParameters || {};
   }
 
-  /**
-   * Returns the value of path parameter if present in ApiEvent or else empty string.
-   * If the ApiEvent itself is null or undefined it returns empty string
-   * @param {string} pathParameterName
-   * @param {ApiEvent} apiEvent
-   * @returns {string}
-   */
-  public static getPathParameters(pathParameterName: string, apiEvent: ApiEvent): string {
-    if (!apiEvent) {
-      return "";
-    }
-    return apiEvent.pathParameters[pathParameterName] || "";
-  }
 
   /**
    * Returns the cognito context data if present in ApiEvent or else null.

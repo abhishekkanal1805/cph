@@ -8,9 +8,9 @@ import {
   InsufficientAccountPermissions,
   InternalServerErrorResult,
   NotFoundResult,
-  UnAuthorizedResult
+  UnAuthorizedResult,
+  UnprocessableEntityErrorResult
 } from "./custom-errors";
-import { UnprocessableEntityErrorResult } from "./unprocessableEntityErrorResult";
 
 /**
  * Contains helper methods to generate a HTTP response.
@@ -65,9 +65,6 @@ export class APIResponseBuilder {
     APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback);
   }
 
-  public static noContent<T>(result: T, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<T>(result, HttpStatusCode.NO_CONTENT, callback);
-  }
   private static defaultHeaders = {
     "Content-Type": config.data.headers.contentTypes.json
   };

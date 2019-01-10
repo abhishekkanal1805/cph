@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
@@ -52,7 +52,7 @@ class UserService {
       } else {
         resource.errorRecords = resource.errorRecords.concat(
           _.map(filteredRecords, (d) => {
-            const badRequest = new BadRequestResult(
+            const badRequest = new UnAuthorizedResult(
               errorCode.InvalidUserId,
               "User don't have permission to update this record",
             );
@@ -94,7 +94,7 @@ class UserService {
       log.info("performUserValidation() success :: Exiting UserService: performUserValidation()");
     } catch (err) {
       log.error("Error in UserService :: performUserValidation() " + err.stack);
-      throw new BadRequestResult(errorCode.UnauthorizedUser, "User Validation Failed");
+      throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User Validation Failed");
     }
   }
 
@@ -166,7 +166,7 @@ class UserService {
       return userAccessObj;
     } catch (err) {
       log.error("Error in UserService :: performUserAcessValidation() " + err.stack);
-      throw new BadRequestResult(errorCode.UnauthorizedUser, "User don't have permission to access this endpoint");
+      throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to access this endpoint");
     }
   }
 }

@@ -1,8 +1,7 @@
 import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
-import { Constants } from "../../common/constants/constants";
 import { Connection } from "../../models/CPH/connection/connection";
-import { ConenctionService } from "../connection/connectionService";
+import { ConnectionService } from "../connection/connectionService";
 
 export class UserAuthService {
   /**
@@ -26,78 +25,6 @@ export class UserAuthService {
     }
     log.info("Exiting userAuthService :: validatePermissions()");
     return false;
-  }
-
-  public static async getPermissions(
-    callerUserProfileId: string,
-    calledUserProfileId: string,
-    calleruserProfileType: string,
-    contextData: string,
-    methodType: string
-  ) {
-    let permissionObj: any = {
-      status: false,
-      permissions: []
-    };
-    if (callerUserProfileId == calledUserProfileId) {
-      permissionObj = {
-        status: true,
-        permissions: ["READ", "WRITE"]
-      };
-      return permissionObj;
-    }
-    if (!callerUserProfileId || !calleruserProfileType || !calledUserProfileId) {
-      return permissionObj;
-    }
-    calleruserProfileType = calleruserProfileType.toLowerCase();
-    // Accepted calleruserProfileType ["Patient", "Partner", "Friend", "Deligate", "Practitioner", "CarePatner"]
-    if (calleruserProfileType === "friend") {
-      log.info("Validation success");
-      permissionObj = {
-        status: true,
-        permissions: []
-      };
-      return permissionObj;
-    }
-    if (calleruserProfileType === "patient") {
-      log.info("Validation success");
-      if (callerUserProfileId !== calledUserProfileId) {
-        return permissionObj;
-      }
-      permissionObj = {
-        status: true,
-        permissions: ["READ", "WRITE"]
-      };
-      return permissionObj;
-    }
-    // https://jira.tools.deloitteinnovation.us/browse/CHCONHUB-434, type should be partner
-    if (["practitioner", "partner", "deligate", "carepatner"].indexOf(calleruserProfileType) > -1) {
-      const query: any = {
-        to: callerUserProfileId,
-        from: calledUserProfileId,
-        status: "active"
-      };
-      const result: any = await ConenctionService.searchConnection(
-        Connection,
-        query,
-        callerUserProfileId,
-        contextData,
-        methodType
-      );
-      log.info("result: ", result);
-      if (result.length) {
-        log.info("Validation success");
-        permissionObj = {
-          status: true,
-          permissions: ["READ"]
-        };
-      } else {
-        log.error("Validation failed for: Don't have permission to perform this operation");
-      }
-      return permissionObj;
-    }
-    // If invalid for all cases return No permission
-    return permissionObj;
   }
 
   /**
@@ -153,7 +80,7 @@ export class UserAuthService {
         from: calledUserProfileId,
         status: "active"
       };
-      const result: any = await ConenctionService.searchConnection(
+      const result: any = await ConnectionService.searchConnection(
         Connection,
         query,
         callerUserProfileId,
@@ -171,44 +98,6 @@ export class UserAuthService {
     }
     // If invalid for all cases return No permission
     return permissions;
-  }
-
-  public static async validateUser(userId: string, contextData: string) {
-    log.info("Inside validateUser Method");
-    log.info("contextData: " + contextData + " userid: " + userId);
-    // Validation disabled for offline mode
-    if (contextData.includes("offline")) {
-      return { status: true, loggedinId: "offline" };
-    }
-    let validationStatusObj: any = {
-      status: false,
-      loggedinId: ""
-    };
-    if (contextData == "") {
-      log.error("Validation failed for: requestContext undefined or empty");
-      return validationStatusObj;
-    }
-    const loggedInUser = contextData.split("CognitoSignIn:");
-    if (loggedInUser && loggedInUser.length > 1) {
-      const loggedinId = await this.getUserDetails(contextData, Constants.COGNITO_USER_ATTRIBUTE_PROFILE_ID);
-      log.info("user id and loggedinID " + userId + " === " + loggedinId);
-      if (!loggedinId) {
-        log.error("Validation failed for: Profile id missing in cognito");
-        return validationStatusObj;
-      }
-      if (loggedinId === userId) {
-        validationStatusObj = {
-          status: true,
-          loggedinId
-        };
-      } else {
-        log.error("Validation failed: Profile id does not match the user Id");
-      }
-      return validationStatusObj;
-    } else {
-      log.error("Validation failed for: Cognito id missing");
-      return validationStatusObj;
-    }
   }
 
     /**
@@ -323,32 +212,6 @@ export class UserAuthService {
 
   }
 
-  public static async getUserGroup(userName, userPoolID) {
-    const region = userPoolID.split("_")[0];
-    const cognito = new AWS.CognitoIdentityServiceProvider({
-      region
-    });
-    const user = await cognito
-      .adminListGroupsForUser({
-        UserPoolId: userPoolID,
-        Username: userName
-      })
-      .promise()
-      .then((data) => {
-        log.info("getUserGroup executed Successfully");
-        return data;
-      })
-      .catch((err) => {
-        log.error("Error in getUserGroup: ", err);
-        return err;
-      });
-    if (user instanceof Error) {
-      return null;
-    } else {
-      return user.Groups.length > 0 ? user.Groups[0].GroupName : null;
-    }
-  }
-
   public static async doesUserHaveSameEmail(email: string, userId: string, userPoolId: string): Promise<boolean> {
     if (!userId || userId === "" || !userPoolId || userPoolId === "") {
       // insufficient information to lookup the current user
@@ -356,29 +219,6 @@ export class UserAuthService {
     }
     const username = await this.getUserDetails("", "Username");
     return username && username === email;
-  }
-
-  public static async doesUserExistInPool(userPoolID: string, email: string) {
-    log.info("Inside doesUserExistInPool function");
-    const region = userPoolID.split("_")[0];
-    const cognito = new AWS.CognitoIdentityServiceProvider({
-      region
-    });
-    return await cognito
-      .listUsers({
-        UserPoolId: userPoolID,
-        Filter: 'email = "' + email + '"'
-      })
-      .promise()
-      .then((data) => {
-        log.info("Data received from cognito");
-        log.info(data);
-        return data.Users && data.Users.length > 0;
-      })
-      .catch((err) => {
-        log.error("Error in fetching users from cognito", err);
-        return err;
-      });
   }
 
   public static async updateUserAttributes(userId: string, userPoolId: string, updatedAttributes: any[]) {
@@ -454,36 +294,5 @@ export class UserAuthService {
         log.error("Failed to signOut the user " + err);
         return false;
       });
-  }
-
-  /**
-   * Validate if userId is present in cognito or not and returns profile attribute.
-   * @param userId userId to be validated
-   * @param contextData AWS context data
-   *
-   * @returns Returns validationStatusObj with status true if validated successfully.
-   */
-  public static async validateIncomingUser(userId: string, contextData: string): Promise<string> {
-    log.info("Entering UserAuthService :: validateUser()");
-    log.debug("contextData: " + contextData + " userid: " + userId);
-    // Validation disabled for offline mode
-    if (contextData.includes("offline")) {
-      return "offline";
-    }
-    log.info("BaseService :: validateUser() :: User validation initiated");
-    const loggedInUser = contextData.split("CognitoSignIn:");
-    if (loggedInUser && loggedInUser.length > 1) {
-      const loggedinId = await this.getUserDetails(contextData, Constants.COGNITO_USER_ATTRIBUTE_PROFILE_ID);
-      log.debug("user id and loggedinID :: ", userId, " === ", loggedinId);
-      if (!loggedinId) {
-        throw new Error("BaseService :: validateUser() :: Validation failed : Profile id missing in cognito");
-      }
-      if (loggedinId !== userId) {
-        throw new Error("BaseService :: validateUser() :: Validation failed : Profile id does not match the user Id");
-      }
-      return loggedinId;
-    } else {
-      throw new Error("BaseService :: validateUser() :: Validation failed : Cognito id missing");
-    }
   }
 }
