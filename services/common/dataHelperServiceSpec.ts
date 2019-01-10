@@ -7,8 +7,6 @@ import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import { errorCode } from "../../common/constants/error-codes";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { Observation } from "../../models/CPH/observation/observation";
-import { ObservationDataResource } from "../../models/CPH/observation/observationDataResource";
 import { DataHelperService } from "./dataHelperService";
 import { DataService } from "./dataService";
 import { TestRelationalModel } from "../../models/specTest/testRelationalModel";
@@ -64,7 +62,6 @@ describe("Test createBooleanSearchConditions() - ", () => {
 describe("Test convertAllToModelsForSave() - ", () => {
   beforeEach(() => {
     const sequelize = new Sequelize({ validateOnly: true });
-    sequelize.addModels([Observation]);
     sequelize.addModels([TestRelationalModel]);
   });
 
@@ -79,7 +76,7 @@ describe("Test convertAllToModelsForSave() - ", () => {
         }
       ], errorRecords: [] };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
-    const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, Observation, ObservationDataResource, userId);
+    const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     expect(models[0].dataResource).not.toBeNull();
     expect(models[0].id).not.toBeNull();
     expect(models[0].dataResource.meta).not.toBeNull();
@@ -125,7 +122,7 @@ describe("Test convertAllToModelsForSave() - ", () => {
         }
       ], errorRecords: [] };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
-    const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, Observation, ObservationDataResource, userId);
+    const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     expect(models[0].dataResource.meta.clientRequestId).toBe("123");
     done();
   });
@@ -141,7 +138,7 @@ describe("Test convertAllToModelsForSave() - ", () => {
                   informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
               }
           ], errorRecords: [] };
-      const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, Observation, ObservationDataResource, null);
+      const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, null);
       expect(models[0].dataResource.meta.clientRequestId).toBe("123");
       expect(models[0].dataResource.meta.lastUpdatedBy).toBe(null);
       expect(models[0].dataResource.meta.createdBy).toBe(null);
@@ -153,7 +150,7 @@ describe("Test convertAllToModelsForSave() - ", () => {
 describe("Test convertAllToModelsForUpdate() - ", () => {
   beforeEach(() => {
     const sequelize = new Sequelize({ validateOnly: true });
-    sequelize.addModels([Observation]);
+    sequelize.addModels([TestRelationalModel]);
     spyOn(DataService, "fetchDatabaseRow").and.callFake(() => {
       return {
         id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
@@ -213,7 +210,7 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
       }
     ], errorRecords: [] };
 
-    const models = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, Observation, ObservationDataResource, testUserId);
+    const models = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, testUserId);
     expect(models[0].dataResource).not.toBeNull();
     expect(models[0].id).not.toBeNull();
     expect(models[0].dataResource.meta).not.toBeNull();
@@ -242,7 +239,7 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {
-      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, Observation, ObservationDataResource, userId);
+      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     } catch (err) {
       result = err;
     }
@@ -318,7 +315,7 @@ describe("Test convertAllToModelsForUpdate() with no data resource - ", () => {
 describe("Test convertAllToModelsForUpdate() - ", () => {
   beforeEach(() => {
     const sequelize = new Sequelize({ validateOnly: true });
-    sequelize.addModels([Observation]);
+    sequelize.addModels([TestRelationalModel]);
     spyOn(DataService, "fetchDatabaseRow").and.callFake(() => {
       return {
         id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
@@ -353,7 +350,7 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {
-      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, Observation, ObservationDataResource, userId);
+      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     } catch (err) {
       result = err;
     }
