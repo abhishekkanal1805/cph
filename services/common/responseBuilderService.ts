@@ -271,6 +271,25 @@ class ResponseBuilderService {
       successResult.entry = [...successResult.entry , ...errorResult];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
+    } else if (result.savedRecords && result.savedRecords.length === 0) {
+      response.responseType = Constants.RESPONSE_TYPE_OK;
+      const successResult = this.createResponseObject(
+        result.savedRecords,
+        fullUrl,
+        type,
+        queryParams,
+        isBundle
+      );
+      const errorResult = [];
+      if (result.errorRecords && result.errorRecords.length > 0) {
+        result.errorRecords.forEach((record) => {
+          const err = { error: record };
+          errorResult.push(err);
+        });
+      }
+      successResult.entry = [...successResult.entry , ...errorResult];
+      response.responseType = Constants.RESPONSE_TYPE_OK;
+      response["responseObject"] = successResult;
     } else {
       const errorResult = {
         errors: result.errorRecords
