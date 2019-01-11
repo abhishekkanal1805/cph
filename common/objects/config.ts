@@ -242,7 +242,7 @@ const settings = {
         map: "date",
         to: "effectiveDateTime",
         type: "date",
-        isPeriod: true,
+        isPeriod: false,
         isMultiple: true,
         condition: " and ",
         periodAttribute: ["effectivePeriod"]
@@ -267,7 +267,7 @@ const settings = {
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
-      "care partner": ["*"],
+      "care partner": ["*"]
     }
   },
   medicationactivity : {
