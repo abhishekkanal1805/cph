@@ -41,6 +41,8 @@ export * from './models/common/search';
 export * from './models/common/simpleQuantity';
 export * from './models/common/subject';
 
+export * from './models/CPH/userProfile/userProfile';
+
 export * from './common/constants/constants';
 export * from './common/constants/error-codes';
 export * from './common/objects/api-interfaces';
