@@ -179,27 +179,27 @@ export class Utility {
    * @returns {string[]} uniqIds
    */
   public static getUserIds(result: any, userValidationId: string) {
-  /*
-    subject/informationsource/patient will always have reference attribute
-    and value will be UserProfile/id else it will fail in schema validation
-  */
-   log.info("Entering baseServiceRDS :: getUserIds()");
-   const isBundle = lodash.isArray(result);
-   if (!isBundle) {
-     result = [result];
-   }
-   userValidationId = userValidationId || "informationSource.reference";
-   const foundIDs = lodash.uniq(
-     lodash.map(result, (item) => {
-       const value = this.getAttributeValue(item, userValidationId);
-       if (value && value.toString().toLowerCase().startsWith("userprofile")) {
-         return value.toString().split("/")[1];
-       } else {
-         return value;
-       }
-     })
-   );
-   return foundIDs;
+    /*
+      subject/informationsource/patient will always have reference attribute
+      and value will be UserProfile/id else it will fail in schema validation
+    */
+    log.info("Entering baseServiceRDS :: getUserIds()");
+    const isBundle = lodash.isArray(result);
+    if (!isBundle) {
+      result = [result];
+    }
+    userValidationId = userValidationId || "informationSource.reference";
+    const foundIDs = lodash.uniq(
+      lodash.map(result, (item) => {
+        const value = this.getAttributeValue(item, userValidationId);
+        if (value && value.toString().toLowerCase().startsWith("userprofile")) {
+          return value.toString().split("/")[1];
+        } else {
+          return value;
+        }
+      })
+    );
+    return foundIDs;
   }
 
   /**
@@ -215,26 +215,26 @@ export class Utility {
     for (const eachEntry of records) {
       let insertRecordtoResource = true;
       for (const displayAttribute of config.data.displayFields) {
-          if (eachEntry[displayAttribute] && eachEntry[displayAttribute].reference) {
-              const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
-              if (serviceObj.resourceType.toLowerCase() != "userprofile") {
-                log.error("Error occoured as resourceType is not userprofile");
-                const badRequest = new BadRequestResult(
-                  errorCode.InvalidUserId, "UserProfile missing in reference");
-                if (eachEntry.meta && eachEntry.meta.clientRequestId) {
-                  badRequest.clientRequestId = eachEntry.meta.clientRequestId;
-                }
-                resource.errorRecords.push(badRequest);
-                insertRecordtoResource = false;
-                break;
-              }
-              eachEntry[displayAttribute].reference = ["UserProfile", serviceObj.id].join("/");
-              if (userIdAttribute.trim().split(".")[0] === displayAttribute ) {
-                if (!uniqIds[serviceObj.id]) {
-                  uniqIds[serviceObj.id] = 1;
-                }
-              }
+        if (eachEntry[displayAttribute] && eachEntry[displayAttribute].reference) {
+          const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
+          if (serviceObj.resourceType.toLowerCase() != "userprofile") {
+            log.error("Error occoured as resourceType is not userprofile");
+            const badRequest = new BadRequestResult(
+              errorCode.InvalidUserId, "UserProfile missing in reference");
+            if (eachEntry.meta && eachEntry.meta.clientRequestId) {
+              badRequest.clientRequestId = eachEntry.meta.clientRequestId;
+            }
+            resource.errorRecords.push(badRequest);
+            insertRecordtoResource = false;
+            break;
           }
+          eachEntry[displayAttribute].reference = ["UserProfile", serviceObj.id].join("/");
+          if (userIdAttribute.trim().split(".")[0] === displayAttribute ) {
+            if (!uniqIds[serviceObj.id]) {
+              uniqIds[serviceObj.id] = 1;
+            }
+          }
+        }
       }
       if (insertRecordtoResource) {
         resource.savedRecords.push(eachEntry);
@@ -355,6 +355,8 @@ export class Utility {
             paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ? ["ge" + eachParam.valueDate] : ["le" + eachParam.valueDate];
           } else if (eachParam.valueString) {
             paramObject[eachParam.name] = [eachParam.valueString];
+          } else if (eachParam.valueReference) {
+            paramObject[eachParam.name] = [eachParam.valueReference];
           } else {
             paramObject[eachParam.name] = [eachParam.valueBoolean];
           }
