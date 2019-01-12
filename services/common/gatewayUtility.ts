@@ -17,7 +17,6 @@ export class GatewayUtility {
     return apiEvent.queryStringParameters || {};
   }
 
-
   /**
    * Returns the cognito context data if present in ApiEvent or else null.
    * TODO: write example context strign here

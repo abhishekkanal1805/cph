@@ -7,9 +7,9 @@ import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import { errorCode } from "../../common/constants/error-codes";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { TestRelationalModel } from "../../models/specTest/testRelationalModel";
 import { DataHelperService } from "./dataHelperService";
 import { DataService } from "./dataService";
-import { TestRelationalModel } from "../../models/specTest/testRelationalModel";
 
 describe("Test createBooleanSearchConditions() - ", () => {
   it("Prepare search condition using mapping attribute config passed as mappedAttribute parameter", (done) => {

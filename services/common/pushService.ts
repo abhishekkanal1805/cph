@@ -62,7 +62,6 @@ export class PushService {
         });
     }
 
-
     public static getApplePayload(message, category, action) {
 
         const payload = {

@@ -4,4 +4,3 @@ export type ApiContext = Context;
 export type ApiEvent = APIGatewayEvent;
 export type ApiResponse = ProxyResult;
 export type ApiHandler = (event: ApiEvent, context: ApiContext, callback: ApiCallback) => void;
-
