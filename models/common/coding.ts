@@ -1,4 +1,3 @@
-
 class Coding {
   version: string;
   userSelected: boolean;

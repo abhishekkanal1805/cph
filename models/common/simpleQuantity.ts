@@ -1,8 +1,7 @@
-
 class SimpleQuantity {
-    code: string;
-    system: string;
-    unit: string;
-    value: number;
+  code: string;
+  system: string;
+  unit: string;
+  value: number;
 }
-export  {SimpleQuantity};
+export { SimpleQuantity };

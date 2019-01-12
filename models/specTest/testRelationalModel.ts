@@ -3,7 +3,6 @@ import { ResourceMetadata } from "../common/resourceMetadata";
 
 @Table({ tableName: "TestRelational" })
 export class TestRelationalModel extends Model<TestRelationalModel> {
-
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 

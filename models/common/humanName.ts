@@ -43,7 +43,6 @@ class HumanName {
    * Time period when name was/is in use
    */
   period?: Period;
-
 }
 
 export { HumanName };

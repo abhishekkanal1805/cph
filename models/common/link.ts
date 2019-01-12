@@ -1,4 +1,3 @@
-
 class Link {
   relation: string;
 

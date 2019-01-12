@@ -12,7 +12,6 @@ class Constants {
 
   public static readonly FETCH_LIMIT = 2000;
   public static readonly POST_LIMIT = 500;
-
 }
 
 export { Constants };

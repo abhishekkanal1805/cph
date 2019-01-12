@@ -43,9 +43,9 @@ export class GatewayUtility {
     let authorizerObj: any = {};
     // In case of id token apiEvent.requestContext.authorizer.claims contains profile info
     // In case of access token apiEvent.requestContext.authorizer contains profile info
-    if (apiEvent && apiEvent.requestContext && apiEvent.requestContext.authorizer ) {
-      authorizerObj =  apiEvent.requestContext.authorizer;
-      if (authorizerObj.claims ) {
+    if (apiEvent && apiEvent.requestContext && apiEvent.requestContext.authorizer) {
+      authorizerObj = apiEvent.requestContext.authorizer;
+      if (authorizerObj.claims) {
         authorizerObj = Object.assign(authorizerObj, authorizerObj.claims);
       }
     }
@@ -118,13 +118,7 @@ export class GatewayUtility {
     return "";
   }
 
-  public static createApiEvent(
-    body?: string,
-    queryParams?: string,
-    pathParams?: string,
-    context?: string,
-    header?: string
-  ): ApiEvent {
+  public static createApiEvent(body?: string, queryParams?: string, pathParams?: string, context?: string, header?: string): ApiEvent {
     const event: any = {};
     event.body = body;
     event.queryStringParameters = JSON.parse(queryParams);

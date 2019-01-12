@@ -33,8 +33,8 @@ describe("Test createBooleanSearchConditions() - ", () => {
   it("Check createBooleanSearchConditions() to check existing searchObject attribute aren't changed", (done) => {
     const mappedAttribute = { map: "isDeleted", to: "meta.isDeleted", type: "boolean" };
     const value = "true";
-    const searchObject: any = {test: 123};
-    const output: any = {"test": 123, "meta.isDeleted": { [Op.eq]: true }};
+    const searchObject: any = { test: 123 };
+    const output: any = { "test": 123, "meta.isDeleted": { [Op.eq]: true } };
     DataHelperService.createBooleanSearchConditions(mappedAttribute, value, searchObject);
     expect(searchObject).toEqual(output);
     done();
@@ -74,7 +74,9 @@ describe("Test convertAllToModelsForSave() - ", () => {
           effectiveDateTime: "2018-05-08T20:33:58.712Z",
           informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
         }
-      ], errorRecords: [] };
+      ],
+      errorRecords: []
+    };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
     const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     expect(models[0].dataResource).not.toBeNull();
@@ -120,7 +122,9 @@ describe("Test convertAllToModelsForSave() - ", () => {
           meta: { clientRequestId: "123" },
           informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
         }
-      ], errorRecords: [] };
+      ],
+      errorRecords: []
+    };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
     const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
     expect(models[0].dataResource.meta.clientRequestId).toBe("123");
@@ -128,23 +132,24 @@ describe("Test convertAllToModelsForSave() - ", () => {
   });
 
   it("Should have the userId as optional", (done) => {
-      const resource: any = {
-          savedRecords: [
-              {
-                  subject: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" },
-                  resourceType: "Observation",
-                  effectiveDateTime: "2018-05-08T20:33:58.712Z",
-                  meta: { clientRequestId: "123" },
-                  informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
-              }
-          ], errorRecords: [] };
-      const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, null);
-      expect(models[0].dataResource.meta.clientRequestId).toBe("123");
-      expect(models[0].dataResource.meta.lastUpdatedBy).toBe(null);
-      expect(models[0].dataResource.meta.createdBy).toBe(null);
-      done();
+    const resource: any = {
+      savedRecords: [
+        {
+          subject: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" },
+          resourceType: "Observation",
+          effectiveDateTime: "2018-05-08T20:33:58.712Z",
+          meta: { clientRequestId: "123" },
+          informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
+        }
+      ],
+      errorRecords: []
+    };
+    const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, null);
+    expect(models[0].dataResource.meta.clientRequestId).toBe("123");
+    expect(models[0].dataResource.meta.lastUpdatedBy).toBe(null);
+    expect(models[0].dataResource.meta.createdBy).toBe(null);
+    done();
   });
-
 });
 
 describe("Test convertAllToModelsForUpdate() - ", () => {
@@ -190,25 +195,27 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
     const testStatus = "final";
     const resource: any = {
       savedRecords: [
-      {
-        id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
-        meta: {
-          created: "2018-11-29T20:33:58.712Z",
-          createdBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
-          isDeleted: testIsDeleted,
-          versionId: 1,
-          lastUpdated: "2018-11-29T20:33:58.712Z",
-          lastUpdatedBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
-          clientRequestId: testClientRequestId
-        },
-        status: testStatus,
-        subject: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" },
-        valuePeriod: { end: "2018-10-08T17:48:00.000Z", start: "2018-10-08T17:48:00.000Z" },
-        resourceType: "Observation",
-        effectiveDateTime: "2018-05-08T20:33:58.712Z",
-        informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
-      }
-    ], errorRecords: [] };
+        {
+          id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
+          meta: {
+            created: "2018-11-29T20:33:58.712Z",
+            createdBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
+            isDeleted: testIsDeleted,
+            versionId: 1,
+            lastUpdated: "2018-11-29T20:33:58.712Z",
+            lastUpdatedBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
+            clientRequestId: testClientRequestId
+          },
+          status: testStatus,
+          subject: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" },
+          valuePeriod: { end: "2018-10-08T17:48:00.000Z", start: "2018-10-08T17:48:00.000Z" },
+          resourceType: "Observation",
+          effectiveDateTime: "2018-05-08T20:33:58.712Z",
+          informationSource: { reference: "UserProfile/dcaabc44-f3e9-4fd2-95d5-bff038c4e028" }
+        }
+      ],
+      errorRecords: []
+    };
 
     const models = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, testUserId);
     expect(models[0].dataResource).not.toBeNull();
@@ -224,18 +231,22 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
 
   it("Check version ID mismatch error is thrown when incoming record's version ID doesn't match database's versionID", async (done) => {
     const resource: any = {
-      savedRecords: [{
-        id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
-        meta: {
-          created: "2018-11-29T20:33:58.712Z",
-          createdBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
-          isDeleted: true,
-          versionId: 2,
-          lastUpdated: "2018-11-29T20:33:58.712Z",
-          lastUpdatedBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
-          clientRequestId: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028"
+      savedRecords: [
+        {
+          id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
+          meta: {
+            created: "2018-11-29T20:33:58.712Z",
+            createdBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
+            isDeleted: true,
+            versionId: 2,
+            lastUpdated: "2018-11-29T20:33:58.712Z",
+            lastUpdatedBy: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028",
+            clientRequestId: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028"
+          }
         }
-      }], errorRecords: [] };
+      ],
+      errorRecords: []
+    };
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {
@@ -308,7 +319,6 @@ describe("Test convertAllToModelsForUpdate() with no data resource - ", () => {
     expect(models[0].meta.clientRequestId).toBe(recordToBeUpdated.meta.clientRequestId);
     done();
   });
-
 });
 
 // ALL negetive scenario where incoming record is soft deleted
@@ -346,7 +356,9 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
             clientRequestId: "dcaabc44-f3e9-4fd2-95d5-bff038c4e028"
           }
         }
-      ], errorRecords: [] };
+      ],
+      errorRecords: []
+    };
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {

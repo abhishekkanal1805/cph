@@ -34,4 +34,4 @@ class ContactPoint {
   period?: Period;
 }
 
-export {ContactPoint};
+export { ContactPoint };

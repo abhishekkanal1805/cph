@@ -1,4 +1,3 @@
-
 class ResourceMetadata {
   versionId?: number;
   created?: string;

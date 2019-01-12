@@ -1,4 +1,3 @@
-
 class Search {
   mode: string;
 }

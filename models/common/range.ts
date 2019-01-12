@@ -1,7 +1,7 @@
-import {SimpleQuantity} from "./simpleQuantity";
+import { SimpleQuantity } from "./simpleQuantity";
 
 interface Range {
-    low: SimpleQuantity;
-    high: SimpleQuantity;
+  low: SimpleQuantity;
+  high: SimpleQuantity;
 }
-export {Range};
+export { Range };

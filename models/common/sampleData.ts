@@ -1,13 +1,12 @@
-
-import {SimpleQuantity} from "./simpleQuantity";
+import { SimpleQuantity } from "./simpleQuantity";
 
 interface SampleData {
-    origin?: SimpleQuantity;
-    period?: number;
-    factor?: number;
-    lowerLimit?: number;
-    upperLimit?: number;
-    dimensions?: number;
-    data?: string;
+  origin?: SimpleQuantity;
+  period?: number;
+  factor?: number;
+  lowerLimit?: number;
+  upperLimit?: number;
+  dimensions?: number;
+  data?: string;
 }
-export {SampleData};
+export { SampleData };

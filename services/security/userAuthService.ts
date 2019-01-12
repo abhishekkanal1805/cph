@@ -44,14 +44,7 @@ export class UserAuthService {
   ): Promise<string[]> {
     log.info("Entering UserAuthService :: getPermissions()");
     let permissions = [];
-    log.debug(
-      "callerUserProfileId ::",
-      callerUserProfileId,
-      "calledUserProfileId ::",
-      calledUserProfileId,
-      "calleruserProfileType ::",
-      calleruserProfileType
-    );
+    log.debug("callerUserProfileId ::", callerUserProfileId, "calledUserProfileId ::", calledUserProfileId, "calleruserProfileType ::", calleruserProfileType);
     if (!(callerUserProfileId && calleruserProfileType && calledUserProfileId)) {
       throw new Error("Either callerUserProfileId/calleruserProfileType/calledUserProfileId is null or undefined");
     }
@@ -80,13 +73,7 @@ export class UserAuthService {
         from: calledUserProfileId,
         status: "active"
       };
-      const result: any = await ConnectionService.searchConnection(
-        Connection,
-        query,
-        callerUserProfileId,
-        authorizerData,
-        httpMethod
-      );
+      const result: any = await ConnectionService.searchConnection(Connection, query, callerUserProfileId, authorizerData, httpMethod);
       if (result.length) {
         log.info("searchConnection() success in BaseService :: getPermissions()");
         permissions = ["READ"];
@@ -100,14 +87,14 @@ export class UserAuthService {
     return permissions;
   }
 
-    /**
-     * Looks for the attributeName provided in Cognito.
-     * If running in offline mode it return offline-data
-     * @param {string} contextData
-     * @param {string} attributeName
-     * @returns {Promise<string>}
-     */
-    public static async getUserDetails(contextData: string, attributeName: string): Promise<string> {
+  /**
+   * Looks for the attributeName provided in Cognito.
+   * If running in offline mode it return offline-data
+   * @param {string} contextData
+   * @param {string} attributeName
+   * @returns {Promise<string>}
+   */
+  public static async getUserDetails(contextData: string, attributeName: string): Promise<string> {
     if (contextData.includes("offline")) {
       log.info("Running in offline mode, getUserDetail returning offline-data");
       return "offline-default";
@@ -154,62 +141,61 @@ export class UserAuthService {
   }
 
   public static async updateUserGroup(authorizerData: any, futureGroup) {
-          const userPoolID = authorizerData.iss.split("/")[3];
-          const region = userPoolID.split("_")[0];
-          const cognito = new AWS.CognitoIdentityServiceProvider({
-              region
-          });
-          const userName = authorizerData["cognito:username"];
-          const currentGroup = authorizerData["cognito:groups"];
-          if (currentGroup == futureGroup) {
-              log.info("both userGroup and future group are same");
-              return {};
-          }
-          const params = {
-              GroupName: currentGroup,
-              UserPoolId: userPoolID,
-              Username: userName
+    const userPoolID = authorizerData.iss.split("/")[3];
+    const region = userPoolID.split("_")[0];
+    const cognito = new AWS.CognitoIdentityServiceProvider({
+      region
+    });
+    const userName = authorizerData["cognito:username"];
+    const currentGroup = authorizerData["cognito:groups"];
+    if (currentGroup == futureGroup) {
+      log.info("both userGroup and future group are same");
+      return {};
+    }
+    const params = {
+      GroupName: currentGroup,
+      UserPoolId: userPoolID,
+      Username: userName
+    };
+    const groupRemoveStatus = await cognito
+      .adminRemoveUserFromGroup(params)
+      .promise()
+      .then((data) => {
+        log.info("adminRemoveUserFromGroup executed successfully.");
+        return data;
+      })
+      .catch((err) => {
+        log.error("Error in adminRemoveUserFromGroup: ", err);
+        return err;
+      });
+    if (groupRemoveStatus instanceof Error) {
+      return groupRemoveStatus;
+    } else {
+      params.GroupName = futureGroup;
+      const groupAddStatus = await cognito
+        .adminAddUserToGroup(params)
+        .promise()
+        .then(async (data) => {
+          log.info("adminRemoveUserFromGroup executed successfully.");
+          const paramsToUpdate = {
+            UserAttributes: [
+              {
+                Name: "custom:group",
+                Value: futureGroup
+              }
+            ],
+            UserPoolId: userPoolID,
+            Username: userName
           };
-          const groupRemoveStatus = await cognito
-              .adminRemoveUserFromGroup(params)
-              .promise()
-              .then((data) => {
-                  log.info("adminRemoveUserFromGroup executed successfully.");
-                  return data;
-              })
-              .catch((err) => {
-                  log.error("Error in adminRemoveUserFromGroup: ", err);
-                  return err;
-              });
-          if (groupRemoveStatus instanceof Error) {
-              return groupRemoveStatus;
-          } else {
-              params.GroupName = futureGroup;
-              const groupAddStatus = await cognito
-                  .adminAddUserToGroup(params)
-                  .promise()
-                  .then(async (data) => {
-                      log.info("adminRemoveUserFromGroup executed successfully.");
-                      const paramsToUpdate = {
-                          UserAttributes: [
-                              {
-                                  Name: "custom:group",
-                                  Value: futureGroup
-                              }
-                          ],
-                          UserPoolId: userPoolID,
-                          Username: userName
-                      };
-                      await cognito.adminUpdateUserAttributes(paramsToUpdate).promise();
-                      return data;
-                  })
-                  .catch((err) => {
-                      log.error("Error in adminRemoveUserFromGroup: ", err);
-                      return err;
-                  });
-              return groupAddStatus;
-          }
-
+          await cognito.adminUpdateUserAttributes(paramsToUpdate).promise();
+          return data;
+        })
+        .catch((err) => {
+          log.error("Error in adminRemoveUserFromGroup: ", err);
+          return err;
+        });
+      return groupAddStatus;
+    }
   }
 
   public static async doesUserHaveSameEmail(email: string, userId: string, userPoolId: string): Promise<boolean> {
@@ -222,14 +208,7 @@ export class UserAuthService {
   }
 
   public static async updateUserAttributes(userId: string, userPoolId: string, updatedAttributes: any[]) {
-    log.info(
-      "updateUserAttributes userId=" +
-        userId +
-        ", userPoolId=" +
-        userPoolId +
-        ", updated user attributes=" +
-        JSON.stringify(updatedAttributes)
-    );
+    log.info("updateUserAttributes userId=" + userId + ", userPoolId=" + userPoolId + ", updated user attributes=" + JSON.stringify(updatedAttributes));
     if (!userId || !userPoolId) {
       log.info("UserId and userPoolId both have to be present to update Cognito user attributes.");
       // TODO: Should we return null?
@@ -253,14 +232,7 @@ export class UserAuthService {
     // TODO: should the callbacks return something?
     cognito.adminUpdateUserAttributes(updateRequest, (err, data) => {
       if (err) {
-        log.error(
-          "Could not update user attributes for userId=" +
-            userId +
-            ", userPoolId=" +
-            userPoolId +
-            ", attributes=" +
-            JSON.stringify(updatedAttributes)
-        );
+        log.error("Could not update user attributes for userId=" + userId + ", userPoolId=" + userPoolId + ", attributes=" + JSON.stringify(updatedAttributes));
         log.error("Error: " + err.stack);
       } else {
         log.info("Cognito user attributes updated successfully.");

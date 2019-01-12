@@ -18,4 +18,4 @@ class EnableWhen {
   answerQuantity?: Quantity;
 }
 
-export {EnableWhen};
+export { EnableWhen };

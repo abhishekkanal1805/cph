@@ -30,19 +30,11 @@ export class APIResponseBuilder {
   }
 
   public static forbidden(errorResult: ForbiddenResult | InsufficientAccountPermissions, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<ForbiddenResult | InsufficientAccountPermissions>(
-      errorResult,
-      HttpStatusCode.FORBIDDEN,
-      callback
-    );
+    APIResponseBuilder._returnAs<ForbiddenResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.FORBIDDEN, callback);
   }
 
   public static internalServerError(errorResult: InternalServerErrorResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<InternalServerErrorResult>(
-      errorResult,
-      HttpStatusCode.INTERNAL_SERVER_ERROR,
-      callback
-    );
+    APIResponseBuilder._returnAs<InternalServerErrorResult>(errorResult, HttpStatusCode.INTERNAL_SERVER_ERROR, callback);
   }
 
   public static notFound(errorResult: NotFoundResult, callback: ApiCallback): void {
@@ -54,11 +46,7 @@ export class APIResponseBuilder {
   }
 
   public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(
-      errorResult,
-      HttpStatusCode.UNPROCESSABLE_ENTITY,
-      callback
-    );
+    APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(errorResult, HttpStatusCode.UNPROCESSABLE_ENTITY, callback);
   }
 
   public static ok<T>(result: T, callback: ApiCallback): void {

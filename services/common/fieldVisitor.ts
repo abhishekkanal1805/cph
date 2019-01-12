@@ -56,10 +56,7 @@ export class FieldVisitor {
         log.info("No array provided or it was empty.");
       }
     } catch (err) {
-      this.error =
-        FieldVisitor.INTERNAL_ERROR +
-        ". Error determining uniqueness of item ids for the user profile. Error" +
-        err.toString();
+      this.error = FieldVisitor.INTERNAL_ERROR + ". Error determining uniqueness of item ids for the user profile. Error" + err.toString();
       log.error(this.error, err);
     }
   }
@@ -76,5 +73,4 @@ export class FieldVisitor {
     }
     return null;
   }
-
 }

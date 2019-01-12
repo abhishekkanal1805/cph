@@ -14,7 +14,6 @@ import { DataService } from "./dataService";
 import { Utility } from "./Utility";
 
 class DataHelperService {
-
   /**
    * Converts the raw payload/resource into typed Model that can be later used to make ORM calls.
    * The provided record is convert to Model and additionally we set the ID and metadata if supported by the Model.
@@ -30,7 +29,7 @@ class DataHelperService {
     const meta = Utility.getRecordMeta(userIdKey, userIdKey);
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
-      const providedClientRequestId = (thisRecord.meta && thisRecord.meta.clientRequestId) ? thisRecord.meta.clientRequestId : " ";
+      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
       // add new meta data to the provided record
       thisRecord.id = uuid();
       thisRecord.meta = meta;
@@ -67,10 +66,7 @@ class DataHelperService {
         throw new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
       }
       if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-        throw new BadRequestResult(
-          errorCode.VersionIdMismatch,
-          existingRecord.meta.versionId
-        );
+        throw new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
       }
 
       // update is legal, now prepare the Model
@@ -97,8 +93,8 @@ class DataHelperService {
     const recordAsModel = Object.assign(new serviceModel(), record); // this makes sure all fields other than dataResource are copied
     // if a serviceDataResource type was provided and if the dataResource field is also present then setting
     if (serviceDataResource != null) {
-        log.debug("adding [dataResource] to the model");
-        recordAsModel.dataResource = Object.assign(new serviceDataResource(), record);
+      log.debug("adding [dataResource] to the model");
+      recordAsModel.dataResource = Object.assign(new serviceDataResource(), record);
     }
     return recordAsModel;
   }
@@ -112,9 +108,9 @@ class DataHelperService {
   public static createBooleanSearchConditions(mappedAttribute, value, searchObject) {
     log.info("Entering DataHelperService :: createBooleanSearchConditions()");
     if (_.isString(value)) {
-      value = (value.trim().toLowerCase() === "true");
+      value = value.trim().toLowerCase() === "true";
       searchObject[mappedAttribute.to] = {
-        [Op.eq] : value
+        [Op.eq]: value
       };
     }
     log.info("Exiting DataHelperService :: createBooleanSearchConditions()");
@@ -136,7 +132,7 @@ class DataHelperService {
       lt: Op.lt,
       eq: Op.eq
     };
-    let condtionType =  "OR";
+    let condtionType = "OR";
     let condtionOperator = Op.or;
     if (value.length > 1) {
       condtionType = "AND";
@@ -147,27 +143,27 @@ class DataHelperService {
     };
     let values = value;
     if (mappedAttribute.isMultiple) {
-      values =  (condtionType === "OR") ? value[0].split(",") : value ;
+      values = condtionType === "OR" ? value[0].split(",") : value;
     }
     for (const item in values) {
       const dateObject = Utility.getPrefixDate(values[item]);
-      const isDateTime =  moment(dateObject.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
+      const isDateTime = moment(dateObject.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
       const operation = operatorMap[dateObject.prefix] ? operatorMap[dateObject.prefix] : Op.eq;
       if (isDateTime) {
         if (mappedAttribute.isPeriod) {
           searchObject[Op.or] = [
             {
-              [mappedAttribute.periodAttribute] : {
-                start : {
+              [mappedAttribute.periodAttribute]: {
+                start: {
                   [operatorMap.le]: dateObject.date
                 },
-                end : {
+                end: {
                   [operatorMap.ge]: dateObject.date
                 }
               }
             },
             {
-              [mappedAttribute.to] : {
+              [mappedAttribute.to]: {
                 [operation]: dateObject.date
               }
             }
@@ -177,21 +173,23 @@ class DataHelperService {
         }
       } else {
         const curentDate = moment(new Date(dateObject.date).toISOString(), "YYYY-MM-DDTHH:mm:ss.SSSSZ").toISOString();
-        const nextDate = moment(curentDate).add(1, "days").toISOString();
+        const nextDate = moment(curentDate)
+          .add(1, "days")
+          .toISOString();
         if (mappedAttribute.isPeriod) {
           searchObject[Op.or] = [
             {
-              [mappedAttribute.periodAttribute] : {
-                start : {
+              [mappedAttribute.periodAttribute]: {
+                start: {
                   [operatorMap.le]: curentDate
                 },
-                end : {
+                end: {
                   [operatorMap.ge]: curentDate
                 }
               }
             },
             {
-              [mappedAttribute.to] : {
+              [mappedAttribute.to]: {
                 [operation]: curentDate
               }
             }
@@ -208,8 +206,8 @@ class DataHelperService {
               break;
             default:
               searchObject[mappedAttribute.to][condtionOperator] = {
-                [operatorMap.ge] : curentDate,
-                [operatorMap.lt] : nextDate,
+                [operatorMap.ge]: curentDate,
+                [operatorMap.lt]: nextDate
               };
           }
         }
@@ -238,17 +236,17 @@ class DataHelperService {
       }
       if (!searchObject[parentAttribute]) {
         searchObject[parentAttribute] = {
-          [Op.and] : []
+          [Op.and]: []
         };
       }
       searchObject[parentAttribute][Op.and].push({
         [Op.contains]: nestedAttributes
       });
     } else {
-      value = (mappedAttribute.isMultiple) ? value.split(",") : value;
-      const operator = (mappedAttribute.isMultiple) ? Op.or : Op.eq ;
+      value = mappedAttribute.isMultiple ? value.split(",") : value;
+      const operator = mappedAttribute.isMultiple ? Op.or : Op.eq;
       searchObject[mappedAttribute.to] = {
-        [operator] : value
+        [operator]: value
       };
     }
     log.info("Exiting DataHelperService :: createGenericSearchConditions()");
@@ -267,10 +265,10 @@ class DataHelperService {
       return;
     }
     arrFlag = attributes[0].indexOf("[*]") > -1;
-    const attributeName = (arrFlag) ? attributes[0].replace("[*]", "") : attributes[0];
-    nestedAttributes[attributeName] = (arrFlag) ? [{}] : {};
-    const objectMap = (arrFlag) ? nestedAttributes[attributeName][0] : nestedAttributes[attributeName];
-    this.getNestedAttributes(attributes.slice(1), value, objectMap , arrFlag);
+    const attributeName = arrFlag ? attributes[0].replace("[*]", "") : attributes[0];
+    nestedAttributes[attributeName] = arrFlag ? [{}] : {};
+    const objectMap = arrFlag ? nestedAttributes[attributeName][0] : nestedAttributes[attributeName];
+    this.getNestedAttributes(attributes.slice(1), value, objectMap, arrFlag);
   }
 
   /**
@@ -283,12 +281,10 @@ class DataHelperService {
     log.info("Entering DataHelperService :: prepareSearchQuery()");
     const queryObject: any = {
       where: {},
-      order: [
-        ["id", "DESC"]
-      ]
+      order: [["id", "DESC"]]
     };
     const searchObject: any = {};
-    if ( attributes.length > 0 ) {
+    if (attributes.length > 0) {
       queryObject.attributes = attributes;
     }
     for (const key in searchRequest) {
@@ -321,7 +317,7 @@ class DataHelperService {
       queryObject.limit = paginationInfo.limit;
       queryObject.offset = paginationInfo.offset;
     }
-    log.info("Generated Query: " , queryObject);
+    log.info("Generated Query: ", queryObject);
     log.info("Exiting DataHelperService :: prepareSearchQuery()");
     return queryObject;
   }

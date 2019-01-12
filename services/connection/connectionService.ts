@@ -8,7 +8,6 @@ import { DataService } from "../common/dataService";
 const profileDisplay: any = {};
 
 export class ConnectionService {
-
   /**
    * To search connection record for the provided query string
    * @param {any} serviceModel Sequelize model class of the target table.
@@ -18,13 +17,7 @@ export class ConnectionService {
    * @param {string} httpMethod http method
    * @returns {Promise<any>}
    */
-  public static async searchConnection(
-    serviceModel: any,
-    queryParams: any,
-    loggedinId: any,
-    authorizerData: any,
-    httpMethod: string
-  ): Promise<any> {
+  public static async searchConnection(serviceModel: any, queryParams: any, loggedinId: any, authorizerData: any, httpMethod: string): Promise<any> {
     const userProfile: any = await this.isProfileValid(loggedinId, authorizerData, httpMethod);
     if (["practitioner", "careteam", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
       log.error("Error occoured due to invalid userType: " + userProfile.type);
@@ -85,7 +78,14 @@ export class ConnectionService {
     const fetchDeletedRecord = false;
     const userValidationId = "id";
     const userProfileObj: any = await DataService.getRecord(
-      UserProfile, authorizerData, httpMethod, profileId, performUserValidation, userValidationId, fetchDeletedRecord);
+      UserProfile,
+      authorizerData,
+      httpMethod,
+      profileId,
+      performUserValidation,
+      userValidationId,
+      fetchDeletedRecord
+    );
     if (!userProfileObj.id) {
       throw new BadRequestResult(errorCode.ResourceNotSaved, "UserProfile doesn't exists");
     }

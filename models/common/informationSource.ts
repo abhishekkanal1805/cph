@@ -1,4 +1,3 @@
-
 class InformationSource {
   reference: string;
   display: string;

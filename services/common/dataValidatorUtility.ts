@@ -10,7 +10,6 @@ import * as config from "../../common/objects/config";
 import { Utility } from "./Utility";
 
 class DataValidatorUtility {
-
   public static validateStringAttributes(key, paramValue, isMultivalue) {
     // multiple value support is not there for string
     if (isMultivalue) {
@@ -127,7 +126,7 @@ class DataValidatorUtility {
         log.error("Failed for attribute: " + key);
         return false;
       }
-      const isMultivalue = (paramValue.length > 1 );
+      const isMultivalue = paramValue.length > 1;
       let validationStatus;
       switch (paramDataType) {
         case "date":

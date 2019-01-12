@@ -192,7 +192,13 @@ export class Utility {
     const foundIDs = lodash.uniq(
       lodash.map(result, (item) => {
         const value = this.getAttributeValue(item, userValidationId);
-        if (value && value.toString().toLowerCase().startsWith("userprofile")) {
+        if (
+          value &&
+          value
+            .toString()
+            .toLowerCase()
+            .startsWith("userprofile")
+        ) {
           return value.toString().split("/")[1];
         } else {
           return value;
@@ -219,8 +225,7 @@ export class Utility {
           const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
           if (serviceObj.resourceType.toLowerCase() != "userprofile") {
             log.error("Error occoured as resourceType is not userprofile");
-            const badRequest = new BadRequestResult(
-              errorCode.InvalidUserId, "UserProfile missing in reference");
+            const badRequest = new BadRequestResult(errorCode.InvalidUserId, "UserProfile missing in reference");
             if (eachEntry.meta && eachEntry.meta.clientRequestId) {
               badRequest.clientRequestId = eachEntry.meta.clientRequestId;
             }
@@ -229,7 +234,7 @@ export class Utility {
             break;
           }
           eachEntry[displayAttribute].reference = ["UserProfile", serviceObj.id].join("/");
-          if (userIdAttribute.trim().split(".")[0] === displayAttribute ) {
+          if (userIdAttribute.trim().split(".")[0] === displayAttribute) {
             if (!uniqIds[serviceObj.id]) {
               uniqIds[serviceObj.id] = 1;
             }
@@ -262,19 +267,13 @@ export class Utility {
       return resourceArray;
     }
     resourceArray = requestBody.entry.map((entry) => entry.resource);
-    if ( resourceArray.length !== requestBody.total) {
+    if (resourceArray.length !== requestBody.total) {
       log.error("Error: entries length do not match total count");
-      throw new BadRequestResult(
-        errorCode.InvalidCount,
-        "Bundle total attribute doesn't match number of records in request"
-      );
+      throw new BadRequestResult(errorCode.InvalidCount, "Bundle total attribute doesn't match number of records in request");
     }
-    if ( resourceArray.length > Constants.POST_LIMIT) {
+    if (resourceArray.length > Constants.POST_LIMIT) {
       log.error("Error: entries total count is more than allowed records");
-      throw new BadRequestResult(
-        errorCode.InvalidCount,
-        "Bundle record count is more than allowed records"
-      );
+      throw new BadRequestResult(errorCode.InvalidCount, "Bundle record count is more than allowed records");
     }
     return resourceArray;
   }
@@ -319,10 +318,10 @@ export class Utility {
     const searchValue = [];
     for (const item in queryParams) {
       // in case date attribute we will get 2 items in array for others it will be 1
-      let itemValue = (queryParams[item].length > 1) ? queryParams[item].join("&") : queryParams[item].toString();
+      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&") : queryParams[item].toString();
       if (config.data.displayFields.indexOf(item) > -1) {
         // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
-        itemValue =  (itemValue.indexOf("/") > -1) ? itemValue.split("/")[1] : itemValue;
+        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
       }
       searchValue.push([item, itemValue].join("="));
     }
@@ -375,7 +374,7 @@ export class Utility {
    */
   public static validateEmail(email: string): any {
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return (email.length > 0) ? emailPattern.test(String(email).toLowerCase()) : false;
+    return email.length > 0 ? emailPattern.test(String(email).toLowerCase()) : false;
   }
 
   /**
@@ -521,7 +520,7 @@ export class Utility {
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
-      if (lodash.isNaN(offset) || offset < 1 ) {
+      if (lodash.isNaN(offset) || offset < 1) {
         throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
       }
       offset *= limit;

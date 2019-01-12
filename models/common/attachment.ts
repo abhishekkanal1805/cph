@@ -1,4 +1,3 @@
-
 interface Attachment {
   contentType?: string;
   language?: string;

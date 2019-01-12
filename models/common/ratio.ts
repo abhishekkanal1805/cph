@@ -1,7 +1,7 @@
-import {Quantity} from "./quantity";
+import { Quantity } from "./quantity";
 
 interface Ratio {
-    numerator?: Quantity;
-    denominator?: Quantity;
+  numerator?: Quantity;
+  denominator?: Quantity;
 }
-export {Ratio};
+export { Ratio };

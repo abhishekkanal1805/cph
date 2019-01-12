@@ -116,7 +116,7 @@ class DataService {
       then return dataResource else return data for all attributes
     */
     resource.savedRecords = _.map(resource.savedRecords, (item) => {
-      return (item.dataResource) ? item.dataResource : item;
+      return item.dataResource ? item.dataResource : item;
     });
     return resource;
   }
@@ -155,9 +155,7 @@ class DataService {
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
     if (_.uniq(recordIds).length !== recordIds.length) {
-      throw new BadRequestResult (
-      errorCode.InvalidInput,
-      "Provided list of ID keys contains duplicates");
+      throw new BadRequestResult(errorCode.InvalidInput, "Provided list of ID keys contains duplicates");
     }
     // Get all unique userids
     const userIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, userValidationId, resource);
@@ -169,15 +167,14 @@ class DataService {
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
-    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(
-      resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
+    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {
       const thisPromise = serviceModel
         .update(eachRecord, { where: { id: eachRecord.id } })
         .then(() => {
-          const item = (eachRecord.dataResource) ? eachRecord.dataResource : eachRecord;
+          const item = eachRecord.dataResource ? eachRecord.dataResource : eachRecord;
           savedBundle.push(item);
         })
         .catch((err) => {
@@ -371,7 +368,7 @@ class DataService {
       dataResource contains whole json object, if dataResource is there in attribute
       then return dataResource else return data for all attributes
     */
-    return (results.dataResource) ? results.dataResource : results;
+    return results.dataResource ? results.dataResource : results;
   }
   /**
    * Makes database call to fetch a single record id from DB.
@@ -478,7 +475,7 @@ class DataService {
         serviceObj.dataResource = Object.assign(new serviceDataResource(), eachRecord);
       }
       const thisPromise = serviceModel
-        .update({dataResource: serviceObj.dataResource}, { where: { id: serviceObj.dataResource.id }})
+        .update({ dataResource: serviceObj.dataResource }, { where: { id: serviceObj.dataResource.id } })
         .then(() => {
           savedBundle.push(eachRecord.dataResource);
         })
@@ -500,13 +497,7 @@ class DataService {
    * @param {string[]} attributes
    * @returns {Promise<object[]>}
    */
-  public static async searchDatabaseRows(
-    queryParams: any,
-    serviceModel: any,
-    endPoint: string,
-    attributes: string[],
-    paginationInfo?
-  ): Promise<object[]> {
+  public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
     log.info("Entering BaseService :: getSearchDatabaseRows()");
     log.debug("Start-DBCall: " + new Date().toISOString());
     const queryObject = DataHelperService.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
@@ -519,7 +510,7 @@ class DataService {
       then return dataResource else return data for all attributes
     */
     return _.map(result, (d) => {
-      return (attributes.indexOf("dataResource") > -1) ? d.dataResource : d;
+      return attributes.indexOf("dataResource") > -1 ? d.dataResource : d;
     });
   }
 }

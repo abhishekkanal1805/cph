@@ -168,13 +168,7 @@ class ResponseBuilderService {
    * @param {boolean} createBundle records bundle needs to be created or not.
    * @returns response object.
    */
-  public static createResponseObject(
-    objectArray: any[],
-    fullUrl?: string,
-    type?: string,
-    queryParams?: any,
-    createBundle?: boolean
-  ) {
+  public static createResponseObject(objectArray: any[], fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
     const entryArray = [];
     const links = [];
@@ -254,13 +248,7 @@ class ResponseBuilderService {
       if (isDisplay) {
         result.savedRecords = this.setDisplayAttribute(result.savedRecords);
       }
-      const successResult = this.createResponseObject(
-        result.savedRecords,
-        fullUrl,
-        type,
-        queryParams,
-        isBundle
-      );
+      const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
       const errorResult = [];
       if (result.errorRecords && result.errorRecords.length > 0) {
         result.errorRecords.forEach((record) => {
@@ -268,18 +256,12 @@ class ResponseBuilderService {
           errorResult.push(err);
         });
       }
-      successResult.entry = [...successResult.entry , ...errorResult];
+      successResult.entry = [...successResult.entry, ...errorResult];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else if (result.savedRecords && result.savedRecords.length === 0) {
       response.responseType = Constants.RESPONSE_TYPE_OK;
-      const successResult = this.createResponseObject(
-        result.savedRecords,
-        fullUrl,
-        type,
-        queryParams,
-        isBundle
-      );
+      const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
       const errorResult = [];
       if (result.errorRecords && result.errorRecords.length > 0) {
         result.errorRecords.forEach((record) => {
@@ -287,7 +269,7 @@ class ResponseBuilderService {
           errorResult.push(err);
         });
       }
-      successResult.entry = [...successResult.entry , ...errorResult];
+      successResult.entry = [...successResult.entry, ...errorResult];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else {
@@ -303,23 +285,16 @@ class ResponseBuilderService {
       } else if (result instanceof NotFoundResult) {
         response.responseType = Constants.RESPONSE_TYPE_NOT_FOUND;
         response["responseObject"] = errorResult;
-      } else if (
-        (result instanceof ForbiddenResult) ||
-        result instanceof InsufficientAccountPermissions
-      ) {
+      } else if (result instanceof ForbiddenResult || result instanceof InsufficientAccountPermissions) {
         response.responseType = Constants.RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS;
         response["responseObject"] = errorResult;
       } else {
         response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
-        response["responseObject"] = new InternalServerErrorResult(
-          errorCode.ResourceNotFound,
-          "Error occoured during this operation"
-        );
+        response["responseObject"] = new InternalServerErrorResult(errorCode.ResourceNotFound, "Error occoured during this operation");
       }
     }
     return response;
   }
-
 }
 
 export { ResponseBuilderService };

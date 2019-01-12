@@ -64,9 +64,7 @@ class UserProfile extends Model<UserProfile> {
    * @returns {boolean}
    */
   public isNameUpdated(updatedUserProfile: any): boolean {
-    return (
-      this.name.family !== updatedUserProfile.name.family || this.name.given[0] !== updatedUserProfile.name.given[0]
-    );
+    return this.name.family !== updatedUserProfile.name.family || this.name.given[0] !== updatedUserProfile.name.given[0];
   }
   /**
    * Updates to email, type and status are currently not allowed.
@@ -76,11 +74,7 @@ class UserProfile extends Model<UserProfile> {
    * @returns boolean
    */
   public isProfileUpdateLegal(updatedUserProfile: any): boolean {
-    return (
-      this.email === updatedUserProfile.email &&
-      this.status === updatedUserProfile.status &&
-      this.type === updatedUserProfile.type
-    );
+    return this.email === updatedUserProfile.email && this.status === updatedUserProfile.status && this.type === updatedUserProfile.type;
   }
   /**
    * returns a comma separated list of all itemId(s) that qere not unique.
@@ -96,7 +90,6 @@ class UserProfile extends Model<UserProfile> {
     fieldVisitor.visitAll(this.additionalAttributes);
     return fieldVisitor.error || fieldVisitor.getAllDuplicatesAsString();
   }
-
 }
 
 export { UserProfile };

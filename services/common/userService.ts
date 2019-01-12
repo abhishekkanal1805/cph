@@ -7,11 +7,10 @@ import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
 import { UserAuthService } from "../security/userAuthService";
-import {ResponseBuilderService} from "./responseBuilderService";
+import { ResponseBuilderService } from "./responseBuilderService";
 import { Utility } from "./Utility";
 
 class UserService {
-
   /**
    * checking permissions for Practioner/Care partner type user
    * @param {*} accessObj User endpoint access object.
@@ -22,7 +21,13 @@ class UserService {
    * @returns Returns a custom error in case user validation fails.
    */
   public static async performMultiUserValidation(
-    accessObj: any, userIds: string[], httpMethod: string, userValidationId: string, resource: any, authorizerData: any): Promise<void> {
+    accessObj: any,
+    userIds: string[],
+    httpMethod: string,
+    userValidationId: string,
+    resource: any,
+    authorizerData: any
+  ): Promise<void> {
     log.info("Entering UserService :: performMultiUserValidation()");
     // Check user present in cognito or not and get profile Id
     let newRecords = [];
@@ -32,30 +37,21 @@ class UserService {
       let userPermissions: string[] = [];
       let isPermissionValid: boolean = false;
       try {
-        userPermissions = await UserAuthService.getUserPermissions(
-          callerUserProfileId,
-          userId,
-          calleruserProfileType,
-          authorizerData,
-          httpMethod
-        );
+        userPermissions = await UserAuthService.getUserPermissions(callerUserProfileId, userId, calleruserProfileType, authorizerData, httpMethod);
         isPermissionValid = await UserAuthService.validatePermissions(userPermissions, httpMethod);
       } catch (err) {
         // if error occoured for a userId, then skip and go for next userId
         log.error("Error in UserService :: performMultiUserValidation() " + userId);
       }
-      const filteredRecords: any = _.filter( resource.savedRecords, (eachRecord) => {
-        return Utility.getAttributeValue(eachRecord, userValidationId) ===  ["UserProfile", userId].join("/");
+      const filteredRecords: any = _.filter(resource.savedRecords, (eachRecord) => {
+        return Utility.getAttributeValue(eachRecord, userValidationId) === ["UserProfile", userId].join("/");
       });
       if (userPermissions.length && isPermissionValid) {
         newRecords = newRecords.concat(filteredRecords);
       } else {
         resource.errorRecords = resource.errorRecords.concat(
           _.map(filteredRecords, (d) => {
-            const badRequest = new UnAuthorizedResult(
-              errorCode.InvalidUserId,
-              "User don't have permission to update this record",
-            );
+            const badRequest = new UnAuthorizedResult(errorCode.InvalidUserId, "User don't have permission to update this record");
             badRequest.clientRequestId = d.meta ? d.meta.clientRequestId : " ";
             return badRequest;
           })
@@ -109,7 +105,7 @@ class UserService {
    */
   public static async performUserAccessValidation(serviceModel: any, authorizerData: any, httpMethod: string) {
     log.info("Entering UserService :: performUserAcessValidation()");
-    const profileId: string =  authorizerData.profile || "";
+    const profileId: string = authorizerData.profile || "";
     const userAccessObj: any = {
       endpointPermission: false,
       loggedinId: profileId,
@@ -138,7 +134,7 @@ class UserService {
         throw new Error("UserProfile status is inactive");
       }
       // check if profile type has access to endpoint or not
-      if ((!config.settings[endpointName]) || (!config.settings[endpointName]["endpointAccess"])) {
+      if (!config.settings[endpointName] || !config.settings[endpointName]["endpointAccess"]) {
         log.error("Error in UserService: profileType/endpointName doesn't exists in congfig section");
         throw new Error("profileType/endpointName doesn't exists in congfig section");
       }
@@ -148,7 +144,7 @@ class UserService {
         throw new Error("endpointName doesn't exists in congfig section");
       }
       // if * then user has access to all methods else selected methods
-      if (allowedMethodTypes[0] === "*" || allowedMethodTypes.indexOf(httpMethod) > -1 ) {
+      if (allowedMethodTypes[0] === "*" || allowedMethodTypes.indexOf(httpMethod) > -1) {
         userAccessObj.endpointPermission = true;
       }
       // if user is valid then set display attribute and profile status
