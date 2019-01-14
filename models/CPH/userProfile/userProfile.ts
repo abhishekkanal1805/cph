@@ -3,6 +3,7 @@ import { FieldVisitor } from "../../../services/common/fieldVisitor";
 import { Address } from "../../common/address";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
+import { Identifier } from "../../common/identifier";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { ProfileItem } from "./profileItem";
 
@@ -56,6 +57,18 @@ class UserProfile extends Model<UserProfile> {
   preferences: ProfileItem[];
 
   @Column({ type: DataType.JSONB })
+  identifier: Identifier;
+
+  @Column({ type: DataType.STRING })
+  userCode: string;
+
+  @Column({ type: DataType.STRING })
+  npi: string;
+
+  @Column({ type: DataType.STRING })
+  dea: string;
+
+  @Column({ type: DataType.JSONB })
   additionalAttributes: ProfileItem[];
 
   /**
@@ -66,6 +79,7 @@ class UserProfile extends Model<UserProfile> {
   public isNameUpdated(updatedUserProfile: any): boolean {
     return this.name.family !== updatedUserProfile.name.family || this.name.given[0] !== updatedUserProfile.name.given[0];
   }
+
   /**
    * Updates to email, type and status are currently not allowed.
    * This returns false if any of these attribute were different from existing record
@@ -76,6 +90,7 @@ class UserProfile extends Model<UserProfile> {
   public isProfileUpdateLegal(updatedUserProfile: any): boolean {
     return this.email === updatedUserProfile.email && this.status === updatedUserProfile.status && this.type === updatedUserProfile.type;
   }
+
   /**
    * returns a comma separated list of all itemId(s) that qere not unique.
    * If there was error performing the validation it returns error.
