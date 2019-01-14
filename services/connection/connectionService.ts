@@ -72,7 +72,7 @@ export class ConnectionService {
    * @param {string} httpMethod http method
    * @returns {Promise<any>}
    */
-  private static async isProfileValid(profileId: string, authorizerData: any, httpMethod: string): Promise<any> {
+  public static async isProfileValid(profileId: string, authorizerData: any, httpMethod: string): Promise<any> {
     log.info("profileId", profileId);
     const performUserValidation = false;
     const fetchDeletedRecord = false;
