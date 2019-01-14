@@ -533,7 +533,7 @@ const settings = {
       "practitioner": ["*"],
       "care partner": ["*"]
     },
-    isUniqueCodeRequired : true
+    isUniqueCodeRequired: true
   },
   cmsBatch: {
     searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
