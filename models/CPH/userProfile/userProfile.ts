@@ -5,7 +5,8 @@ import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
 import { ResourceMetadata } from "../../common/resourceMetadata";
-import { ProfileItem } from "./profileItem";
+import {Preference} from "../../common/preference";
+import {Additional} from "../../common/additional";
 
 @Table({ tableName: "UserProfile" })
 class UserProfile extends Model<UserProfile> {
@@ -54,7 +55,7 @@ class UserProfile extends Model<UserProfile> {
   address: Address;
 
   @Column({ type: DataType.JSONB })
-  preferences: ProfileItem[];
+  preferences: Preference;
 
   @Column({ type: DataType.JSONB })
   identifier: Identifier;
@@ -69,7 +70,7 @@ class UserProfile extends Model<UserProfile> {
   dea: string;
 
   @Column({ type: DataType.JSONB })
-  additionalAttributes: ProfileItem[];
+  additionalAttributes: Additional[];
 
   /**
    * Returns true if the updated profile contains name different from this profile
