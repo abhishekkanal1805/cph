@@ -1,12 +1,12 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { FieldVisitor } from "../../../services/common/fieldVisitor";
+import { Additional } from "../../common/additional";
 import { Address } from "../../common/address";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
+import { Preference } from "../../common/preference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
-import {Preference} from "../../common/preference";
-import {Additional} from "../../common/additional";
 
 @Table({ tableName: "UserProfile" })
 class UserProfile extends Model<UserProfile> {
@@ -102,7 +102,6 @@ class UserProfile extends Model<UserProfile> {
     // create a field visitor that gathers all fields with name itemId and
     // looks into descendants if present for name profileItem
     const fieldVisitor: FieldVisitor = new FieldVisitor("itemId", "profileItem");
-    fieldVisitor.visitAll(this.preferences);
     fieldVisitor.visitAll(this.additionalAttributes);
     return fieldVisitor.error || fieldVisitor.getAllDuplicatesAsString();
   }
