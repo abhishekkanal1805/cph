@@ -72,7 +72,7 @@ export class ConnectionService {
    * @param {string} httpMethod http method
    * @returns {Promise<any>}
    */
-  public static async isProfileValid(profileId: string, authorizerData: any, httpMethod: string): Promise<any> {
+  public static async isProfileValid(profileId: string, authorizerData: any, httpMethod: string , uniqueCode?: string): Promise<any> {
     log.info("profileId", profileId);
     const performUserValidation = false;
     const fetchDeletedRecord = false;
@@ -91,6 +91,9 @@ export class ConnectionService {
     }
     if (userProfileObj.status != "active") {
       throw new BadRequestResult(errorCode.ResourceNotSaved, "UserProfile is not active");
+    }
+    if (uniqueCode && (userProfileObj.userCode != uniqueCode) ) {
+      throw new BadRequestResult(errorCode.InvalidRequest, "Provided userCode is invalid");
     }
     const referenceId = userProfileObj.id;
     if (!profileDisplay.hasOwnProperty(referenceId)) {
