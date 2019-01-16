@@ -5,9 +5,9 @@ import { Address } from "../../common/address";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
-import { UserProfileDataResource } from "./userProfileDataResource";
 import { Preference } from "../../common/preference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
+import { UserProfileDataResource } from "./userProfileDataResource";
 
 @Table({ tableName: "UserProfile" })
 class UserProfile extends Model<UserProfile> {
