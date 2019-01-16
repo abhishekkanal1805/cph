@@ -5,6 +5,7 @@ import { Address } from "../../common/address";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
+import { UserProfileDataResource } from "./userProfileDataResource";
 import { Preference } from "../../common/preference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 
@@ -20,6 +21,9 @@ class UserProfile extends Model<UserProfile> {
 
   @Column({ type: DataType.JSONB })
   meta: ResourceMetadata;
+
+  @Column({ type: DataType.JSONB })
+  dataResource: UserProfileDataResource;
 
   @Column({ type: DataType.STRING })
   resourceType: string;
