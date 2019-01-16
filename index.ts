@@ -42,6 +42,7 @@ export * from "./models/common/simpleQuantity";
 export * from "./models/common/subject";
 
 export * from "./models/CPH/userProfile/userProfile";
+export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
 
 export * from "./services/connection/connectionService";
