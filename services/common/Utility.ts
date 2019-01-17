@@ -209,6 +209,22 @@ export class Utility {
   }
 
   /**
+   *
+   * @param bundle
+   * @param userId
+   */
+  public static findIds(bundle: any[], key: string) {
+    log.info("Inside Utility: findIds()");
+    const foundIDs = lodash.uniq(
+      lodash.map(bundle, (item) => {
+        const value = this.getAttributeValue(item, key);
+        return value;
+      })
+    );
+    return foundIDs.length ? foundIDs : [];
+  }
+
+  /**
    * Convert ["informationSource", "subject", "patient"].reference to camelcase
    * Convert any variation of userprofile to "UserProfile" before save
    * @param {any[]} record can be a object or bundle

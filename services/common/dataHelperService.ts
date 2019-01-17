@@ -26,14 +26,16 @@ class DataHelperService {
   public static convertAllToModelsForSave(recordsToSave: any[], serviceModel: any, serviceDataResource: any, userIdKey: string) {
     log.info("Entering DataHelperService :: convertAllToModelsForSave()");
     const models = [];
-    const meta = Utility.getRecordMeta(userIdKey, userIdKey);
+    const metaObj = Utility.getRecordMeta(userIdKey, userIdKey);
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
       const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
+      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : " ";
       // add new meta data to the provided record
       thisRecord.id = uuid();
-      thisRecord.meta = meta;
+      Object.assign(thisRecord.meta, metaObj);
       thisRecord.meta.clientRequestId = providedClientRequestId;
+      thisRecord.meta.deviceId = providedDeviceId;
       // create a new Model instance with all the properties from record in payload
       const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
       models.push(recordAsModel.dataValues);
