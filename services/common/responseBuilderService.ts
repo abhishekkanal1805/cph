@@ -236,7 +236,6 @@ class ResponseBuilderService {
     type?: string,
     queryParams?: any
   ) {
-    errLogRef = errLogRef || "";
     if (isBundle === undefined) {
       isBundle = true;
     }
@@ -261,16 +260,14 @@ class ResponseBuilderService {
       successResult.entry = [...successResult.entry, ...errorResult];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
-    } else if (result.savedRecords && result.savedRecords.length === 0) {
+    } else if (result.errorRecords && result.errorRecords.length > 0) {
       const errorResult = [];
-      if (result.errorRecords && result.errorRecords.length > 0) {
-        result.errorRecords.forEach((record) => {
-          // set errorLogRef
-          record.errorLogRef = errLogRef;
-          errorResult.push(record);
-        });
-      }
-      response.responseType = Constants.RESPONSE_TYPE_BAD_REQUEST;
+      result.errorRecords.forEach((record) => {
+        // set errorLogRef
+        record.errorLogRef = errLogRef;
+        errorResult.push(record);
+      });
+      response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       response["responseObject"] = { errors: errorResult };
     } else {
       const errorResult = {

@@ -15,3 +15,4 @@ export class InsufficientAccountPermissions extends ErrorResult {}
 export class SequelizeInitializationError extends ErrorResult {}
 export class UnprocessableEntityResult extends ErrorResult {}
 export class UnprocessableEntityErrorResult extends ErrorResult {}
+export class MultiStatus extends ErrorResult {}

@@ -4,7 +4,7 @@
     "object-literal-sort-keys": false,
     "trailing-comma": false,
     "interface-name": [true, "never-prefix"],
-    "max-classes-per-file": [true, 10],
+    "max-classes-per-file": [true, 15],
     "member-access": false,
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
     "triple-equals": false,
