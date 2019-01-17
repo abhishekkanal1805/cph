@@ -1,6 +1,6 @@
 {
   "name": "cph-common-service",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
@@ -32,7 +32,11 @@
     "pretest": "npm run compile",
     "test": "jasmine",
     "lint": "tslint --fix --project ./tsconfig.json",
+<<<<<<< HEAD
     "prettier": "prettier --write --print-width 160 '**/*.{ts,yml,json}'",
     "build": "npm run lint && npm run tsc"
+=======
+    "prettier": "prettier --write --print-width 160 \"**/*.{ts,yml,json}\"",
+    "build": "npm run prettier && npm run lint && npm run tsc"
   }
 }
