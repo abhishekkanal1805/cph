@@ -33,7 +33,11 @@ class DataHelperService {
       const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : " ";
       // add new meta data to the provided record
       thisRecord.id = uuid();
-      Object.assign(thisRecord.meta, metaObj);
+      if (thisRecord.meta) {
+        Object.assign(thisRecord.meta, metaObj);
+      } else {
+        thisRecord.meta = metaObj;
+      }
       thisRecord.meta.clientRequestId = providedClientRequestId;
       thisRecord.meta.deviceId = providedDeviceId;
       // create a new Model instance with all the properties from record in payload
