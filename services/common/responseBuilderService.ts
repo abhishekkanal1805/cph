@@ -79,7 +79,7 @@ class ResponseBuilderService {
    *
    * @returns Updated response w.r.t service response and parameter passed.
    */
-  public static generateErrorResponse(err: any, errorLogRef: string): Response {
+  public static generateErrorResponse(err: any, errorLogRef: string, clientRequestId?: string): Response {
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
     let result: ErrorResult;
     if (err.description) {
@@ -90,6 +90,7 @@ class ResponseBuilderService {
       result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
     }
     result.errorLogRef = errorLogRef;
+    result.clientRequestId = clientRequestId;
     response["responseObject"] = result;
 
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
@@ -244,7 +245,6 @@ class ResponseBuilderService {
     }
     log.info("Entering ResponseBuilderService :: generateUpdateResponse()");
     if (result.savedRecords && result.savedRecords.length > 0) {
-      response.responseType = Constants.RESPONSE_TYPE_OK;
       if (isDisplay) {
         result.savedRecords = this.setDisplayAttribute(result.savedRecords);
       }
@@ -252,6 +252,8 @@ class ResponseBuilderService {
       const errorResult = [];
       if (result.errorRecords && result.errorRecords.length > 0) {
         result.errorRecords.forEach((record) => {
+          // set errorLogRef
+          record.errorLogRef = errLogRef;
           const err = { error: record };
           errorResult.push(err);
         });
@@ -259,19 +261,15 @@ class ResponseBuilderService {
       successResult.entry = [...successResult.entry, ...errorResult];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
-    } else if (result.savedRecords && result.savedRecords.length === 0) {
-      response.responseType = Constants.RESPONSE_TYPE_OK;
-      const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
+    } else if (result.errorRecords && result.errorRecords.length > 0) {
       const errorResult = [];
-      if (result.errorRecords && result.errorRecords.length > 0) {
-        result.errorRecords.forEach((record) => {
-          const err = { error: record };
-          errorResult.push(err);
-        });
-      }
-      successResult.entry = [...successResult.entry, ...errorResult];
-      response.responseType = Constants.RESPONSE_TYPE_OK;
-      response["responseObject"] = successResult;
+      result.errorRecords.forEach((record) => {
+        // set errorLogRef
+        record.errorLogRef = errLogRef;
+        errorResult.push(record);
+      });
+      response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      response["responseObject"] = { errors: errorResult };
     } else {
       const errorResult = {
         errors: result.errorRecords

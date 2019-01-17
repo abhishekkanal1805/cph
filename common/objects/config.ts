@@ -78,7 +78,7 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -638,7 +638,7 @@ const settings = {
   allergyintolerance: {
     searchAttributes: [
       { map: "patient", to: "patient" },
-      { map: "date", to: "onset", type: "date", isMultiple: true },
+      { map: "onset", to: "onset", type: "date", isMultiple: true },
       {
         map: "lastUpdated",
         to: "lastUpdated",
