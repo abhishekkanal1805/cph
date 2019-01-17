@@ -1,5 +1,6 @@
 import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
+import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
 import { ConnectionService } from "../connection/connectionService";
 
@@ -71,12 +72,13 @@ export class UserAuthService {
       const query: any = {
         to: callerUserProfileId,
         from: calledUserProfileId,
-        status: "active"
+        status: ["active"]
       };
+      DataSource.addModel(Connection);
       const result: any = await ConnectionService.searchConnection(Connection, query, callerUserProfileId, authorizerData, httpMethod);
       if (result.length) {
         log.info("searchConnection() success in BaseService :: getPermissions()");
-        permissions = ["READ"];
+        permissions = ["READ", "WRITE"];
       } else {
         throw new Error("Validation failed :: Connection doesn't have permission to perform this operation");
       }

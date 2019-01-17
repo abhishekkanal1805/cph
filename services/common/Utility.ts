@@ -530,4 +530,14 @@ export class Utility {
       offset
     };
   }
+
+  public static getClientRequestId(payload: any) {
+    let clientRequestId = " ";
+    const recordArr: any = Utility.getResourceFromRequest(payload);
+    // get clientRequestId
+    if (recordArr[0].meta && recordArr[0].meta.clientRequestId) {
+      clientRequestId = recordArr[0].meta.clientRequestId;
+    }
+    return clientRequestId;
+  }
 }

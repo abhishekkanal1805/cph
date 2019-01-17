@@ -31,14 +31,16 @@ export class ConnectionService {
         log.error("Error occoured due to patient type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
       }
-      queryParams["from"] = loggedinId;
+      queryParams["from"] = [loggedinId];
+      queryParams["to"] = [queryParams["to"]];
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
         log.error("Error occoured due to practitioner/careteam type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
       }
-      queryParams["to"] = loggedinId;
+      queryParams["to"] = [loggedinId];
+      queryParams["from"] = [queryParams["from"]];
     } else {
       log.error("Error occoured due to invalid type");
       throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
