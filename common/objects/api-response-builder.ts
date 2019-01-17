@@ -7,7 +7,7 @@ import {
   ForbiddenResult,
   InsufficientAccountPermissions,
   InternalServerErrorResult,
-  MultiStatus,
+  MultiStatusResult,
   NotFoundResult,
   UnAuthorizedResult,
   UnprocessableEntityErrorResult
@@ -54,8 +54,8 @@ export class APIResponseBuilder {
     APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback);
   }
 
-  public static multistatus(errorResult: MultiStatus | InsufficientAccountPermissions, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<MultiStatus | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback);
+  public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback): void {
+    APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback);
   }
   private static defaultHeaders = {
     "Content-Type": config.data.headers.contentTypes.json
