@@ -32,7 +32,7 @@
     "pretest": "npm run compile",
     "test": "jasmine",
     "lint": "tslint --fix --project ./tsconfig.json",
-    "prettier": "prettier --write --print-width 160 '**/*.{ts,yml,json}'",
+    "prettier": "prettier --write --print-width 160 \"**/*.{ts,yml,json}\"",
     "build": "npm run prettier && npm run lint && npm run tsc"
   }
 }
