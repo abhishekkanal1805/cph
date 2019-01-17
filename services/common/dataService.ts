@@ -78,14 +78,15 @@ class DataService {
     authorizerData: any,
     httpMethod: string,
     userValidationId: string,
-    performUserValidation?: boolean
+    performUserValidation?: boolean,
+    limitNoOfRecordsToSave?: boolean
   ): Promise<object> {
     log.info("Entering DataService :: saveRecord()");
     if (performUserValidation === undefined) {
       performUserValidation = true;
     }
     // Convert to bundle
-    const recordArr: any = Utility.getResourceFromRequest(record);
+    const recordArr: any = Utility.getResourceFromRequest(record, limitNoOfRecordsToSave);
     if (recordArr.length < 1) {
       log.error("getResourceFromRequest() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");

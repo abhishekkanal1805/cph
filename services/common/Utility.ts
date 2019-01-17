@@ -266,7 +266,7 @@ export class Utility {
     return Object.keys(uniqIds);
   }
 
-  public static getResourceFromRequest(eventBody: string) {
+  public static getResourceFromRequest(eventBody: string, limitNoOfRecordsToSave?: boolean) {
     log.info("Inside Utility: getResourceFromRequest()");
     let requestBody: any;
     let resourceArray = [];
@@ -276,6 +276,9 @@ export class Utility {
       // error in the above string (in this case, yes)!
       log.error("getResourceFromRequest() failed :: Exiting Utility :: getResourceFromRequest()");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+    }
+    if (limitNoOfRecordsToSave === undefined) {
+      limitNoOfRecordsToSave = true;
     }
     if (!lodash.isArray(requestBody.entry)) {
       log.debug("Single resource received");
@@ -287,7 +290,7 @@ export class Utility {
       log.error("Error: entries length do not match total count");
       throw new BadRequestResult(errorCode.InvalidCount, "Bundle total attribute doesn't match number of records in request");
     }
-    if (resourceArray.length > Constants.POST_LIMIT) {
+    if (resourceArray.length > Constants.POST_LIMIT && limitNoOfRecordsToSave) {
       log.error("Error: entries total count is more than allowed records");
       throw new BadRequestResult(errorCode.InvalidCount, "Bundle record count is more than allowed records");
     }
