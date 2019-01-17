@@ -1,9 +1,10 @@
+import { Additional } from "../../common/additional";
 import { Address } from "../../common/address";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
+import { Preference } from "../../common/preference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
-import { ProfileItem } from "./profileItem";
 
 class UserProfileDataResource {
   id: string;
@@ -19,12 +20,12 @@ class UserProfileDataResource {
   type: string;
   telecom: ContactPoint[];
   address: Address;
-  preferences: ProfileItem[];
+  preferences: Preference;
   identifier: Identifier;
   userCode: string;
   npi: string;
   dea: string;
-  additionalAttributes: ProfileItem[];
+  additionalAttributes: Additional[];
 }
 
 export { UserProfileDataResource };
