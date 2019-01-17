@@ -229,13 +229,14 @@ class ResponseBuilderService {
 
   public static generateUpdateResponse(
     result: any,
-    errLogRef: string,
     isBundle?: boolean,
     isDisplay?: boolean,
     fullUrl?: string,
     type?: string,
-    queryParams?: any
+    queryParams?: any,
+    errLogRef?: string
   ) {
+    errLogRef = errLogRef || "";
     if (isBundle === undefined) {
       isBundle = true;
     }
