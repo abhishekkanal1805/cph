@@ -79,6 +79,9 @@ class DataHelperService {
       if (thisRecord.meta && thisRecord.meta.clientRequestId) {
         existingRecord.meta.clientRequestId = thisRecord.meta.clientRequestId;
       }
+      if (thisRecord.meta && thisRecord.meta.deviceId) {
+        existingRecord.meta.deviceId = thisRecord.meta.deviceId;
+      }
       thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
       const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
       updatedRecords.push(recordAsModel.dataValues);

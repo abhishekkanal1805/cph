@@ -157,6 +157,11 @@ class DataService {
       log.error("Provided resource is invalid");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
+    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    if (deviceIds.length > 1) {
+      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    }
     const resource = { savedRecords: [], errorRecords: [] };
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
