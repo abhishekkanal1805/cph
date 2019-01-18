@@ -31,24 +31,30 @@ export class ConnectionService {
         log.error("Error occoured due to patient type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
       }
-      queryParams["from"] = [loggedinId.includes("UserProfile") ? loggedinId : ["UserProfile", loggedinId].join("/")];
+      queryParams["from"] = loggedinId;
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
         log.error("Error occoured due to practitioner/careteam type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
       }
-      queryParams["to"] = [loggedinId.includes("UserProfile") ? loggedinId : ["UserProfile", loggedinId].join("/")];
+      queryParams["to"] = loggedinId;
     } else {
       log.error("Error occoured due to invalid type");
       throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
     }
     log.info("queryParams", queryParams);
+    if (queryParams.hasOwnProperty("to")) {
+      queryParams["to"] = [queryParams["to"].includes("UserProfile") ? queryParams["to"] : ["UserProfile", queryParams["to"]].join("/")];
+    }
+    if (queryParams.hasOwnProperty("from")) {
+      queryParams["from"] = [queryParams["from"].includes("UserProfile") ? queryParams["from"] : ["UserProfile", queryParams["from"]].join("/")];
+    }
     const searchAttributes = config.settings.connection.searchAttributes;
     const endPoint = "connection";
     const mandatoryAttribute = "from";
     const performUserValidation = false;
-    const appendUserProfile = true;
+    const appendUserProfile = false;
     const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta"];
     const searchResult = await DataService.searchRecords(
       serviceModel,
