@@ -148,8 +148,8 @@ export class UserAuthService {
     const cognito = new AWS.CognitoIdentityServiceProvider({
       region
     });
-    const userName = authorizerData["cognito:username"];
-    const currentGroup = authorizerData["cognito:groups"];
+    const userName = authorizerData.Username;
+    const currentGroup = authorizerData["custom:group"];
     if (currentGroup == futureGroup) {
       log.info("both userGroup and future group are same");
       return {};
@@ -255,7 +255,7 @@ export class UserAuthService {
     });
     const params = {
       UserPoolId: userPoolID,
-      Username: authorizerData["cognito:username"]
+      Username: authorizerData.Username
     };
     return await cognito
       .adminUserGlobalSignOut(params)

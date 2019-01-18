@@ -23,6 +23,7 @@ export class LambdaAuthorizerController {
         for (const item of data.UserAttributes) {
           profileInfo[item.Name] = item.Value;
         }
+        profileInfo["Username"] = data.Username;
         return profileInfo;
       })
       .catch((err) => {
@@ -127,6 +128,7 @@ export class LambdaAuthorizerController {
         context.fail("Unauthorized");
       }
       const profileInfo = await LambdaAuthorizerController.getProfile(token, region);
+      profileInfo["iss"] = iss;
       const policy = await LambdaAuthorizerController.verifyAndGetPolicy(event, token, pems[kid], iss, profileInfo);
       context.succeed(policy);
     } catch (err) {
