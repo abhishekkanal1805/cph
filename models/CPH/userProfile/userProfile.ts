@@ -62,7 +62,7 @@ class UserProfile extends Model<UserProfile> {
   preferences: Preference;
 
   @Column({ type: DataType.JSONB })
-  identifier: Identifier;
+  identifier: Identifier[];
 
   @Column({ type: DataType.STRING })
   userCode: string;
