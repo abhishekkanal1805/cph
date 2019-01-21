@@ -46,7 +46,6 @@ export class ConnectionService {
       }
       // queryParams["from"] = [loggedinId.includes("UserProfile") ? loggedinId : ["UserProfile", loggedinId].join("/")];
       queryParams["from"] = loggedinId;
-
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {

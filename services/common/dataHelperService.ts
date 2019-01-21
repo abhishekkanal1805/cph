@@ -56,10 +56,12 @@ class DataHelperService {
    * @param {string} userId user id
    * @returns {Promise<any>}
    */
-  public static async convertAllToModelsForUpdate(recordsToUpdate: any[], serviceModel: any, serviceDataResource: any, userId: string) {
+  public static async convertAllToModelsForUpdate(resource: any, serviceModel: any, serviceDataResource: any, userId: string) {
     log.info("Entering DataHelperService :: convertAllToModelsForUpdate()");
     const updatedRecords = [];
-    for (const thisRecord of recordsToUpdate) {
+    for (const thisRecord of resource.savedRecords) {
+      let insertRecordtoResource = true;
+      let clientRequestId = " ";
       // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
       let existingRecord: any;
       if (serviceDataResource != null) {
@@ -68,23 +70,37 @@ class DataHelperService {
         existingRecord = await DataService.fetchDatabaseRowStandard(thisRecord.id, serviceModel);
       }
 
+      if (thisRecord.meta && thisRecord.meta.clientRequestId) {
+        clientRequestId = thisRecord.meta.clientRequestId;
+      }
       if (existingRecord.meta && existingRecord.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
+        const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
+        notFoundResult.clientRequestId = clientRequestId;
+        resource.errorRecords.push(notFoundResult);
+        insertRecordtoResource = false;
       }
       if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-        throw new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
+        const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
+        badRequest.clientRequestId = clientRequestId;
+        resource.errorRecords.push(badRequest);
+        insertRecordtoResource = false;
       }
 
       // update is legal, now prepare the Model
-      if (thisRecord.meta && thisRecord.meta.clientRequestId) {
-        existingRecord.meta.clientRequestId = thisRecord.meta.clientRequestId;
+      if (thisRecord.meta) {
+        if (thisRecord.meta.clientRequestId) {
+          existingRecord.meta.clientRequestId = thisRecord.meta.clientRequestId;
+        }
+        if (thisRecord.meta.deviceId) {
+          existingRecord.meta.deviceId = thisRecord.meta.deviceId;
+        }
       }
-      if (thisRecord.meta && thisRecord.meta.deviceId) {
-        existingRecord.meta.deviceId = thisRecord.meta.deviceId;
+      // if no error then update metadata
+      if (insertRecordtoResource) {
+        thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
+        const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
+        updatedRecords.push(recordAsModel.dataValues);
       }
-      thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
-      const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
-      updatedRecords.push(recordAsModel.dataValues);
     }
     log.info("Exiting DataHelperService :: convertAllToModelsForUpdate()");
     return updatedRecords;

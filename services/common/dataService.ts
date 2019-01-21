@@ -178,7 +178,7 @@ class DataService {
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
-    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
+    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {

@@ -130,7 +130,7 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "dateAsserted", to: "dateAsserted", type: "date" },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "lastUpdated", type: "date" , isMultiple: true},
       { map: "isDeleted", to: "isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
@@ -158,7 +158,7 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "date", to: "date", type: "date", isMultiple: true },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "isDeleted", type: "string" },
       {
         map: "clientRequestId",
@@ -193,7 +193,7 @@ const settings = {
         isMultiple: true
       },
       { map: "date", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true},
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
@@ -270,7 +270,7 @@ const settings = {
       { map: "effectiveDateTime", to: "effectiveDateTime", type: "date" },
       { map: "medicationPlan", to: "medicationPlan", type: "string" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -297,7 +297,7 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "dateWritten", to: "dateWritten", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "isDeleted", type: "string" },
       {
         map: "limit",
@@ -682,7 +682,7 @@ const settings = {
       {
         map: "lastUpdated",
         to: "lastUpdated",
-        type: "string",
+        type: "date",
         isMultiple: true
       },
       { map: "isDeleted", to: "isDeleted", type: "string" },
