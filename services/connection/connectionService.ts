@@ -19,6 +19,7 @@ export class ConnectionService {
    */
   public static async searchConnection(serviceModel: any, queryParams: any, loggedinId: any, authorizerData: any, httpMethod: string): Promise<any> {
     const userProfile: any = await this.isProfileValid(loggedinId, authorizerData, httpMethod);
+    let mandatoryAttribute;
     if (["practitioner", "careteam", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
       log.error("Error occoured due to invalid userType: " + userProfile.type);
       throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
@@ -30,15 +31,37 @@ export class ConnectionService {
       if (queryParams.hasOwnProperty("from") && queryParams["from"] != loggedinId) {
         log.error("Error occoured due to patient type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
+      } else if (queryParams.hasOwnProperty("to")) {
+        if (queryParams["to"] != loggedinId) {
+          queryParams["from"] = loggedinId;
+          mandatoryAttribute = "from";
+        } else {
+          mandatoryAttribute = "to";
+        }
+      } else if (!queryParams.hasOwnProperty("to") && !queryParams.hasOwnProperty("from")) {
+        queryParams["from"] = loggedinId;
+        mandatoryAttribute = "from";
+      } else {
+        mandatoryAttribute = "from";
       }
-      queryParams["from"] = loggedinId;
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
         log.error("Error occoured due to practitioner/careteam type");
         throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
+      } else if (queryParams.hasOwnProperty("from")) {
+        if (queryParams["from"] != loggedinId) {
+          queryParams["to"] = loggedinId;
+          mandatoryAttribute = "to";
+        } else {
+          mandatoryAttribute = "from";
+        }
+      } else if (!queryParams.hasOwnProperty("to") && !queryParams.hasOwnProperty("from")) {
+        queryParams["from"] = loggedinId;
+        mandatoryAttribute = "from";
+      } else {
+        mandatoryAttribute = "to";
       }
-      queryParams["to"] = loggedinId;
     } else {
       log.error("Error occoured due to invalid type");
       throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");
@@ -52,7 +75,6 @@ export class ConnectionService {
     }
     const searchAttributes = config.settings.connection.searchAttributes;
     const endPoint = "connection";
-    const mandatoryAttribute = "from";
     const performUserValidation = false;
     const appendUserProfile = false;
     const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta"];
