@@ -260,7 +260,9 @@ class ResponseBuilderService {
           errorResult.push(err);
         });
       }
-      successResult.entry = [...successResult.entry, ...errorResult];
+      if (isBundle) {
+        successResult.entry = [...successResult.entry , ...errorResult];
+      }
       response.responseType = multiStatus ? Constants.RESPONSE_TYPE_MULTI_STATUS : Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else if (result.errorRecords && result.errorRecords.length > 0) {
