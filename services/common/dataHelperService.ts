@@ -94,6 +94,9 @@ class DataHelperService {
         if (thisRecord.meta.deviceId) {
           existingRecord.meta.deviceId = thisRecord.meta.deviceId;
         }
+        if (thisRecord.meta.isDeleted) {
+          existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
+        }
       }
       // if no error then update metadata
       if (insertRecordtoResource) {

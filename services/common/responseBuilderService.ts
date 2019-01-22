@@ -197,7 +197,6 @@ class ResponseBuilderService {
       for (const eachObject of objectArray) {
         const entry: any = {};
         entry.resource = eachObject;
-        entry.resource = eachObject;
         entryArray.push(Object.assign(new Entry(), entry));
       }
       responseObject = this.createBundle(entryArray, [], false);
@@ -243,14 +242,16 @@ class ResponseBuilderService {
     if (isDisplay === undefined) {
       isDisplay = true;
     }
-    log.info("Entering ResponseBuilderService :: generateUpdateResponse()");
+    log.info("Entering ResponseBuilderService :: generateUpdateResponse()" + JSON.stringify(result));
     if (result.savedRecords && result.savedRecords.length > 0) {
       if (isDisplay) {
         result.savedRecords = this.setDisplayAttribute(result.savedRecords);
       }
       const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
       const errorResult = [];
+      let multiStatus = false;
       if (result.errorRecords && result.errorRecords.length > 0) {
+        multiStatus = true;
         result.errorRecords.forEach((record) => {
           // set errorLogRef
           record.errorLogRef = errLogRef;
@@ -259,7 +260,7 @@ class ResponseBuilderService {
         });
       }
       successResult.entry = [...successResult.entry, ...errorResult];
-      response.responseType = Constants.RESPONSE_TYPE_OK;
+      response.responseType = multiStatus ? Constants.RESPONSE_TYPE_MULTI_STATUS : Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else if (result.errorRecords && result.errorRecords.length > 0) {
       const errorResult = [];
@@ -268,7 +269,7 @@ class ResponseBuilderService {
         record.errorLogRef = errLogRef;
         errorResult.push(record);
       });
-      response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
       response["responseObject"] = { errors: errorResult };
     } else {
       const errorResult = {
