@@ -13,6 +13,7 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
+import {responseType} from "../../common/objects/responseType";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
@@ -242,7 +243,7 @@ class ResponseBuilderService {
     if (isDisplay === undefined) {
       isDisplay = true;
     }
-    log.info("Entering ResponseBuilderService :: generateUpdateResponse()" + JSON.stringify(result));
+    log.info("Entering ResponseBuilderService :: generateUpdateResponse()");
     if (result.savedRecords && result.savedRecords.length > 0) {
       if (isDisplay) {
         result.savedRecords = this.setDisplayAttribute(result.savedRecords);
@@ -269,7 +270,11 @@ class ResponseBuilderService {
         record.errorLogRef = errLogRef;
         errorResult.push(record);
       });
-      response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
+      if (errorResult.length > 1) {
+        response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      } else {
+        response.responseType = lodash.findKey(responseType, (item) => (item.indexOf(errorResult[0].errorCode) !== -1));
+      }
       response["responseObject"] = { errors: errorResult };
     } else {
       const errorResult = {
