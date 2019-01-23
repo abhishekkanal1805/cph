@@ -44,8 +44,6 @@ export class ConnectionService {
       } else {
         mandatoryAttribute = "from";
       }
-      // queryParams["from"] = [loggedinId.includes("UserProfile") ? loggedinId : ["UserProfile", loggedinId].join("/")];
-      queryParams["from"] = loggedinId;
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
@@ -64,8 +62,6 @@ export class ConnectionService {
       } else {
         mandatoryAttribute = "to";
       }
-      // queryParams["to"] = [loggedinId.includes("UserProfile") ? loggedinId : ["UserProfile", loggedinId].join("/")];
-      queryParams["to"] = loggedinId;
     } else {
       log.error("Error occoured due to invalid type");
       throw new BadRequestResult(errorCode.InvalidRequest, "User is not authorized to perform this operation");

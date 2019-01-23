@@ -151,7 +151,6 @@ export class Utility {
   public static getUpdateMetadata(metaDataObject: any, modifiedByUser: string, isDeleted: boolean) {
     log.info("Inside Utility: getUpdateMetadata()");
     const timestamp = this.getTimeStamp();
-    isDeleted = metaDataObject.isDeleted ? metaDataObject.isDeleted : isDeleted;
     metaDataObject.versionId = this.getUpdatedVersionId(metaDataObject.versionId);
     metaDataObject.lastUpdated = timestamp;
     metaDataObject.lastUpdatedBy = modifiedByUser;
