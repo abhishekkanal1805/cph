@@ -385,7 +385,8 @@ const settings = {
   },
   medicationactivityupdate: {
     allowedAttributes: [
-      "status", "medicationCodeableConcept",
+      "status",
+      "medicationCodeableConcept",
       "medicationReference",
       "note",
       "notification",
@@ -395,7 +396,7 @@ const settings = {
       "dateAsserted",
       "taken",
       "reasonNotTaken",
-      "dosage",
+      "dosage"
     ],
     searchAttributes: [
       {
