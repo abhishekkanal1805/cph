@@ -66,8 +66,6 @@ export class APIResponseBuilder {
     let bodyObject: any;
     if (result instanceof ErrorResult) {
       bodyObject = { errors: [result] };
-    } else if (result[0] instanceof ErrorResult) {
-      bodyObject = { errors: result };
     } else {
       bodyObject = result;
     }
