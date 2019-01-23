@@ -131,7 +131,7 @@ const settings = {
       { map: "dateAsserted", to: "dateAsserted", type: "date" },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
       { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
-      { map: "isDeleted", to: "isDeleted", type: "boolean" },
+      { map: "isDeleted", to: "isDeleted", type: "string" },
       {
         map: "clientRequestId",
         to: "clientRequestId",
