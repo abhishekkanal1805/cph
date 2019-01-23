@@ -278,6 +278,13 @@ class ResponseBuilderService {
         response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
       }
       response["responseObject"] = { errors: errorResult };
+    } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
+      const successResult: Bundle = new Bundle();
+      successResult.resourceType = Constants.BUNDLE;
+      successResult.total = 0;
+      successResult.entry = [];
+      response.responseType = Constants.RESPONSE_TYPE_OK;
+      response["responseObject"] = successResult;
     } else {
       const errorResult = {
         errors: result.errorRecords
