@@ -130,7 +130,7 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "dateAsserted", to: "dateAsserted", type: "date" },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" , isMultiple: true},
+      { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
@@ -193,7 +193,7 @@ const settings = {
         isMultiple: true
       },
       { map: "date", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true},
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",

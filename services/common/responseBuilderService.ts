@@ -13,7 +13,7 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
-import {responseType} from "../../common/objects/responseType";
+import { responseType } from "../../common/objects/responseType";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
@@ -261,7 +261,7 @@ class ResponseBuilderService {
         });
       }
       if (isBundle) {
-        successResult.entry = [...successResult.entry , ...errorResult];
+        successResult.entry = [...successResult.entry, ...errorResult];
       }
       response.responseType = multiStatus ? Constants.RESPONSE_TYPE_MULTI_STATUS : Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
@@ -275,7 +275,7 @@ class ResponseBuilderService {
       if (errorResult.length > 1) {
         response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       } else {
-        response.responseType = lodash.findKey(responseType, (item) => (item.indexOf(errorResult[0].errorCode) !== -1));
+        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
       }
       response["responseObject"] = { errors: errorResult };
     } else {
