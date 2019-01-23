@@ -78,12 +78,14 @@ class DataHelperService {
         notFoundResult.clientRequestId = clientRequestId;
         resource.errorRecords.push(notFoundResult);
         insertRecordtoResource = false;
+        continue;
       }
       if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
         const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
         badRequest.clientRequestId = clientRequestId;
         resource.errorRecords.push(badRequest);
         insertRecordtoResource = false;
+        continue;
       }
 
       // update is legal, now prepare the Model
