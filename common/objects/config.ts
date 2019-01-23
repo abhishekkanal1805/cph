@@ -131,7 +131,7 @@ const settings = {
       { map: "dateAsserted", to: "dateAsserted", type: "date" },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
       { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
-      { map: "isDeleted", to: "isDeleted", type: "boolean" },
+      { map: "isDeleted", to: "isDeleted", type: "string" },
       {
         map: "clientRequestId",
         to: "clientRequestId",
@@ -526,7 +526,43 @@ const settings = {
     searchAttributes: [
       { map: "id", to: "id", type: "string", isMultiple: true },
       { map: "email", to: "email", type: "string" },
-      { map: "userCode", to: "userCode", type: "string" }
+      { map: "userCode", to: "userCode", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    elements: [
+      "id",
+      "dataResource",
+      "name",
+      "email",
+      "meta",
+      "race",
+      "ethnicity",
+      "gender",
+      "birthDate",
+      "status",
+      "type",
+      "telecom",
+      "address",
+      "preferences",
+      "identifier",
+      "userCode",
+      "npi",
+      "dea",
+      "additionalAttributes"
     ],
     endpointAccess: {
       "patient": ["*"],
