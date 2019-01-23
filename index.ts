@@ -9,9 +9,7 @@ export { PushService } from "./services/common/pushService";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
 
-export * from "./services/security/lambdaAuthorizer";
 export * from "./services/security/userAuthService";
-export * from "./services/security/userAuthServiceHandler";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
