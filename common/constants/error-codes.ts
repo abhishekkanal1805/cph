@@ -11,6 +11,7 @@ export const errorCode = {
   MissingPermission: "MISSING_PERMISSION",
   MissingBody: "Missing_Body",
   ResourceNotFound: "Resource_Not_Found",
+  NoSearchResultsFounds: "No_Search_Results_Founds",
   ResourceNotDeleted: "Resource_Not_Deleted",
   InvalidPatientId: "INVALID_CONSENTINGPARTY_ID",
   InvalidJSON: "InvalidJSON",

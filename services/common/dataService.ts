@@ -285,11 +285,13 @@ class DataService {
     // retrieve the record first
     const result: any = await this.searchDatabaseRows(parameters, serviceModel, endpoint, ["dataResource"]);
     // get user id from the result resource for validation
-    if (performUserValidation) {
+    if (performUserValidation && result && result.length) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
       const userIds: string[] = Utility.getUserIds(result, userValidationId);
       await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod);
+    } else {
+      throw new BadRequestResult(errorCode.NoSearchResultsFounds, "No Records found for given search criteria");
     }
     // delete permanently or soft delete
     if (permanent === "true") {
@@ -496,6 +498,7 @@ class DataService {
         });
       allPromise.push(thisPromise);
     }
+    await Promise.all(allPromise);
     log.info("Exiting DataService :: softDeleteDatabaseRow");
     return "Resource was successfully deleted";
   }

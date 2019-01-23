@@ -258,7 +258,9 @@ class ResponseBuilderService {
           errorResult.push(err);
         });
       }
-      successResult.entry = [...successResult.entry, ...errorResult];
+      if (isBundle) {
+        successResult.entry = [...successResult.entry, ...errorResult];
+      }
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else if (result.errorRecords && result.errorRecords.length > 0) {
@@ -270,6 +272,13 @@ class ResponseBuilderService {
       });
       response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       response["responseObject"] = { errors: errorResult };
+    } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
+      const successResult: Bundle = new Bundle();
+      successResult.resourceType = Constants.BUNDLE;
+      successResult.total = 0;
+      successResult.entry = [];
+      response.responseType = Constants.RESPONSE_TYPE_OK;
+      response["responseObject"] = successResult;
     } else {
       const errorResult = {
         errors: result.errorRecords
