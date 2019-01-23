@@ -243,7 +243,7 @@ class DataService {
     } else if (permanent === "false") {
       log.info("Soft deleting the item" + recordId);
       if (result.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.ResourceNotFound, "The record doesn't exist or is already deleted");
+        throw new NotFoundResult(errorCode.RecordNotFound, "The record doesn't exist or is already deleted");
       }
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);

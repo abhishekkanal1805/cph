@@ -91,7 +91,7 @@ class ResponseBuilderService {
       result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
     }
     result.errorLogRef = errorLogRef;
-    result.clientRequestId = clientRequestId ? clientRequestId : " ";
+    result.clientRequestId = clientRequestId;
     response["responseObject"] = result;
 
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
