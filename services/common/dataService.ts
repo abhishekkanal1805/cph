@@ -178,7 +178,7 @@ class DataService {
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
-    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
+    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {
@@ -243,7 +243,7 @@ class DataService {
     } else if (permanent === "false") {
       log.info("Soft deleting the item" + recordId);
       if (result.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.InvalidRequest, "The record doesn't exist or is already deleted");
+        throw new NotFoundResult(errorCode.RecordNotFound, "The record doesn't exist or is already deleted");
       }
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);

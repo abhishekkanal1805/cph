@@ -13,6 +13,7 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
+import { responseType } from "../../common/objects/responseType";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
@@ -197,7 +198,6 @@ class ResponseBuilderService {
       for (const eachObject of objectArray) {
         const entry: any = {};
         entry.resource = eachObject;
-        entry.resource = eachObject;
         entryArray.push(Object.assign(new Entry(), entry));
       }
       responseObject = this.createBundle(entryArray, [], false);
@@ -250,7 +250,9 @@ class ResponseBuilderService {
       }
       const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
       const errorResult = [];
+      let multiStatus = false;
       if (result.errorRecords && result.errorRecords.length > 0) {
+        multiStatus = true;
         result.errorRecords.forEach((record) => {
           // set errorLogRef
           record.errorLogRef = errLogRef;
@@ -261,7 +263,7 @@ class ResponseBuilderService {
       if (isBundle) {
         successResult.entry = [...successResult.entry, ...errorResult];
       }
-      response.responseType = Constants.RESPONSE_TYPE_OK;
+      response.responseType = multiStatus ? Constants.RESPONSE_TYPE_MULTI_STATUS : Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else if (result.errorRecords && result.errorRecords.length > 0) {
       const errorResult = [];
@@ -270,7 +272,11 @@ class ResponseBuilderService {
         record.errorLogRef = errLogRef;
         errorResult.push(record);
       });
-      response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      if (errorResult.length > 1) {
+        response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      } else {
+        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
+      }
       response["responseObject"] = { errors: errorResult };
     } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
       const successResult: Bundle = new Bundle();

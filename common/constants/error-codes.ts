@@ -34,5 +34,6 @@ export const errorCode = {
   VersionIdMismatch: "VersionId_Mismatch",
   UnprocessableEntity: "UNPROCESSABLE_ENTITY",
   SequelizeError: "SEQUELIZE_ERROR",
-  InvalidCount: "INVALID_COUNT"
+  InvalidCount: "INVALID_COUNT",
+  RecordNotFound: "Record_Not_Found"
 };
