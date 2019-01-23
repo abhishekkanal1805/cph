@@ -96,6 +96,9 @@ class UserService {
 
   /**
    * Function to check if user has access to this endpoint or not
+   * 1) make sure profileID is present in authorizer data. will be there only for logged in users
+   * 2) Then is profileID Present in DB and in active state
+   * 3) Then see if this user type [patient, practitioner etc] has access to the requested endpoint and request operation [GET, POST etc]
    *
    * @param {*} serviceModel Sequelize model class of the target table
    * @param {*} authorizerData AWS cognito authorizer data from incoming request.

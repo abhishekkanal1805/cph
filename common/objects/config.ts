@@ -758,14 +758,70 @@ const settings = {
     }
   },
   device: {
-    allAttributes: ["id", "deviceId", "informationSource", "platformToken", "status", "deviceInformation", "meta", "resourceType"],
+    allAttributes: [
+      "id",
+      "resourceType",
+      "identifier",
+      "platformToken",
+      "status",
+      "statusReason",
+      "informationSource",
+      "patient",
+      "manufacturer",
+      "manufactureDate",
+      "expirationDate",
+      "serialNumber",
+      "modelNumber",
+      "type",
+      "deviceName",
+      "version",
+      "meta"
+    ],
     searchAttributes: [
-      { map: "deviceId", to: "deviceId", type: "string" },
+      { map: "id", to: "id", type: "string" },
+      { map: "identifier", to: "identifier[*].value", type: "array" },
       { map: "informationSource", to: "informationSource.reference", type: "string" },
-      { map: "platformToken", to: "platformToken.token", type: "string" },
-      { map: "platformTokenStatus", to: "platformToken.status", type: "string" },
-      { map: "systemName", to: "deviceInformation.systemName", type: "string" },
-      { map: "status", to: "status", type: "string" }
+      { map: "platformToken", to: "platformToken.value", type: "string" },
+      { map: "status", to: "status", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["*"],
+      "care partner": ["*"]
+    }
+  },
+  notification: {
+    allAttributes: [
+      "id",
+      "resourceType",
+      "identifier",
+      "category",
+      "to",
+      "from",
+      "source",
+      "channels",
+      "viewedDateTime",
+      "sourceAttachment",
+      "message",
+      "activity",
+      "meta"
+    ],
+    searchAttributes: [
+      { map: "id", to: "id", type: "string" },
+      { map: "to", to: "to.reference", type: "string" },
+      { map: "from", to: "from.reference", type: "string" },
+      { map: "channels", to: "channels[*].toString", type: "array" },
+      { map: "source", to: "source.value", type: "string", isMultiple: true },
+      { map: "category", to: "category", type: "string", isMultiple: true },
+      { map: "created", to: "message.created", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
     ],
     endpointAccess: {
       "patient": ["*"],

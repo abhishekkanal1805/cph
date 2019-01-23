@@ -109,6 +109,43 @@ class UserProfile extends Model<UserProfile> {
     fieldVisitor.visitAll(this.additionalAttributes);
     return fieldVisitor.error || fieldVisitor.getAllDuplicatesAsString();
   }
+
+  public getSmsContactPoint(): string {
+    // TODO: implement this
+    return null;
+  }
+
+  /**
+   * Determines if this user has set preferences on allowing any notifications
+   * TODO: Determine this behaviour
+   * @param {string} profileId
+   */
+  public areNotificationsEnabled() {
+    // TODO: Implement this
+    return true;
+  }
+
+  /**
+   * Determines if this user has set preferences on allowing notifications in this category (example: med reminder, refill reminders )
+   * TODO: Determine this behaviour
+   * @param {string} profileId
+   * @param {string} notificationCategory
+   */
+  public isNotificationCategoryEnabled(notificationCategory: string) {
+    // TODO: Implement this
+    return true;
+  }
+
+  /**
+   * Determines if this user has set preferences on allowing notifications via this channel (example: push, sms, email)
+   * TODO: Determine this behaviour
+   * @param {string} profileId
+   * @param {string} notificationChannel
+   */
+  public isNotificationChannelEnabled(notificationChannel: string) {
+    // TODO: Implement this
+    return true;
+  }
 }
 
 export { UserProfile };

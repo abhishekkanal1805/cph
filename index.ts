@@ -5,7 +5,6 @@ export { EmailService } from "./services/common/emailService";
 export { FieldVisitor } from "./services/common/fieldVisitor";
 export { GatewayUtility } from "./services/common/gatewayUtility";
 export { LogUtility } from "./services/common/logUtility";
-export { PushService } from "./services/common/pushService";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
 
