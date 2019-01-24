@@ -116,17 +116,13 @@ class DataValidatorUtility {
       log.error("Failed for attribute: " + key + " as it has more than two values for MultiValue Date Param");
       throw new BadRequestResult(errorCode.InvalidRequest, key + " with & cannot have more than 2 values");
     }
-    if (
-      Utility.getPrefixDate(dateValues[0]).prefix.length === 0 ||
-      Utility.getPrefixDate(dateValues[1]).prefix.length === 0
-    ) {
+    if (Utility.getPrefixDate(dateValues[0]).prefix.length === 0 || Utility.getPrefixDate(dateValues[1]).prefix.length === 0) {
       log.error("Failed for attribute: " + key + " as all input dates do not have prefixes.");
       throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, "All the input dates for " + key + " don't have prefixes");
     }
     if (
       Utility.getPrefixDate(dateValues[0]).prefix === Utility.getPrefixDate(dateValues[1]).prefix ||
-      Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) ===
-      Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
+      Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) === Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
     ) {
       log.error("Failed for attribute: " + key + " as all input dates have same prefixes.");
       throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, "All the input dates for " + key + " have same prefixes");
