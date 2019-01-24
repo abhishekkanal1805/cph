@@ -9,6 +9,7 @@ const ses = new SES({ region: process.env.emailRegion });
  */
 export class EmailService {
   /**
+   * TODO: can we support headers like {"key": "Content-Language","value": "en-US"}
    * Returns SES config object
    * @param {number} code
    * @returns {string}
@@ -39,8 +40,8 @@ export class EmailService {
   }
 
   /**
-   * TODO: code review - this method needs to be async instead of wrapping into promise like this
-   * Send a mail using SES service
+   * TODO: should this method be async instead of wrapping into Promise
+   * Send a mail using SES service, using here so the function can auto-wrap the return in Promise
    * @param {any} sesConfig
    * @returns {Promise<string>}
    */
