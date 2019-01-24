@@ -178,7 +178,7 @@ class DataService {
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
-    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
+    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {
@@ -243,7 +243,7 @@ class DataService {
     } else if (permanent === "false") {
       log.info("Soft deleting the item" + recordId);
       if (result.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.InvalidRequest, "The record doesn't exist or is already deleted");
+        throw new NotFoundResult(errorCode.RecordNotFound, "The record doesn't exist or is already deleted");
       }
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);
@@ -285,11 +285,13 @@ class DataService {
     // retrieve the record first
     const result: any = await this.searchDatabaseRows(parameters, serviceModel, endpoint, ["dataResource"]);
     // get user id from the result resource for validation
-    if (performUserValidation) {
+    if (performUserValidation && result && result.length) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
       const userIds: string[] = Utility.getUserIds(result, userValidationId);
       await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod);
+    } else {
+      throw new BadRequestResult(errorCode.NoSearchResultsFounds, "No Records found for given search criteria");
     }
     // delete permanently or soft delete
     if (permanent === "true") {
@@ -496,6 +498,7 @@ class DataService {
         });
       allPromise.push(thisPromise);
     }
+    await Promise.all(allPromise);
     log.info("Exiting DataService :: softDeleteDatabaseRow");
     return "Resource was successfully deleted";
   }

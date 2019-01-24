@@ -5,13 +5,10 @@ export { EmailService } from "./services/common/emailService";
 export { FieldVisitor } from "./services/common/fieldVisitor";
 export { GatewayUtility } from "./services/common/gatewayUtility";
 export { LogUtility } from "./services/common/logUtility";
-export { PushService } from "./services/common/pushService";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
 
-export * from "./services/security/lambdaAuthorizer";
 export * from "./services/security/userAuthService";
-export * from "./services/security/userAuthServiceHandler";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
@@ -54,3 +51,4 @@ export * from "./common/objects/api-response-builder";
 export * from "./common/objects/config";
 export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
+export * from "./models/common/patient";

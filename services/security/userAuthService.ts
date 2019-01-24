@@ -89,59 +89,6 @@ export class UserAuthService {
     return permissions;
   }
 
-  /**
-   * Looks for the attributeName provided in Cognito.
-   * If running in offline mode it return offline-data
-   * @param {string} contextData
-   * @param {string} attributeName
-   * @returns {Promise<string>}
-   */
-  public static async getUserDetails(contextData: string, attributeName: string): Promise<string> {
-    if (contextData.includes("offline")) {
-      log.info("Running in offline mode, getUserDetail returning offline-data");
-      return "offline-default";
-    }
-    const userPoolID = contextData.split(",")[0].split("/")[1];
-    const userId = contextData.split("CognitoSignIn:")[1];
-    log.info("getUserDetails from Cognito for attribute: <" + attributeName + "> userID=" + userId + ", userPoolID=" + userPoolID);
-    const region = userPoolID.split("_")[0];
-    const cognito = new AWS.CognitoIdentityServiceProvider({
-      region
-    });
-    let attribute: string;
-    const user = await cognito
-      .listUsers({
-        // Handle AWS Error and return a proper response if user is not found
-        UserPoolId: userPoolID,
-        Filter: 'sub = "' + userId + '"'
-      })
-      .promise()
-      .then((data) => {
-        log.info("getUserDetails executed successfully.");
-        return data;
-      })
-      .catch((err) => {
-        log.error("Error in getUserDetails", err);
-        return err;
-      });
-    if (user instanceof Error) {
-      return "";
-    } else {
-      if (attributeName === "Username") {
-        attribute = user.Users.length > 0 ? user.Users[0].Username : null;
-        return attribute;
-      }
-      await user.Users.forEach(async (data) => {
-        const userAttributes = data.Attributes;
-        const filterRes = userAttributes.filter((d) => {
-          return d.Name === attributeName;
-        });
-        attribute = filterRes.length ? filterRes[0]["Value"] : "";
-      });
-      return attribute;
-    }
-  }
-
   public static async updateUserGroup(authorizerData: any, futureGroup) {
     const userPoolID = authorizerData.iss.split("/")[3];
     const region = userPoolID.split("_")[0];
@@ -198,15 +145,6 @@ export class UserAuthService {
         });
       return groupAddStatus;
     }
-  }
-
-  public static async doesUserHaveSameEmail(email: string, userId: string, userPoolId: string): Promise<boolean> {
-    if (!userId || userId === "" || !userPoolId || userPoolId === "") {
-      // insufficient information to lookup the current user
-      return false;
-    }
-    const username = await this.getUserDetails("", "Username");
-    return username && username === email;
   }
 
   public static async updateUserAttributes(userId: string, userPoolId: string, updatedAttributes: any[]) {

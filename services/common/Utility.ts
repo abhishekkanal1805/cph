@@ -367,20 +367,22 @@ export class Utility {
   public static async getBodyParameters(request: any, toArray?: boolean) {
     const paramObject: any = {};
     for (const eachParam of request.parameter) {
-      if (typeof eachParam.name !== "undefined") {
-        if (toArray) {
-          if (eachParam.valueDate) {
-            paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ? ["ge" + eachParam.valueDate] : ["le" + eachParam.valueDate];
-          } else if (eachParam.valueString) {
-            paramObject[eachParam.name] = [eachParam.valueString];
-          } else if (eachParam.valueReference) {
-            paramObject[eachParam.name] = [eachParam.valueReference];
-          } else {
-            paramObject[eachParam.name] = [eachParam.valueBoolean];
-          }
+      if (toArray) {
+        if (eachParam.valueDate) {
+          paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ? ["ge" + eachParam.valueDate] : ["le" + eachParam.valueDate];
+        } else if (eachParam.valueString) {
+          paramObject[eachParam.name] = [eachParam.valueString];
+        } else if (eachParam.valueReference) {
+          paramObject[eachParam.name] = [eachParam.valueReference];
+        } else if (eachParam.valueBoolean) {
+          paramObject[eachParam.name] = [eachParam.valueBoolean];
         } else {
-          paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;
+          for (const key in eachParam) {
+            paramObject[key] = [eachParam[key]];
+          }
         }
+      } else {
+        paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;
       }
     }
     return paramObject;
