@@ -9,7 +9,7 @@ import * as moment from "moment";
 import { Op } from "sequelize";
 import * as uuid from "uuid";
 import { errorCode } from "../../common/constants/error-codes";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import {BadRequestResult, NotFoundResult} from "../../common/objects/custom-errors";
 import { DataService } from "./dataService";
 import { Utility } from "./Utility";
 
@@ -61,17 +61,24 @@ class DataHelperService {
     const updatedRecords = [];
     for (const thisRecord of resource.savedRecords) {
       let clientRequestId = " ";
-      // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
-      let existingRecord: any;
-      if (serviceDataResource != null) {
-        existingRecord = await DataService.fetchDatabaseRow(thisRecord.id, serviceModel);
-      } else {
-        existingRecord = await DataService.fetchDatabaseRowStandard(thisRecord.id, serviceModel);
-      }
-
       if (thisRecord.meta.clientRequestId) {
         clientRequestId = thisRecord.meta.clientRequestId;
       }
+      // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
+      let existingRecord: any;
+      try {
+        if (serviceDataResource != null) {
+          existingRecord = await DataService.fetchDatabaseRow(thisRecord.id, serviceModel);
+        } else {
+          existingRecord = await DataService.fetchDatabaseRowStandard(thisRecord.id, serviceModel);
+        }
+      } catch (err) {
+        const badRequest = new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+        badRequest.clientRequestId = clientRequestId;
+        resource.errorRecords.push(badRequest);
+        continue;
+      }
+
       if (existingRecord.meta && existingRecord.meta.isDeleted) {
         const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
         notFoundResult.clientRequestId = clientRequestId;
