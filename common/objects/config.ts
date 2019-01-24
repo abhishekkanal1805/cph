@@ -384,20 +384,6 @@ const settings = {
     }
   },
   medicationactivityupdate: {
-    allowedAttributes: [
-      "status",
-      "medicationCodeableConcept",
-      "medicationReference",
-      "note",
-      "notification",
-      "notificationUnit",
-      "plannedDateTime",
-      "effectiveDateTime",
-      "dateAsserted",
-      "taken",
-      "reasonNotTaken",
-      "dosage"
-    ],
     searchAttributes: [
       {
         map: "start",
