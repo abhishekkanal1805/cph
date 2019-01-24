@@ -766,7 +766,6 @@ const settings = {
       "status",
       "statusReason",
       "informationSource",
-      "patient",
       "manufacturer",
       "manufactureDate",
       "expirationDate",
