@@ -782,7 +782,8 @@ const settings = {
       { map: "informationSource", to: "informationSource.reference", type: "string" },
       { map: "platformToken", to: "platformToken.value", type: "string" },
       { map: "status", to: "status", type: "string" },
-      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
@@ -816,8 +817,9 @@ const settings = {
       { map: "channels", to: "channels[*].toString", type: "array" },
       { map: "source", to: "source.value", type: "string", isMultiple: true },
       { map: "category", to: "category", type: "string", isMultiple: true },
-      { map: "created", to: "message.created", type: "string" },
-      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "created", to: "message.created", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
