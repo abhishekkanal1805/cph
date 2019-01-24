@@ -51,7 +51,7 @@ class UserService {
       } else {
         resource.errorRecords = resource.errorRecords.concat(
           _.map(filteredRecords, (d) => {
-            const badRequest = new UnAuthorizedResult(errorCode.InvalidUserId, "User don't have permission to update this record");
+            const badRequest = new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to update this record");
             badRequest.clientRequestId = d.meta ? d.meta.clientRequestId : " ";
             return badRequest;
           })
