@@ -9,7 +9,7 @@ import * as moment from "moment";
 import { Op } from "sequelize";
 import * as uuid from "uuid";
 import { errorCode } from "../../common/constants/error-codes";
-import {BadRequestResult, NotFoundResult} from "../../common/objects/custom-errors";
+import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataService } from "./dataService";
 import { Utility } from "./Utility";
 
