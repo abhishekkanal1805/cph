@@ -374,12 +374,10 @@ export class Utility {
           paramObject[eachParam.name] = [eachParam.valueString];
         } else if (eachParam.valueReference) {
           paramObject[eachParam.name] = [eachParam.valueReference];
-        } else if (eachParam.valueBoolean) {
-          paramObject[eachParam.name] = [eachParam.valueBoolean];
+        } else if (eachParam.valueObject) {
+          paramObject[eachParam.name] = [eachParam.valueObject];
         } else {
-          for (const key in eachParam) {
-            paramObject[key] = [eachParam[key]];
-          }
+          paramObject[eachParam.name] = [eachParam.valueBoolean];
         }
       } else {
         paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;

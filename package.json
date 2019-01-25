@@ -1,6 +1,6 @@
 {
   "name": "cph-common-service",
-  "version": "0.0.36",
+  "version": "0.0.40",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
@@ -10,6 +10,7 @@
     "lambda-log": "^1.4.0",
     "lodash": "^4.17.11",
     "moment": "^2.22.2",
+    "reflect-metadata": "^0.1.13",
     "sequelize": "^4.38.0",
     "sequelize-typescript": "^0.6.6",
     "typescript": "^3.2.4",
