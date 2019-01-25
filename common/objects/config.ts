@@ -265,9 +265,9 @@ const settings = {
       },
       { map: "subject", to: "subject", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "dateAsserted", to: "dateAsserted", type: "date" },
-      { map: "plannedDateTime", to: "plannedDateTime", type: "date" },
-      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date" },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
       { map: "medicationPlan", to: "medicationPlan", type: "string" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
@@ -322,8 +322,8 @@ const settings = {
         type: "string"
       },
       { map: "subject", to: "subject", type: "string" },
-      { map: "status", to: "status", type: "string" },
-      { map: "dateAsserted", to: "dateAsserted", type: "date" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
       {
         map: "code",
         to: "code.coding[*].code",
@@ -384,20 +384,6 @@ const settings = {
     }
   },
   medicationactivityupdate: {
-    allowedAttributes: [
-      "status",
-      "medicationCodeableConcept",
-      "medicationReference",
-      "note",
-      "notification",
-      "notificationUnit",
-      "plannedDateTime",
-      "effectiveDateTime",
-      "dateAsserted",
-      "taken",
-      "reasonNotTaken",
-      "dosage"
-    ],
     searchAttributes: [
       {
         map: "start",
@@ -766,7 +752,6 @@ const settings = {
       "status",
       "statusReason",
       "informationSource",
-      "patient",
       "manufacturer",
       "manufactureDate",
       "expirationDate",
@@ -783,7 +768,8 @@ const settings = {
       { map: "informationSource", to: "informationSource.reference", type: "string" },
       { map: "platformToken", to: "platformToken.value", type: "string" },
       { map: "status", to: "status", type: "string" },
-      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
@@ -817,8 +803,9 @@ const settings = {
       { map: "channels", to: "channels[*].toString", type: "array" },
       { map: "source", to: "source.value", type: "string", isMultiple: true },
       { map: "category", to: "category", type: "string", isMultiple: true },
-      { map: "created", to: "message.created", type: "string" },
-      { map: "isDeleted", to: "meta.isDeleted", type: "string" },
+      { map: "created", to: "message.created", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
