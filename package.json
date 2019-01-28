@@ -1,6 +1,6 @@
 {
   "name": "cph-common-service",
-  "version": "0.0.40",
+  "version": "0.0.41",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
@@ -14,6 +14,7 @@
     "sequelize": "^4.38.0",
     "sequelize-typescript": "^0.6.6",
     "typescript": "^3.2.4",
+    "tslib": "^1.9.3",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
