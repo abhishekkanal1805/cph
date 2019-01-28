@@ -78,7 +78,7 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient", "to", "from"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
