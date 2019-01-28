@@ -26,7 +26,7 @@
   },
   "scripts": {
     "tsc": "tsc",
-    "pretest": "npm run compile",
+    "pretest": "npm run tsc",
     "test": "jasmine",
     "lint": "tslint --fix --project ./tsconfig.json",
     "prettier": "prettier --write --print-width 160 \"**/*.{ts,yml,json}\"",
