@@ -1,7 +1,6 @@
 export { Utility } from "./services/common/Utility";
 export { DataService } from "./services/common/dataService";
 export { DataValidatorUtility } from "./services/common/dataValidatorUtility";
-export { EmailService } from "./services/common/emailService";
 export { FieldVisitor } from "./services/common/fieldVisitor";
 export { GatewayUtility } from "./services/common/gatewayUtility";
 export { LogUtility } from "./services/common/logUtility";
