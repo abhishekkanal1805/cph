@@ -13,39 +13,42 @@ import { Utility } from "./Utility";
 
 class DataValidatorUtility {
   public static validateStringAttributes(key, paramValue, isMultivalue) {
+    let error: string;
     // multiple value support is not there for string
     if (isMultivalue) {
-      log.error("Failed for attribute: " + key + " as multivalue support is not there.");
-      return false;
+      error = "Failed for attribute: " + key + " as multivalue support is not there.";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     return true;
   }
 
   public static validateBooleanAttributes(key, paramValue, isMultivalue) {
+    let error: string;
     // multiple value support is not there for boolean
     if (isMultivalue) {
-      log.error("Failed for attribute: " + key + " as multivalue support is not there.");
-      return false;
+      error = "Failed for attribute: " + key + " as multivalue support is not there.";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     const boolStatus = ["true", "false"].indexOf(paramValue[0].toLowerCase());
     if (boolStatus === -1) {
-      log.error("Failed for attribute: " + key + " as it is not a boolean value.");
-      return false;
+      error = "Failed for attribute: " + key + " as it is not a boolean value.";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     return true;
   }
 
   public static validateNumberAttributes(key, paramValue, isMultivalue) {
+    let error: string;
     // multiple value support is not there for number
     if (isMultivalue) {
-      log.error("Failed for attribute: " + key + " as multivalue support is not there.");
-      return false;
+      error = "Failed for attribute: " + key + " as multivalue support is not there.";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     paramValue = Utility.getPrefixDate(paramValue[0]).date;
     const numberStatus = lodash.isNaN(lodash.toNumber(paramValue));
     if (numberStatus) {
-      log.error("Failed for attribute: " + key + " as it is not a number.");
-      return false;
+      error = "Failed for attribute: " + key + " as it is not a number.";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     return true;
   }
@@ -68,14 +71,15 @@ class DataValidatorUtility {
       lt: "le",
       eq: "eq"
     };
+    let error: string;
     if (!isMultivalue) {
       paramValue = paramValue[0].split(",");
     } else {
       DataValidatorUtility.validateMultiValueDateParams(key, paramValue);
     }
     if (paramValue.length > 2) {
-      log.error("Failed for attribute: " + key + " as it contains more than 2 dates");
-      return false;
+      error = "Failed for attribute: " + key + " as it contains more than 2 dates";
+      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     let prevPrefix = "";
     for (const value of paramValue) {
@@ -87,18 +91,18 @@ class DataValidatorUtility {
       const isdateTime = moment(dateObj.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
       const isDate = moment(dateObj.date, "YYYY-MM-DD", true).isValid();
       if (!(isdateTime || isDate)) {
-        log.error("Failed for attribute: " + key + " as it is not an ISOString.");
-        return false;
+        error = "Failed for attribute: " + key + " as it is not an ISOString.";
+        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       // error for invalid prefix
       if (config.data.validDatePrefixes.indexOf(dateObj.prefix) === -1) {
-        log.error("Failed for attribute: " + key + " as it don't have valid prefix");
-        return false;
+        error = "Failed for attribute: " + key + " as it don't have valid prefix";
+        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       // Error for point 4 & 5
       if (prevPrefix && (prevPrefix === dateObj.prefix || datePrefixValidMap[prevPrefix] === dateObj.prefix)) {
-        log.error("Failed for attribute: " + key + " as both have same prefix");
-        return false;
+        error = "Failed for attribute: " + key + " as both have same prefix";
+        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       prevPrefix = dateObj.prefix;
     }
@@ -136,6 +140,7 @@ class DataValidatorUtility {
    * @returns {boolean}
    */
   public static validateQueryParams(queryParams: any, validParams: any) {
+    let error: string;
     /*
       input query: url?a=1&a=2&b=1&c=3,4
       o/p from gateway event : {a: ["1", "2"], b: ["1"], c: ["3,4"]}
@@ -144,14 +149,14 @@ class DataValidatorUtility {
     for (const key in queryParams) {
       const attrIdx = lodash.findIndex(validParams, (d: any) => d.map === key);
       if (attrIdx === -1) {
-        log.error("Failed for attribute: " + key);
-        return false;
+        error = "Failed for attribute: " + key;
+        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
       if (!paramValue.length) {
-        log.error("Failed for attribute: " + key);
-        return false;
+        error = "Failed for attribute: " + key;
+        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       const isMultivalue = paramValue.length > 1;
       let validationStatus;
