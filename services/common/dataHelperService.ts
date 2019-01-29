@@ -303,17 +303,16 @@ class DataHelperService {
             default:
               searchObject[Op.or] = [
                 {
-                  [mappedAttribute.to]:
-                    {
-                      [Op.and]: [
-                        {
-                          [operatorMap.ge]: currentDate
-                        },
-                        {
-                          [operatorMap.lt]: nextDate
-                        }
-                      ]
-                    }
+                  [mappedAttribute.to]: {
+                    [Op.and]: [
+                      {
+                        [operatorMap.ge]: currentDate
+                      },
+                      {
+                        [operatorMap.lt]: nextDate
+                      }
+                    ]
+                  }
                 },
                 {
                   [mappedAttribute.to]: {
