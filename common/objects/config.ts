@@ -103,11 +103,20 @@ const settings = {
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "consentingParty", to: "consentingParty", type: "string" },
+      { map: "id", to: "id", type: "string", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
       }
     ],
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
