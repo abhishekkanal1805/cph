@@ -308,6 +308,7 @@ const settings = {
       { map: "dateWritten", to: "dateWritten", type: "date" },
       { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "clientRequestId", to: "clientRequestId", type: "string", isMultiple: true },
       {
         map: "limit",
         type: "number"
