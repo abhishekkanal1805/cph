@@ -195,14 +195,44 @@ class DataHelperService {
               [mappedAttribute.to]: {
                 [operation]: dateObject.date
               }
+            },
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: dateObject.date.split("T")[0]
+                },
+                end: {
+                  [operatorMap.ge]: dateObject.date.split("T")[0]
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [operation]: dateObject.date.split("T")[0]
+              }
             }
           ];
         } else {
-          searchObject[mappedAttribute.to][condtionOperator][operation] = dateObject.date;
+          if (dateObject.prefix.length === 0) {
+            searchObject[mappedAttribute.to][condtionOperator][operation] = dateObject.date;
+          } else {
+            searchObject[Op.or] = [
+              {
+                [mappedAttribute.to]: {
+                  [operation]: dateObject.date
+                }
+              },
+              {
+                [mappedAttribute.to]: {
+                  [operation]: dateObject.date.split("T")[0]
+                }
+              }
+            ];
+          }
         }
       } else {
-        const curentDate = moment(new Date(dateObject.date).toISOString(), "YYYY-MM-DDTHH:mm:ss.SSSSZ").toISOString();
-        const nextDate = moment(curentDate)
+        const currentDate = moment(new Date(dateObject.date).toISOString(), "YYYY-MM-DDTHH:mm:ss.SSSSZ").toISOString();
+        const nextDate = moment(currentDate)
           .add(1, "days")
           .toISOString();
         if (mappedAttribute.isPeriod) {
@@ -210,16 +240,31 @@ class DataHelperService {
             {
               [mappedAttribute.periodAttribute]: {
                 start: {
-                  [operatorMap.le]: curentDate
+                  [operatorMap.le]: currentDate
                 },
                 end: {
-                  [operatorMap.ge]: curentDate
+                  [operatorMap.ge]: currentDate
                 }
               }
             },
             {
               [mappedAttribute.to]: {
-                [operation]: curentDate
+                [operation]: currentDate
+              }
+            },
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: dateObject.date
+                },
+                end: {
+                  [operatorMap.ge]: dateObject.date
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [operation]: dateObject.date
               }
             }
           ];
@@ -227,17 +272,54 @@ class DataHelperService {
           switch (dateObject.prefix) {
             case "gt":
             case "le":
-              searchObject[mappedAttribute.to][condtionOperator][operation] = nextDate;
+              searchObject[Op.or] = [
+                {
+                  [mappedAttribute.to]: {
+                    [operation]: nextDate
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operation]: dateObject.date
+                  }
+                }
+              ];
               break;
             case "ge":
             case "lt":
-              searchObject[mappedAttribute.to][condtionOperator][operation] = curentDate;
+              searchObject[Op.or] = [
+                {
+                  [mappedAttribute.to]: {
+                    [operation]: currentDate
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operation]: dateObject.date
+                  }
+                }
+              ];
               break;
             default:
-              searchObject[mappedAttribute.to][condtionOperator] = {
-                [operatorMap.ge]: curentDate,
-                [operatorMap.lt]: nextDate
-              };
+              searchObject[Op.or] = [
+                {
+                  [mappedAttribute.to]: {
+                    [Op.and]: [
+                      {
+                        [operatorMap.ge]: currentDate
+                      },
+                      {
+                        [operatorMap.lt]: nextDate
+                      }
+                    ]
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.eq]: dateObject.date
+                  }
+                }
+              ];
           }
         }
       }

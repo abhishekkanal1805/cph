@@ -1,5 +1,5 @@
 const data = {
-  validDatePrefixes: ["gt", "ge", "lt", "le", "eq"],
+  validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
   allowedPools: [
     { poolId: "us-east-1_lhwINc4vG", region: "us-east-1" },
     { poolId: "us-east-1_v5ed2jXHP", region: "us-east-1" },
@@ -78,7 +78,7 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient", "to", "from"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -103,11 +103,20 @@ const settings = {
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "consentingParty", to: "consentingParty", type: "string" },
+      { map: "id", to: "id", type: "string", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
       }
     ],
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],

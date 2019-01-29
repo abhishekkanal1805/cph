@@ -19,6 +19,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "exclude": ["node_modules", "build", "webpack", "src", "**/*.js"],
+  "exclude": ["node_modules", "build", "webpack", "dist", "**/*.js"],
   "types": ["typePatches"]
 }
