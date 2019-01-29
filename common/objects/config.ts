@@ -1,5 +1,5 @@
 const data = {
-  validDatePrefixes: ["gt", "ge", "lt", "le", "eq"],
+  validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
   allowedPools: [
     { poolId: "us-east-1_lhwINc4vG", region: "us-east-1" },
     { poolId: "us-east-1_v5ed2jXHP", region: "us-east-1" },

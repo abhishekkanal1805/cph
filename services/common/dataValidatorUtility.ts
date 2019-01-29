@@ -64,13 +64,6 @@ class DataValidatorUtility {
       6 - if no prefix present we assume it is "eq"
       7 - supported prefix: ["eq", "le", "lt", "ge", "gt"], we get from prefix
     */
-    const datePrefixValidMap = {
-      ge: "gt",
-      gt: "ge",
-      le: "lt",
-      lt: "le",
-      eq: "eq"
-    };
     let error: string;
     if (!isMultivalue) {
       paramValue = paramValue[0].split(",");
@@ -81,7 +74,6 @@ class DataValidatorUtility {
       error = "Failed for attribute: " + key + " as it contains more than 2 dates";
       throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
-    let prevPrefix = "";
     for (const value of paramValue) {
       const dateObj: any = Utility.getPrefixDate(value);
       // if no prefix then it is eq
@@ -99,12 +91,6 @@ class DataValidatorUtility {
         error = "Failed for attribute: " + key + " as it don't have valid prefix";
         throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
-      // Error for point 4 & 5
-      if (prevPrefix && (prevPrefix === dateObj.prefix || datePrefixValidMap[prevPrefix] === dateObj.prefix)) {
-        error = "Failed for attribute: " + key + " as both have same prefix";
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
-      }
-      prevPrefix = dateObj.prefix;
     }
     return true;
   }
