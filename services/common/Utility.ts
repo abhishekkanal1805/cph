@@ -369,8 +369,12 @@ export class Utility {
     for (const eachParam of request.parameter) {
       if (toArray) {
         if (eachParam.valueDate) {
-          paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ?
-            ["ge" + eachParam.valueDate] : eachParam.name.toLowerCase() === "end" ? ["le" + eachParam.valueDate] : [eachParam.valueDate];
+          paramObject[eachParam.name] =
+            eachParam.name.toLowerCase() === "start"
+              ? ["ge" + eachParam.valueDate]
+              : eachParam.name.toLowerCase() === "end"
+              ? ["le" + eachParam.valueDate]
+              : [eachParam.valueDate];
         } else if (eachParam.valueString) {
           paramObject[eachParam.name] = [eachParam.valueString];
         } else if (eachParam.valueReference) {
