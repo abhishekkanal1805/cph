@@ -208,7 +208,7 @@ class DataHelperService {
             },
             {
               [mappedAttribute.to]: {
-                [operation]: dateObject.date.split("T")[0]
+                [Op.eq]: dateObject.date.split("T")[0]
               }
             }
           ];
@@ -224,7 +224,7 @@ class DataHelperService {
               },
               {
                 [mappedAttribute.to]: {
-                  [operation]: dateObject.date.split("T")[0]
+                  [Op.eq]: dateObject.date.split("T")[0]
                 }
               }
             ];
@@ -337,22 +337,35 @@ class DataHelperService {
     log.info("Entering DataHelperService :: createGenericSearchConditions()");
     if (mappedAttribute.type === "array") {
       const attributes = mappedAttribute.to.split(".");
-      let nestedAttributes = {};
-      this.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
-      const arrFlag = attributes[0].indexOf("[*]") > -1;
-      let parentAttribute = attributes[0];
-      if (arrFlag) {
-        parentAttribute = parentAttribute.replace("[*]", "");
-        nestedAttributes = [nestedAttributes];
+      if (attributes.length > 1) {
+        let nestedAttributes = {};
+        this.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
+        const arrFlag = attributes[0].indexOf("[*]") > -1;
+        let parentAttribute = attributes[0];
+        if (arrFlag) {
+          parentAttribute = parentAttribute.replace("[*]", "");
+          nestedAttributes = [nestedAttributes];
+        }
+        if (!searchObject[parentAttribute]) {
+          searchObject[parentAttribute] = {
+            [Op.and]: []
+          };
+        }
+        searchObject[parentAttribute][Op.and].push({
+          [Op.contains]: nestedAttributes
+        });
+      } else {
+        // comes here if mapped type is array but we match on attribut itself as nested properties are not present (like string)
+        const parentAttribute = attributes[0].replace("[*]", "");
+        if (!searchObject[parentAttribute]) {
+          searchObject[parentAttribute] = {
+            [Op.and]: []
+          };
+        }
+        searchObject[parentAttribute][Op.and].push({
+          [Op.contains]: [value]
+        });
       }
-      if (!searchObject[parentAttribute]) {
-        searchObject[parentAttribute] = {
-          [Op.and]: []
-        };
-      }
-      searchObject[parentAttribute][Op.and].push({
-        [Op.contains]: nestedAttributes
-      });
     } else {
       value = mappedAttribute.isMultiple ? value.split(",") : value;
       const operator = mappedAttribute.isMultiple ? Op.or : Op.eq;
