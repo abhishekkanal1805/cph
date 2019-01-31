@@ -360,7 +360,7 @@ const settings = {
       "care partner": ["*"]
     }
   },
-  medicationactivitydelete: {
+  medicationactivityoperationaldelete: {
     searchAttributes: [
       {
         map: "start",
@@ -393,7 +393,7 @@ const settings = {
       "care partner": ["*"]
     }
   },
-  medicationactivityupdate: {
+  medicationactivityoperationalupdate: {
     searchAttributes: [
       {
         map: "start",
