@@ -350,6 +350,31 @@ export class Utility {
   }
 
   /**
+   * Generates the Link URL for the provided query parameters.
+   * @param {string} url
+   * @param queryParams
+   * @param acceptedParams
+   * @returns {string}
+   */
+  public static createNextLinkUrl(url: string, queryParams: any) {
+    log.info("Inside Utility: createLinkUrl()");
+    url = url + "?";
+    const searchValue = [];
+    for (const item in queryParams) {
+      // in case date attribute we will get 2 items in array for others it will be 1
+      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&") : queryParams[item].toString();
+      if (config.data.displayFields.indexOf(item) > -1) {
+        // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
+        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
+      }
+      searchValue.push([item, itemValue].join("="));
+    }
+    url += searchValue.join("&");
+    log.debug("Link URL: " + url);
+    return url;
+  }
+
+  /**
    * Parses a string safely to any untyped object. If parsing error occurs it returns null.
    * @param {string} request
    * @returns {any}
@@ -369,8 +394,12 @@ export class Utility {
     for (const eachParam of request.parameter) {
       if (toArray) {
         if (eachParam.valueDate) {
-          paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ?
-            ["ge" + eachParam.valueDate] : eachParam.name.toLowerCase() === "end" ? ["le" + eachParam.valueDate] : [eachParam.valueDate];
+          paramObject[eachParam.name] =
+            eachParam.name.toLowerCase() === "start"
+              ? ["ge" + eachParam.valueDate]
+              : eachParam.name.toLowerCase() === "end"
+              ? ["le" + eachParam.valueDate]
+              : [eachParam.valueDate];
         } else if (eachParam.valueString) {
           paramObject[eachParam.name] = [eachParam.valueString];
         } else if (eachParam.valueReference) {
@@ -381,7 +410,8 @@ export class Utility {
           paramObject[eachParam.name] = [eachParam.valueBoolean];
         }
       } else {
-        paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;
+        paramObject[eachParam.name] =
+          eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean || eachParam.valueObject || eachParam.valueReference;
       }
     }
     return paramObject;
@@ -540,10 +570,9 @@ export class Utility {
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
-      if (lodash.isNaN(offset) || offset < 1) {
+      if (lodash.isNaN(offset) || offset < 0) {
         throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
       }
-      offset *= limit;
     }
     return {
       limit,

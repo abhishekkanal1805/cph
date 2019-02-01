@@ -2,7 +2,7 @@ import { Setting } from "./setting";
 
 class Notification {
   enableNotification?: boolean;
-  settings?: Setting;
+  settings?: Setting[];
 }
 
 export { Notification };

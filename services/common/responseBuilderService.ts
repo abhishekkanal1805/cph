@@ -170,7 +170,7 @@ class ResponseBuilderService {
    * @param {boolean} createBundle records bundle needs to be created or not.
    * @returns response object.
    */
-  public static createResponseObject(objectArray: any[], fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
+  public static createResponseObject(objectArray: any, fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
     const entryArray = [];
     const links = [];
@@ -189,6 +189,15 @@ class ResponseBuilderService {
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
+      if (objectArray.length == objectArray.limit) {
+        entryArray.splice(-1, 1);
+        const nextLinkObj: Link = new Link();
+        nextLinkObj.relation = "next";
+        queryParams.limit = objectArray.limit - 1;
+        queryParams.offset = objectArray.offset + objectArray.limit - 1;
+        nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);
+        links.push(nextLinkObj);
+      }
       responseObject = this.createBundle(entryArray, links, true);
     } else {
       if (!createBundle) {
