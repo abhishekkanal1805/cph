@@ -410,7 +410,8 @@ export class Utility {
           paramObject[eachParam.name] = [eachParam.valueBoolean];
         }
       } else {
-        paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;
+        paramObject[eachParam.name] =
+          eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean || eachParam.valueObject || eachParam.valueReference;
       }
     }
     return paramObject;

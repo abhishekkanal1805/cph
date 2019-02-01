@@ -5,7 +5,7 @@ class Setting {
 
   enabled?: boolean;
 
-  channel?: Channel;
+  channel?: Channel[];
 }
 
 export { Setting };
