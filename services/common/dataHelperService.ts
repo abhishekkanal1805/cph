@@ -405,7 +405,7 @@ class DataHelperService {
     log.info("Entering DataHelperService :: prepareSearchQuery()");
     const queryObject: any = {
       where: {},
-      order: [["id", "DESC"]]
+      order: [["meta.lastUpdated", "DESC"]]
     };
     const searchObject: any = {};
     if (attributes.length > 0) {
@@ -438,7 +438,7 @@ class DataHelperService {
     }
     queryObject.where = searchObject;
     if (!_.isEmpty(paginationInfo)) {
-      queryObject.limit = paginationInfo.limit;
+      queryObject.limit = paginationInfo.limit + 1;
       queryObject.offset = paginationInfo.offset;
     }
     log.info("Generated Query: ", queryObject);

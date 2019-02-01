@@ -514,8 +514,10 @@ class DataService {
   public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
     log.info("Entering BaseService :: getSearchDatabaseRows()");
     log.debug("Start-DBCall: " + new Date().toISOString());
-    const queryObject = DataHelperService.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
+    const queryObject: any = DataHelperService.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
     const result: any = await serviceModel.findAll(queryObject);
+    result.limit = queryObject.limit;
+    result.offset = queryObject.offset;
     log.debug("End-DBCall: " + new Date().toISOString());
     log.info("Number of records retrieved: " + result.length);
     log.info("Exiting DataService :: getSearchDatabaseRows()");
@@ -523,9 +525,13 @@ class DataService {
       dataResource contains whole json object, if dataResource is there in attribute
       then return dataResource else return data for all attributes
     */
-    return _.map(result, (d) => {
+
+    const res: any = _.map(result, (d) => {
       return attributes.indexOf("dataResource") > -1 ? d.dataResource : d;
     });
+    res.limit = result.limit;
+    res.offset = result.offset;
+    return res;
   }
 }
 
