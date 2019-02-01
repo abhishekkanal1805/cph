@@ -116,36 +116,53 @@ class UserProfile extends Model<UserProfile> {
   }
 
   /**
-   * Determines if this user has set preferences on allowing any notifications
-   * TODO: Determine this behaviour
+   * Determines if the user has enabled any/all notification at a high level
    * @param {string} profileId
    */
-  public areNotificationsEnabled() {
-    // TODO: Implement this
-    return true;
+  public areNotificationsEnabled(): boolean {
+    return this.preferences && this.preferences.notification && this.preferences.notification.enableNotification;
   }
 
   /**
-   * Determines if this user has set preferences on allowing notifications in this category (example: med reminder, refill reminders )
-   * TODO: Determine this behaviour
+   * Determines if the notifications in this category are enabled for the user
+   * @param {string} profileId
+   */
+  public isNotificationCategoryEnabled(notificationCategory: string): boolean {
+    if (this.areNotificationsEnabled() && this.preferences.notification.settings && this.preferences.notification.settings.length > 0 ) {
+      for (const thisSetting of this.preferences.notification.settings) {
+        if (thisSetting.category === notificationCategory) {
+          return thisSetting.enabled;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns an array of all the notification channels allowed for the provided category
+   * If notifications are disabled or if the settings are not present or empty return empty array
+   *
    * @param {string} profileId
    * @param {string} notificationCategory
    */
-  public isNotificationCategoryEnabled(notificationCategory: string) {
-    // TODO: Implement this
-    return true;
+  public getAllowedNotificationChannels(notificationCategory: string): string[] {
+    const allowedChannels: string[] = [];
+    // if notifications are disabled or if the settings are not present or empty return empty array
+    if (!this.areNotificationsEnabled() || !this.preferences.notification.settings || this.preferences.notification.settings.length < 1 ) {
+      return allowedChannels;
+    }
+    for (const thisSetting of this.preferences.notification.settings) {
+      if (thisSetting.category === notificationCategory && thisSetting.enabled) {
+        for (const thisChannel of thisSetting.channel) {
+          if (thisChannel.enabled) {
+            allowedChannels.push(thisChannel.type);
+          }
+        }
+      }
+    }
+    return allowedChannels;
   }
 
-  /**
-   * Determines if this user has set preferences on allowing notifications via this channel (example: push, sms, email)
-   * TODO: Determine this behaviour
-   * @param {string} profileId
-   * @param {string} notificationChannel
-   */
-  public isNotificationChannelEnabled(notificationChannel: string) {
-    // TODO: Implement this
-    return true;
-  }
 }
 
 export { UserProfile };
