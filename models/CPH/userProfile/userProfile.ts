@@ -128,7 +128,7 @@ class UserProfile extends Model<UserProfile> {
    * @param {string} profileId
    */
   public isNotificationCategoryEnabled(notificationCategory: string): boolean {
-    if (this.areNotificationsEnabled() && this.preferences.notification.settings && this.preferences.notification.settings.length > 0 ) {
+    if (this.areNotificationsEnabled() && this.preferences.notification.settings && this.preferences.notification.settings.length > 0) {
       for (const thisSetting of this.preferences.notification.settings) {
         if (thisSetting.category === notificationCategory) {
           return thisSetting.enabled;
@@ -148,7 +148,7 @@ class UserProfile extends Model<UserProfile> {
   public getAllowedNotificationChannels(notificationCategory: string): string[] {
     const allowedChannels: string[] = [];
     // if notifications are disabled or if the settings are not present or empty return empty array
-    if (!this.areNotificationsEnabled() || !this.preferences.notification.settings || this.preferences.notification.settings.length < 1 ) {
+    if (!this.areNotificationsEnabled() || !this.preferences.notification.settings || this.preferences.notification.settings.length < 1) {
       return allowedChannels;
     }
     for (const thisSetting of this.preferences.notification.settings) {
@@ -162,7 +162,6 @@ class UserProfile extends Model<UserProfile> {
     }
     return allowedChannels;
   }
-
 }
 
 export { UserProfile };
