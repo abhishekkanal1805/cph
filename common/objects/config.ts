@@ -139,11 +139,11 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "dateAsserted", to: "dateAsserted", type: "date" },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -167,11 +167,11 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "date", to: "date", type: "date", isMultiple: true },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -201,7 +201,15 @@ const settings = {
         type: "array",
         isMultiple: true
       },
-      { map: "date", to: "effectiveDateTime", type: "date" },
+      {
+        map: "date",
+        to: "effectiveDateTime",
+        type: "date",
+        isPeriod: false,
+        isMultiple: true,
+        condition: " and ",
+        periodAttribute: ["effectivePeriod"]
+      },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
@@ -306,9 +314,9 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "dateWritten", to: "dateWritten", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
-      { map: "clientRequestId", to: "clientRequestId", type: "string", isMultiple: true },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       {
         map: "limit",
         type: "number"
@@ -425,11 +433,11 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "clinicalStatus", to: "clinicalStatus", type: "string", isMultiple: true },
       { map: "category", to: "category.coding[*].code", type: "array" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -687,13 +695,13 @@ const settings = {
       { map: "onset", to: "onset", type: "date", isMultiple: true },
       {
         map: "lastUpdated",
-        to: "lastUpdated",
+        to: "meta.lastUpdated",
         type: "date"
       },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -726,13 +734,13 @@ const settings = {
       },
       {
         map: "lastUpdated",
-        to: "lastUpdated",
+        to: "meta.lastUpdated",
         type: "date"
       },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },

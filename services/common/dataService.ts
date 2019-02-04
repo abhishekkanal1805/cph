@@ -361,6 +361,10 @@ class DataService {
         }
       }
     }
+    // check added to filter soft deleted records
+    if (!queryParams.hasOwnProperty("isDeleted")) {
+      queryParams["isDeleted"] = false;
+    }
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
     const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
     log.info("Exiting DataService :: searchRecords()");
