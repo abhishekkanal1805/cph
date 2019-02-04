@@ -177,10 +177,6 @@ class DataHelperService {
     for (const item in values) {
       const dateObject = Utility.getPrefixDate(values[item]);
       const isDateTime = moment(dateObject.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
-      const currentDate = moment(dateObject.date).format("YYYY-MM-DD");
-      const currentYearMonth = moment(dateObject.date).format("YYYY-MM");
-      const currentYear = moment(dateObject.date).format("YYYY");
-
       const operation = operatorMap[dateObject.prefix] ? operatorMap[dateObject.prefix] : Op.eq;
       if (isDateTime) {
         if (mappedAttribute.isPeriod) {
@@ -199,341 +195,49 @@ class DataHelperService {
               [mappedAttribute.to]: {
                 [operation]: dateObject.date
               }
-            },
+            }
+          ];
+        } else {
+          searchObject[mappedAttribute.to][condtionOperator][operation] = dateObject.date;
+        }
+      } else {
+        const curentDate = moment(new Date(dateObject.date).toISOString(), "YYYY-MM-DDTHH:mm:ss.SSSSZ").toISOString();
+        const nextDate = moment(curentDate)
+          .add(1, "days")
+          .toISOString();
+        if (mappedAttribute.isPeriod) {
+          searchObject[Op.or] = [
             {
               [mappedAttribute.periodAttribute]: {
                 start: {
-                  [operatorMap.le]: currentDate
+                  [operatorMap.le]: curentDate
                 },
                 end: {
-                  [operatorMap.ge]: currentDate
+                  [operatorMap.ge]: curentDate
                 }
               }
             },
             {
               [mappedAttribute.to]: {
-                [Op.eq]: currentDate
-              }
-            },
-            {
-              [mappedAttribute.to]: {
-                [Op.eq]: currentYearMonth
-              }
-            },
-            {
-              [mappedAttribute.to]: {
-                [Op.eq]: currentYear
+                [operation]: curentDate
               }
             }
           ];
         } else {
-          if (dateObject.prefix.length === 0) {
-            searchObject[Op.or] = [
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: dateObject.date
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentDate
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentYearMonth
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentYear
-                }
-              }
-            ];
-          } else {
-            searchObject[Op.or] = [
-              {
-                [mappedAttribute.to]: {
-                  [operation]: dateObject.date
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentDate
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentYearMonth
-                }
-              },
-              {
-                [mappedAttribute.to]: {
-                  [Op.eq]: currentYear
-                }
-              }
-            ];
-          }
-        }
-      } else {
-        const nextDate = moment(moment(currentDate).add(1, "days")).format("YYYY-MM-DD");
-        if (mappedAttribute.isPeriod) {
           switch (dateObject.prefix) {
             case "gt":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.periodAttribute]: {
-                    start: {
-                      [operatorMap.le]: nextDate
-                    },
-                    end: {
-                      [operatorMap.ge]: currentDate
-                    }
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.gte]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
-            case "lt":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.periodAttribute]: {
-                    start: {
-                      [operatorMap.le]: nextDate
-                    },
-                    end: {
-                      [operatorMap.ge]: currentDate
-                    }
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.lt]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
+            case "le":
+              searchObject[mappedAttribute.to][condtionOperator][operation] = nextDate;
               break;
             case "ge":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.periodAttribute]: {
-                    start: {
-                      [operatorMap.le]: nextDate
-                    },
-                    end: {
-                      [operatorMap.ge]: currentDate
-                    }
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.gte]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
-            case "le":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.periodAttribute]: {
-                    start: {
-                      [operatorMap.le]: nextDate
-                    },
-                    end: {
-                      [operatorMap.ge]: currentDate
-                    }
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.lt]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
-            default:
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.periodAttribute]: {
-                    start: {
-                      [operatorMap.le]: nextDate
-                    },
-                    end: {
-                      [operatorMap.ge]: currentDate
-                    }
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.gte]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.lt]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-          }
-        } else {
-          switch (dateObject.prefix) {
-            case "gt":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.to]: {
-                    [Op.gte]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
-            case "le":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.to]: {
-                    [Op.lt]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
-            case "ge":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.to]: {
-                    [Op.gte]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
-              break;
             case "lt":
-              searchObject[Op.or] = [
-                {
-                  [mappedAttribute.to]: {
-                    [Op.lt]: nextDate
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
+              searchObject[mappedAttribute.to][condtionOperator][operation] = curentDate;
               break;
             default:
-              searchObject[Op.or] = [
-                {
-                  [Op.and]: [
-                    {
-                      [mappedAttribute.to]: {
-                        [operatorMap.ge]: currentDate
-                      }
-                    },
-                    {
-                      [mappedAttribute.to]: {
-                        [operatorMap.lt]: nextDate
-                      }
-                    }
-                  ]
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYearMonth
-                  }
-                },
-                {
-                  [mappedAttribute.to]: {
-                    [Op.eq]: currentYear
-                  }
-                }
-              ];
+              searchObject[mappedAttribute.to][condtionOperator] = {
+                [operatorMap.ge]: curentDate,
+                [operatorMap.lt]: nextDate
+              };
           }
         }
       }
