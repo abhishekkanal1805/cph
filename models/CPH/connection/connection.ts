@@ -1,6 +1,7 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { Reference } from "../../common/reference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
+import { ConnectionDataResource } from "./connectionDataResource";
 
 @Table({ tableName: "Connection" })
 class Connection extends Model<Connection> {
@@ -22,6 +23,8 @@ class Connection extends Model<Connection> {
   lastStatusChangeDateTime: string;
   @Column({ type: DataType.JSONB })
   meta: ResourceMetadata;
+  @Column({ type: DataType.JSONB })
+  dataResource: ConnectionDataResource;
 }
 
 export { Connection };
