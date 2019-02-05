@@ -135,12 +135,12 @@ class DataValidatorUtility {
     for (const key in queryParams) {
       const attrIdx = lodash.findIndex(validParams, (d: any) => d.map === key);
       if (attrIdx === -1) {
-        error = "Failed for attribute: " + key;
+        error = "InvalidQuery parameter : " + key;
         throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
-      if (!paramValue.length) {
+      if (paramValue.length == 0) {
         error = "Failed for attribute: " + key;
         throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
