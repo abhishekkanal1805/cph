@@ -3,7 +3,6 @@
  * Summary: This file contains all ORM interaction related services like get put post etc
  */
 import * as log from "lambda-log";
-
 import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
@@ -363,7 +362,7 @@ class DataService {
     }
     // check added to filter soft deleted records
     if (!queryParams.hasOwnProperty("isDeleted")) {
-      queryParams["isDeleted"] = false;
+      queryParams["isDeleted"] = ["false"];
     }
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
     const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
