@@ -816,7 +816,7 @@ const settings = {
       { map: "id", to: "id", type: "string" },
       { map: "to", to: "to.reference", type: "string" },
       { map: "from", to: "from.reference", type: "string" },
-      { map: "channels", to: "channels[*]", type: "array" },
+      { map: "channels", to: "channels[*]", type: "array", isMultiple: true },
       { map: "source", to: "source.value", type: "string", isMultiple: true },
       { map: "category", to: "category", type: "string", isMultiple: true },
       { map: "created", to: "message.created", type: "date" },

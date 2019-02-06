@@ -273,15 +273,20 @@ class DataHelperService {
           [Op.contains]: nestedAttributes
         });
       } else {
-        // comes here if mapped type is array but we match on attribut itself as nested properties are not present (like string)
+        // comes here if mapped type is array but we match on attribute itself as nested properties are not present (like string)
         const parentAttribute = attributes[0].replace("[*]", "");
         if (!searchObject[parentAttribute]) {
           searchObject[parentAttribute] = {
-            [Op.and]: []
+            [Op.or]: []
           };
         }
-        searchObject[parentAttribute][Op.and].push({
-          [Op.contains]: [value]
+        // multi-value support for searching in array elements
+        // example for push,email we want attribute to match for ["push"] OR ["email"]
+        const values: string[] = mappedAttribute.isMultiple ? value.split(",") : [value];
+        values.forEach((entry) => {
+          searchObject[parentAttribute][Op.or].push({
+            [Op.contains]: [entry]
+          });
         });
       }
     } else {
