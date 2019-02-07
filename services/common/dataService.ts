@@ -76,8 +76,9 @@ class DataService {
     serviceDataResource: any,
     authorizerData: any,
     httpMethod: string,
-    userValidationId: string,
+    patientValidationId: string,
     performUserValidation?: boolean,
+    userValidationId?: string,
     limitNoOfRecordsToSave?: boolean
   ): Promise<object> {
     log.info("Entering DataService :: saveRecord()");
@@ -97,13 +98,26 @@ class DataService {
     }
     const resource = { savedRecords: [], errorRecords: [] };
     // Get all unique userids
-    const userIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, userValidationId, resource);
+    const patientIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, patientValidationId, resource);
+    let userIds: any[];
+    if (userValidationId) {
+      userIds = await Utility.getUniqueIds(recordArr, userValidationId);
+    }
     // Do user validation
-    let loggedinId = userIds[0];
+    let loggedinId = patientIds[0];
     if (performUserValidation) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
-      await UserService.performMultiUserValidation(permissionObj, userIds, httpMethod, userValidationId, resource, authorizerData);
+      await UserService.performMultiUserValidation(
+        permissionObj,
+        patientIds,
+        userIds,
+        httpMethod,
+        patientValidationId,
+        userValidationId,
+        resource,
+        authorizerData
+      );
       loggedinId = permissionObj.loggedinId;
     }
     // Add internal attributes before save
@@ -142,8 +156,9 @@ class DataService {
     serviceDataResource: any,
     authorizerData: any,
     httpMethod: string,
-    userValidationId: string,
-    performUserValidation?: boolean
+    patientValidationId: string,
+    performUserValidation?: boolean,
+    userValidationId?: string
   ): Promise<object> {
     log.info("Entering DataService :: updateRecord()");
     if (performUserValidation === undefined || performUserValidation === null) {
@@ -168,12 +183,25 @@ class DataService {
       throw new BadRequestResult(errorCode.InvalidInput, "Provided list of ID keys contains duplicates");
     }
     // Get all unique userids
-    const userIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, userValidationId, resource);
+    const patientIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, patientValidationId, resource);
+    let userIds: any[];
+    if (userValidationId) {
+      userIds = await Utility.getUniqueIds(recordArr, userValidationId);
+    }
     // Do user validation
     let loggedinId = userIds[0];
     if (performUserValidation) {
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
-      await UserService.performMultiUserValidation(permissionObj, userIds, httpMethod, userValidationId, resource, authorizerData);
+      await UserService.performMultiUserValidation(
+        permissionObj,
+        patientIds,
+        userIds,
+        httpMethod,
+        patientValidationId,
+        userValidationId,
+        resource,
+        authorizerData
+      );
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
