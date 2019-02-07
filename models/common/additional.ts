@@ -12,6 +12,7 @@ class Additional {
   valueTime?: string;
   valueString?: string;
   valueCoding?: Coding;
+  valueBoolean?: boolean;
   items?: Additional[];
 }
 

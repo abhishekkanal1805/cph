@@ -23,8 +23,6 @@ class UserProfileDataResource {
   preferences: Preference;
   identifier: Identifier;
   userCode: string;
-  npi: string;
-  dea: string;
   additionalAttributes: Additional[];
 }
 
