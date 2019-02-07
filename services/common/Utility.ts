@@ -225,6 +225,23 @@ export class Utility {
   }
 
   /**
+   * @param {any[]} records
+   * @param {string} userIdAttribute
+   */
+  public static getUniqueIds(records: any[], userIdAttribute: string) {
+    log.info("Entering utility: getUniqueIds()");
+    const uniqueIds = {};
+    for (const eachEntry of records) {
+      const id = Utility.getServiceId(eachEntry[userIdAttribute.trim().split(".")[0]].reference).id;
+      if (id) {
+        uniqueIds[id] = 1;
+      }
+    }
+    log.info("Exiting utility: getUniqueIds()");
+    return Object.keys(uniqueIds);
+  }
+
+  /**
    * Convert ["informationSource", "subject", "patient"].reference to camelcase
    * Convert any variation of userprofile to "UserProfile" before save
    * @param {any[]} record can be a object or bundle

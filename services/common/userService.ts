@@ -22,8 +22,10 @@ class UserService {
    */
   public static async performMultiUserValidation(
     accessObj: any,
+    patientIds: string[],
     userIds: string[],
     httpMethod: string,
+    patientValidationId: string,
     userValidationId: string,
     resource: any,
     authorizerData: any
@@ -31,20 +33,20 @@ class UserService {
     log.info("Entering UserService :: performMultiUserValidation()");
     // Check user present in cognito or not and get profile Id
     let newRecords = [];
-    for (const userId of userIds) {
+    for (const patientId of patientIds) {
       const callerUserProfileId = accessObj.loggedinId;
       const calleruserProfileType = accessObj.profileType;
       let userPermissions: string[] = [];
       let isPermissionValid: boolean = false;
       try {
-        userPermissions = await UserAuthService.getUserPermissions(callerUserProfileId, userId, calleruserProfileType, authorizerData, httpMethod);
+        userPermissions = await UserAuthService.getUserPermissions(callerUserProfileId, patientId, calleruserProfileType, authorizerData, httpMethod);
         isPermissionValid = await UserAuthService.validatePermissions(userPermissions, httpMethod);
       } catch (err) {
         // if error occoured for a userId, then skip and go for next userId
-        log.error("Error in UserService :: performMultiUserValidation() " + userId);
+        log.error("Error in UserService :: performMultiUserValidation() " + patientId);
       }
       const filteredRecords: any = _.filter(resource.savedRecords, (eachRecord) => {
-        return Utility.getAttributeValue(eachRecord, userValidationId) === ["UserProfile", userId].join("/");
+        return Utility.getAttributeValue(eachRecord, patientValidationId) === ["UserProfile", patientId].join("/");
       });
       if (userPermissions.length && isPermissionValid) {
         newRecords = newRecords.concat(filteredRecords);
@@ -58,7 +60,33 @@ class UserService {
         );
       }
     }
-    resource.savedRecords = newRecords;
+    if (userValidationId) {
+      let validRecords = [];
+      for (const userId of userIds) {
+        let filteredRecords: any;
+        if (newRecords.length > 0) {
+          filteredRecords = _.filter(newRecords, (eachRecord) => {
+            return Utility.getAttributeValue(eachRecord, userValidationId) === ["UserProfile", userId].join("/");
+          });
+          if (userId === accessObj.loggedinId) {
+            validRecords = validRecords.concat(filteredRecords);
+          } else {
+            resource.errorRecords = resource.errorRecords.concat(
+              _.map(filteredRecords, (d) => {
+                const badRequest = new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to update this record");
+                badRequest.clientRequestId = d.meta ? d.meta.clientRequestId : " ";
+                return badRequest;
+              })
+            );
+          }
+          resource.savedRecords = validRecords;
+        } else {
+          resource.savedRecords = newRecords;
+        }
+      }
+    } else {
+      resource.savedRecords = newRecords;
+    }
   }
 
   /**
