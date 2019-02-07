@@ -760,24 +760,6 @@ const settings = {
     }
   },
   device: {
-    allAttributes: [
-      "id",
-      "resourceType",
-      "identifier",
-      "platformToken",
-      "status",
-      "statusReason",
-      "informationSource",
-      "manufacturer",
-      "manufactureDate",
-      "expirationDate",
-      "serialNumber",
-      "modelNumber",
-      "type",
-      "deviceName",
-      "version",
-      "meta"
-    ],
     searchAttributes: [
       { map: "id", to: "id", type: "string" },
       { map: "identifier", to: "identifier[*].value", type: "array" },
