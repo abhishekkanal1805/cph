@@ -67,12 +67,6 @@ class UserProfile extends Model<UserProfile> {
   @Column({ type: DataType.STRING })
   userCode: string;
 
-  @Column({ type: DataType.STRING })
-  npi: string;
-
-  @Column({ type: DataType.STRING })
-  dea: string;
-
   @Column({ type: DataType.JSONB })
   additionalAttributes: Additional[];
 
