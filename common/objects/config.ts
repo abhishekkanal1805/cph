@@ -166,7 +166,7 @@ const settings = {
     searchAttributes: [
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "date", to: "date", type: "date"},
+      { map: "date", to: "date", type: "date" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
