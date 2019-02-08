@@ -189,7 +189,7 @@ class DataService {
       userIds = await Utility.getUniqueIds(recordArr, userValidationId);
     }
     // Do user validation
-    let loggedinId = userIds[0];
+    let loggedinId = patientIds[0];
     if (performUserValidation) {
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
       await UserService.performMultiUserValidation(
