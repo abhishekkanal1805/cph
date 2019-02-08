@@ -81,7 +81,9 @@ class DataValidatorUtility {
       }
       const isdateTime = moment(dateObj.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
       const isDate = moment(dateObj.date, "YYYY-MM-DD", true).isValid();
-      if (!(isdateTime || isDate)) {
+      const isYearMonth = moment(dateObj.date, "YYYY-MM", true).isValid();
+      const isYear = moment(dateObj.date, "YYYY", true).isValid();
+      if (!(isdateTime || isDate || isYearMonth || isYear)) {
         error = "Failed for attribute: " + key + " as it is not an ISOString.";
         throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }

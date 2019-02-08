@@ -167,82 +167,847 @@ class DataHelperService {
       condtionType = "AND";
       condtionOperator = Op.and;
     }
-    searchObject[mappedAttribute.to] = {
-      [condtionOperator]: {}
-    };
+    searchObject[condtionOperator] = [];
     let values = value;
     if (mappedAttribute.isMultiple) {
       values = condtionType === "OR" ? value[0].split(",") : value;
     }
     for (const item in values) {
+      const dateValues = {};
       const dateObject = Utility.getPrefixDate(values[item]);
       const isDateTime = moment(dateObject.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
+      const isDate = moment(dateObject.date, "YYYY-MM-DD", true).isValid();
+      const isYearMonth = moment(dateObject.date, "YYYY-MM", true).isValid();
+      const isYear = moment(dateObject.date, "YYYY", true).isValid();
+      dateValues["dateTime"] = dateObject;
+      dateValues["currentDate"] = moment(dateObject.date).format("YYYY-MM-DD");
+      dateValues["currentYearMonth"] = moment(dateObject.date).format("YYYY-MM");
+      dateValues["currentYear"] = moment(dateObject.date).format("YYYY");
       const operation = operatorMap[dateObject.prefix] ? operatorMap[dateObject.prefix] : Op.eq;
       if (isDateTime) {
-        if (mappedAttribute.isPeriod) {
-          searchObject[Op.or] = [
-            {
-              [mappedAttribute.periodAttribute]: {
-                start: {
-                  [operatorMap.le]: dateObject.date
-                },
-                end: {
-                  [operatorMap.ge]: dateObject.date
-                }
-              }
-            },
-            {
-              [mappedAttribute.to]: {
-                [operation]: dateObject.date
-              }
-            }
-          ];
-        } else {
-          searchObject[mappedAttribute.to][condtionOperator][operation] = dateObject.date;
-        }
+        DataHelperService.createDateTimeConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+      } else if (isDate) {
+        DataHelperService.createDateConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+      } else if (isYearMonth) {
+        DataHelperService.createYearMonthConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+      } else if (isYear) {
+        DataHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else {
-        const curentDate = moment(new Date(dateObject.date).toISOString(), "YYYY-MM-DDTHH:mm:ss.SSSSZ").toISOString();
-        const nextDate = moment(curentDate)
-          .add(1, "days")
-          .toISOString();
-        if (mappedAttribute.isPeriod) {
-          searchObject[Op.or] = [
-            {
-              [mappedAttribute.periodAttribute]: {
-                start: {
-                  [operatorMap.le]: curentDate
-                },
-                end: {
-                  [operatorMap.ge]: curentDate
-                }
-              }
-            },
-            {
-              [mappedAttribute.to]: {
-                [operation]: curentDate
-              }
-            }
-          ];
-        } else {
-          switch (dateObject.prefix) {
-            case "gt":
-            case "le":
-              searchObject[mappedAttribute.to][condtionOperator][operation] = nextDate;
-              break;
-            case "ge":
-            case "lt":
-              searchObject[mappedAttribute.to][condtionOperator][operation] = curentDate;
-              break;
-            default:
-              searchObject[mappedAttribute.to][condtionOperator] = {
-                [operatorMap.ge]: curentDate,
-                [operatorMap.lt]: nextDate
-              };
-          }
-        }
+        throw new BadRequestResult(errorCode.InvalidRequest, "Value for " + mappedAttribute.map + " is invalid.");
       }
     }
     log.info("Exiting DataHelperService :: createDateSearchConditions()");
+  }
+
+  /**
+   * @param mappedAttribute
+   * @param operatorMap
+   * @param searchObject
+   * @param condtionOperator
+   * @param operation
+   * @param dateValues
+   */
+  public static createDateTimeConditions(mappedAttribute: any, operatorMap: any, searchObject: any, condtionOperator: any, operation: any, dateValues: any) {
+    log.info("Entering DataHelperService :: createDateTimeConditions()");
+    const singleItemConditions = {};
+    if (mappedAttribute.isPeriod) {
+      singleItemConditions[Op.or] = [
+        {
+          [mappedAttribute.periodAttribute]: {
+            start: {
+              [operatorMap.le]: dateValues.dateTime.date
+            },
+            end: {
+              [operatorMap.ge]: dateValues.dateTime.date
+            }
+          }
+        },
+        {
+          [mappedAttribute.to]: {
+            [operation]: dateValues.dateTime.date
+          }
+        },
+        {
+          [mappedAttribute.periodAttribute]: {
+            start: {
+              [operatorMap.le]: dateValues.currentDate
+            },
+            end: {
+              [operatorMap.ge]: dateValues.currentDate
+            }
+          }
+        },
+        {
+          [mappedAttribute.to]: {
+            [Op.eq]: dateValues.currentDate
+          }
+        },
+        {
+          [mappedAttribute.to]: {
+            [Op.eq]: dateValues.currentYearMonth
+          }
+        },
+        {
+          [mappedAttribute.to]: {
+            [Op.eq]: dateValues.currentYear
+          }
+        }
+      ];
+      searchObject[condtionOperator].push(singleItemConditions);
+    } else {
+      if (dateValues.dateTime.prefix.length === 0) {
+        singleItemConditions[Op.or] = [
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.dateTime.date
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentDate
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentYearMonth
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentYear
+            }
+          }
+        ];
+        searchObject[condtionOperator].push(singleItemConditions);
+      } else {
+        singleItemConditions[Op.or] = [
+          {
+            [mappedAttribute.to]: {
+              [operation]: dateValues.dateTime.date
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentDate
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentYearMonth
+            }
+          },
+          {
+            [mappedAttribute.to]: {
+              [Op.eq]: dateValues.currentYear
+            }
+          }
+        ];
+        searchObject[condtionOperator].push(singleItemConditions);
+      }
+    }
+    log.info("Exiting DataHelperService :: createDateTimeConditions()");
+  }
+
+  /**
+   * @param mappedAttribute
+   * @param operatorMap
+   * @param searchObject
+   * @param condtionOperator
+   * @param operation
+   * @param dateValues
+   */
+  public static createDateConditions(mappedAttribute: any, operatorMap: any, searchObject: any, condtionOperator: any, operation: any, dateValues: any) {
+    log.info("Entering DataHelperService :: createDateConditions()");
+    const singleItemConditions = {};
+    const nextDate = moment(moment(dateValues.currentDate).add(1, "days")).format("YYYY-MM-DD");
+    if (mappedAttribute.isPeriod) {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextDate
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentDate
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextDate
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentDate
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextDate
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentDate
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextDate
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentDate
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextDate
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentDate
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    } else {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentDate
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [Op.and]: [
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.ge]: dateValues.currentDate
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.lt]: nextDate
+                  }
+                }
+              ]
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    }
+    log.info("Exiting DataHelperService :: createDateConditions()");
+  }
+
+  /**
+   * @param mappedAttribute
+   * @param operatorMap
+   * @param searchObject
+   * @param condtionOperator
+   * @param operation
+   * @param dateValues
+   */
+  public static createYearMonthConditions(mappedAttribute: any, operatorMap: any, searchObject: any, condtionOperator: any, operation: any, dateValues: any) {
+    log.info("Entering DataHelperService :: createYearMonthConditions()");
+    const singleItemConditions = {};
+    const nextMonth = moment(moment(dateValues.currentDate).add(1, "months")).format("YYYY-MM");
+    if (mappedAttribute.isPeriod) {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextMonth
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYearMonth
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextMonth
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYearMonth
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextMonth
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYearMonth
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextMonth
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYearMonth
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextMonth
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYearMonth
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    } else {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentYearMonth
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [Op.and]: [
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.ge]: dateValues.currentYearMonth
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.lt]: nextMonth
+                  }
+                }
+              ]
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.eq]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    }
+    log.info("Exiting DataHelperService :: createYearMonthConditions()");
+  }
+
+  /**
+   * @param mappedAttribute
+   * @param operatorMap
+   * @param searchObject
+   * @param condtionOperator
+   * @param operation
+   * @param dateValues
+   */
+  public static createYearConditions(mappedAttribute: any, operatorMap: any, searchObject: any, condtionOperator: any, operation: any, dateValues: any) {
+    log.info("Entering DataHelperService :: createYearConditions()");
+    const singleItemConditions = {};
+    const nextYear = moment(moment(dateValues.currentDate).add(1, "years")).format("YYYY");
+    if (mappedAttribute.isPeriod) {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextYear
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYear
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextYear
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYear
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextYear
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYear
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextYear
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYear
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.periodAttribute]: {
+                start: {
+                  [operatorMap.le]: nextYear
+                },
+                end: {
+                  [operatorMap.ge]: dateValues.currentYear
+                }
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYear
+              }
+            },
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    } else {
+      switch (dateValues.dateTime.prefix) {
+        case "gt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: nextYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "le":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: nextYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "ge":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.gte]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        case "lt":
+          singleItemConditions[Op.or] = [
+            {
+              [mappedAttribute.to]: {
+                [Op.lt]: dateValues.currentYear
+              }
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+          break;
+        default:
+          singleItemConditions[Op.or] = [
+            {
+              [Op.and]: [
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.ge]: dateValues.currentYear
+                  }
+                },
+                {
+                  [mappedAttribute.to]: {
+                    [operatorMap.lt]: nextYear
+                  }
+                }
+              ]
+            }
+          ];
+          searchObject[condtionOperator].push(singleItemConditions);
+      }
+    }
+    log.info("Exiting DataHelperService :: createYearConditions()");
   }
 
   /**

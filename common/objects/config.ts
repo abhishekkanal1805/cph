@@ -166,7 +166,7 @@ const settings = {
     searchAttributes: [
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "date", to: "date", type: "date", isMultiple: true },
+      { map: "date", to: "date", type: "date"},
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
@@ -206,7 +206,6 @@ const settings = {
         to: "effectiveDateTime",
         type: "date",
         isPeriod: false,
-        isMultiple: true,
         condition: " and ",
         periodAttribute: ["effectivePeriod"]
       },
@@ -347,6 +346,7 @@ const settings = {
         to: "code.coding[*].code",
         type: "array"
       },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -692,7 +692,7 @@ const settings = {
   allergyintolerance: {
     searchAttributes: [
       { map: "patient", to: "patient" },
-      { map: "onset", to: "onset", type: "date", isMultiple: true },
+      { map: "onset", to: "onset", type: "date" },
       {
         map: "lastUpdated",
         to: "meta.lastUpdated",
