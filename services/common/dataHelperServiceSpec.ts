@@ -59,6 +59,72 @@ describe("Test createBooleanSearchConditions() - ", () => {
   });
 });
 
+describe("Test createGenericSearchConditions() - ", () => {
+  it("Prepare search condition using mapping attribute config passed as mappedAttribute parameter", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = "active";
+    const searchObject: any = {};
+    const output: any = { status: { [Op.eq]: "active" } };
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() to check existing searchObject attribute aren't changed", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = "active";
+    const searchObject: any = { name: "user1" };
+    const output: any = { name: "user1", status: { [Op.eq]: "active" } };
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() for null value", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = null;
+    const searchObject: any = {};
+    const output: any = {};
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() for undefined value", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = undefined;
+    const searchObject: any = {};
+    const output: any = {};
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() for empty string value", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = "";
+    const searchObject: any = {};
+    const output: any = {};
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() for multiple string value", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string" };
+    const value = "final,registered";
+    const searchObject: any = {};
+    const output: any = { status: { [Op.eq]: "final,registered" } };
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+  it("Check createGenericSearchConditions() for multiple string value with isMultiple true", (done) => {
+    const mappedAttribute = { map: "status", to: "status", type: "string", isMultiple: true };
+    const value = "final,registered";
+    const searchObject: any = {};
+    const output: any = { status: { [Op.eq]: ["final", "registered"] } };
+    DataHelperService.createGenericSearchConditions(mappedAttribute, value, searchObject);
+    expect(searchObject).toEqual(output);
+    done();
+  });
+});
+
 describe("Test convertAllToModelsForSave() - ", () => {
   beforeEach(() => {
     const sequelize = new Sequelize({ validateOnly: true });
@@ -79,12 +145,11 @@ describe("Test convertAllToModelsForSave() - ", () => {
     };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
     const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
-    expect(models[0].dataResource).not.toBeNull();
     expect(models[0].id).not.toBeNull();
-    expect(models[0].dataResource.meta).not.toBeNull();
-    expect(models[0].dataResource.meta.createdBy).toBe(userId);
-    expect(models[0].dataResource.meta.versionId).toBe(1);
-    expect(models[0].dataResource.clientRequestId).toBeUndefined();
+    expect(models[0].meta).not.toBeNull();
+    expect(models[0].meta.createdBy).toBe(userId);
+    expect(models[0].meta.versionId).toBe(1);
+    expect(models[0].clientRequestId).toBeUndefined();
     done();
   });
 
@@ -127,7 +192,7 @@ describe("Test convertAllToModelsForSave() - ", () => {
     };
     const userId = "dcaabc44-f3e9-4fd2-95d5-bff038c4e028";
     const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
-    expect(models[0].dataResource.meta.clientRequestId).toBe("123");
+    expect(models[0].meta.clientRequestId).toBe("123");
     done();
   });
 
@@ -145,9 +210,9 @@ describe("Test convertAllToModelsForSave() - ", () => {
       errorRecords: []
     };
     const models = DataHelperService.convertAllToModelsForSave(resource.savedRecords, TestRelationalModel, TestRelationalModel, null);
-    expect(models[0].dataResource.meta.clientRequestId).toBe("123");
-    expect(models[0].dataResource.meta.lastUpdatedBy).toBe(null);
-    expect(models[0].dataResource.meta.createdBy).toBe(null);
+    expect(models[0].meta.clientRequestId).toBe("123");
+    expect(models[0].meta.lastUpdatedBy).toBe(null);
+    expect(models[0].meta.createdBy).toBe(null);
     done();
   });
 });
@@ -217,15 +282,15 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
       errorRecords: []
     };
 
-    const models = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, testUserId);
-    expect(models[0].dataResource).not.toBeNull();
+    const models = await DataHelperService.convertAllToModelsForUpdate(resource, TestRelationalModel, TestRelationalModel, testUserId);
+    expect(models[0].dataResource).toBeUndefined();
     expect(models[0].id).not.toBeNull();
-    expect(models[0].dataResource.meta).not.toBeNull();
-    expect(models[0].dataResource.meta.lastUpdatedBy).toBe(testUserId);
-    expect(models[0].dataResource.meta.versionId).toBe(2);
-    expect(models[0].dataResource.status).toBe(testStatus);
-    expect(models[0].dataResource.meta.isDeleted).toBe(false);
-    expect(models[0].dataResource.meta.clientRequestId).toBe(testClientRequestId);
+    expect(models[0].meta).not.toBeNull();
+    expect(models[0].meta.lastUpdatedBy).toBe(testUserId);
+    expect(models[0].meta.versionId).toBe(2);
+    expect(models[0].status).toBe(testStatus);
+    expect(models[0].meta.isDeleted).toBe(false);
+    expect(models[0].meta.clientRequestId).toBe(testClientRequestId);
     done();
   });
 
@@ -250,7 +315,8 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {
-      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
+      await DataHelperService.convertAllToModelsForUpdate(resource, TestRelationalModel, TestRelationalModel, userId);
+      result = resource.errorRecords[0];
     } catch (err) {
       result = err;
     }
@@ -286,7 +352,7 @@ describe("Test convertAllToModelsForUpdate() with no data resource - ", () => {
   });
 
   it("Check all meta values are populated", async (done) => {
-    const recordToBeUpdated = {
+    const payload = {
       id: "0fa17a0d-d3d4-4abd-a8e1-7af439b8b3c3",
       deviceId: "updated-d3d4-4abd-a8e1-7af439b8223",
       userProfileId: "updated-aaaa-4abd-a8e1-7af439b8b3c3",
@@ -303,20 +369,23 @@ describe("Test convertAllToModelsForUpdate() with no data resource - ", () => {
       resourceType: "TestRelationalModel"
     };
     const testUserId = "updated-f3e9-4fd2-95d5-bff038c4e028";
-    const recordsToBeUpdated = [recordToBeUpdated];
+    const recordsToBeUpdated = {
+      savedRecords: [payload],
+      errorRecords: []
+    }
 
     const models = await DataHelperService.convertAllToModelsForUpdate(recordsToBeUpdated, TestRelationalModel, null, testUserId);
     expect(models[0].hasOwnProperty("dataResource")).toBe(false);
-    expect(models[0].id).toBe(recordToBeUpdated.id);
-    expect(models[0].deviceId).toBe(recordToBeUpdated.deviceId);
-    expect(models[0].userProfileId).toBe(recordToBeUpdated.userProfileId);
-    expect(models[0].active).toBe(recordToBeUpdated.active);
-    expect(models[0].resourceType).toBe(recordToBeUpdated.resourceType);
+    expect(models[0].id).toBe(payload.id);
+    expect(models[0].deviceId).toBe(payload.deviceId);
+    expect(models[0].userProfileId).toBe(payload.userProfileId);
+    expect(models[0].active).toBe(payload.active);
+    expect(models[0].resourceType).toBe(payload.resourceType);
     expect(models[0].meta).not.toBeNull();
     expect(models[0].meta.lastUpdatedBy).toBe(testUserId);
     expect(models[0].meta.versionId).toBe(2);
-    expect(models[0].meta.isDeleted).toBe(recordToBeUpdated.meta.isDeleted);
-    expect(models[0].meta.clientRequestId).toBe(recordToBeUpdated.meta.clientRequestId);
+    expect(models[0].meta.isDeleted).toBe(payload.meta.isDeleted);
+    expect(models[0].meta.clientRequestId).toBe(payload.meta.clientRequestId);
     done();
   });
 });
@@ -362,7 +431,8 @@ describe("Test convertAllToModelsForUpdate() - ", () => {
     const userId = "faaabc44-f3e9-4fd2-95d5-bff038c4e028";
     let result;
     try {
-      await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, TestRelationalModel, TestRelationalModel, userId);
+      result = await DataHelperService.convertAllToModelsForUpdate(resource, TestRelationalModel, TestRelationalModel, userId);
+      result = resource.errorRecords[0];
     } catch (err) {
       result = err;
     }

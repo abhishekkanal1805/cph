@@ -1018,6 +1018,10 @@ class DataHelperService {
    */
   public static createGenericSearchConditions(mappedAttribute, value, searchObject) {
     log.info("Entering DataHelperService :: createGenericSearchConditions()");
+    if (!_.isString(value) || (_.isString(value) && value.length < 1) ) {
+      // if value is null | undefined | "", then return
+      return;
+    }
     if (mappedAttribute.type === "array") {
       const attributes = mappedAttribute.to.split(".");
       if (attributes.length > 1) {
