@@ -1,4 +1,5 @@
 export { Utility } from "./services/common/Utility";
+export { DataHelperService } from "./services/common/dataHelperService";
 export { DataService } from "./services/common/dataService";
 export { DataValidatorUtility } from "./services/common/dataValidatorUtility";
 export { FieldVisitor } from "./services/common/fieldVisitor";
@@ -6,6 +7,7 @@ export { GatewayUtility } from "./services/common/gatewayUtility";
 export { LogUtility } from "./services/common/logUtility";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
+export { AggregationUtils } from "./services/common/aggregationUtils";
 
 export * from "./services/security/userAuthService";
 

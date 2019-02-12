@@ -81,7 +81,9 @@ class DataValidatorUtility {
       }
       const isdateTime = moment(dateObj.date, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid();
       const isDate = moment(dateObj.date, "YYYY-MM-DD", true).isValid();
-      if (!(isdateTime || isDate)) {
+      const isYearMonth = moment(dateObj.date, "YYYY-MM", true).isValid();
+      const isYear = moment(dateObj.date, "YYYY", true).isValid();
+      if (!(isdateTime || isDate || isYearMonth || isYear)) {
         error = "Failed for attribute: " + key + " as it is not an ISOString.";
         throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
       }
@@ -139,12 +141,14 @@ class DataValidatorUtility {
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
-      if (!paramValue || paramValue.toString().trim().length === 0) {
-        error = "Failed for attribute: " + key + " as it contains blank value";
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
-      }
-      if (queryParams[key].toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
-        throw new BadRequestResult(errorCode.InvalidQueryParameterValue, key + " cannot have multiple values");
+      for (const eachValue of paramValue) {
+        if (eachValue.toString().trim().length === 0) {
+          error = "Failed for attribute: " + key + " as it contains blank value";
+          throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+        }
+        if (eachValue.toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
+          throw new BadRequestResult(errorCode.InvalidQueryParameterValue, key + " cannot have multiple values");
+        }
       }
       const isMultivalue = paramValue.length > 1;
       let validationStatus;

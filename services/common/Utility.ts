@@ -596,4 +596,20 @@ export class Utility {
       offset
     };
   }
+
+  public static getOperatorByCondition(prefix: string): string {
+    switch (prefix) {
+      case "ge":
+        return ">=";
+      case "le":
+        return "<=";
+      case "gt":
+        return ">";
+      case "lt":
+        return "<";
+      case "eq":
+      default:
+        return "=";
+    }
+  }
 }
