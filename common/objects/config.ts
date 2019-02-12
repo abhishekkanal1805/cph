@@ -78,7 +78,7 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "actor"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -904,6 +904,28 @@ const settings = {
       { map: "source", to: "source.value", type: "string", isMultiple: true },
       { map: "category", to: "category", type: "string", isMultiple: true },
       { map: "created", to: "message.created", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["*"],
+      "care partner": ["*"]
+    }
+  },
+  appointment: {
+    searchAttributes: [
+      { map: "actor", to: "participant[*].actorReference.reference", type: "array" },
+      { map: "informationSource", to: "informationSource.reference", type: "string" },
+      { map: "appointmentType", to: "appointmentType.coding[*].code", type: "array" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "date", to: "start", type: "date", isMultiple: true },
+      { map: "reasonCode", to: "reasonCode[*].coding[*].code", type: "array" },
+      { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
+      { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
