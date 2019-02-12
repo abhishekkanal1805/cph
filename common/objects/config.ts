@@ -101,7 +101,7 @@ const settings = {
       { map: "name", to: "name", type: "string" },
       { map: "status", to: "status", type: "string" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true},
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "consentingParty", to: "consentingParty", type: "string" },
       { map: "id", to: "id", type: "string", isMultiple: true },
       {
@@ -137,10 +137,10 @@ const settings = {
       },
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true},
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
       { map: "effectiveDate", to: "effectiveDateTime", type: "date", isMultiple: true },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
-      { map: "isDeleted", to: "meta.isDeleted", type: "boolean"},
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",

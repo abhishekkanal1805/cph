@@ -1018,7 +1018,7 @@ class DataHelperService {
    */
   public static createGenericSearchConditions(mappedAttribute, value, searchObject) {
     log.info("Entering DataHelperService :: createGenericSearchConditions()");
-    if (!_.isString(value) || (_.isString(value) && value.length < 1) ) {
+    if (!_.isString(value) || (_.isString(value) && value.length < 1)) {
       // if value is null | undefined | "", then return
       return;
     }

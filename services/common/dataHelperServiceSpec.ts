@@ -372,7 +372,7 @@ describe("Test convertAllToModelsForUpdate() with no data resource - ", () => {
     const recordsToBeUpdated = {
       savedRecords: [payload],
       errorRecords: []
-    }
+    };
 
     const models = await DataHelperService.convertAllToModelsForUpdate(recordsToBeUpdated, TestRelationalModel, null, testUserId);
     expect(models[0].hasOwnProperty("dataResource")).toBe(false);
