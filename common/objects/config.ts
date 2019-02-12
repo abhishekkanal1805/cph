@@ -267,6 +267,38 @@ const settings = {
         type: "number"
       }
     ],
+    aggregationAttributes: [{ map: "component-code", to: `componentcode->'coding' @> '[{"code": "%arg%"}]'`, type: "array" }],
+    aggregationSubqueryAttributes: [
+      { map: "code", to: `"code"->'coding' @> '[{"code": "%arg%"}]'`, type: "array" },
+      { map: "category", to: `"category" @> '[{"coding":[{"code":"%arg%"}]}]'`, type: "array" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "date", to: "effectiveDateTime", type: "date" },
+      { map: "subject", to: "subject", type: "string" }
+    ],
+    aggregationFunctions: {
+      stats: [
+        { functions: ["sum", "count", "min", "max", "avg"], column: "valueQuantity.value", cast: "integer" },
+        { functions: ["date"], column: "effectiveDateTime", alias: "dt" },
+        { columns: ["code"] }
+      ],
+      histogramSubQuery: [
+        { literal: `code` },
+        { literal: "(jsonb_array_elements_text(component)::jsonb)->'code'", alias: "componentcode" },
+        { literal: "(jsonb_array_elements_text(component)::jsonb)->'valueQuantity'", alias: "valueQuantity" },
+        { literal: `date("effectiveDateTime")`, alias: "dt" }
+      ],
+      histogram: [
+        { literal: `count(CAST((valueQuantity#>>'{value}') AS INTEGER))`, alias: "count" },
+        { literal: `code` },
+        { literal: `componentcode` },
+        { literal: `dt` },
+        { literal: `valueQuantity` }
+      ],
+      subQueryAlias: `subquery`,
+      groupBy: ["code", "dt"],
+      HistogramGroupBy: ["code", "componentcode", "dt", "valueQuantity"],
+      orderBy: ["dt ASC"]
+    },
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
@@ -303,6 +335,57 @@ const settings = {
         type: "number"
       }
     ],
+
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["*"],
+      "care partner": ["*"]
+    }
+  },
+  medicationactivityaggregation: {
+    searchAttributes: [
+      {
+        map: "informationSource",
+        to: "informationSource",
+        type: "string"
+      },
+      { map: "subject", to: "subject", type: "string" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
+      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "code", to: "dataResource.medicationCodeableConcept.coding[*].code", type: "array" },
+      { map: "date", to: "plannedDateTime", type: "date", isMultiple: true },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    aggregationFunctions: [
+      { functions: ["count"], column: "status", alias: "statuscount" },
+      { columns: ["status"] },
+      { functions: ["count"], column: "dataResource.taken", alias: "takencount", convertTo: "json" },
+      { columns: ["dataResource.taken"], alias: "taken", convertTo: "json" },
+      { functions: ["date"], column: "plannedDateTime", alias: "dt" },
+      { columns: ["medicationPlan"] },
+      { columns: ["dataResource.medicationCodeableConcept"], alias: "code", convertTo: "json", cast: "jsonb" }
+    ],
+    groupBy: [`code`, "medicationPlan", `dt`, "status", `taken`],
+    orderBy: ["dt ASC"],
+
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
@@ -362,6 +445,22 @@ const settings = {
         map: "offset",
         type: "number"
       }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["*"],
+      "care partner": ["*"]
+    }
+  },
+  medicationplanaggregation: {
+    searchAttributes: [
+      {
+        map: "id",
+        to: "id",
+        type: "string",
+        isMultiple: true
+      },
+      { map: "subject", to: "subject", type: "string" }
     ],
     endpointAccess: {
       "patient": ["*"],
@@ -763,6 +862,24 @@ const settings = {
     }
   },
   device: {
+    allAttributes: [
+      "id",
+      "resourceType",
+      "identifier",
+      "platformToken",
+      "status",
+      "statusReason",
+      "informationSource",
+      "manufacturer",
+      "manufactureDate",
+      "expirationDate",
+      "serialNumber",
+      "modelNumber",
+      "type",
+      "deviceName",
+      "version",
+      "meta"
+    ],
     searchAttributes: [
       { map: "id", to: "id", type: "string" },
       { map: "identifier", to: "identifier[*].value", type: "array" },

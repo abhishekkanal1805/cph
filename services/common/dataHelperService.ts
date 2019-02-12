@@ -6,7 +6,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
-import { Op } from "sequelize";
+import { cast, col, fn, json, literal, Op } from "sequelize";
 import * as uuid from "uuid";
 import { errorCode } from "../../common/constants/error-codes";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
@@ -1093,11 +1093,12 @@ class DataHelperService {
    * @param {string} endpoint
    * @returns {object}
    */
-  public static prepareSearchQuery(searchRequest, endPoint, attributes?: any, paginationInfo?: any): object {
+  public static prepareSearchQuery(searchRequest, endPoint, attributes?: any, paginationInfo?: any, orderBy?: string[]): object {
     log.info("Entering DataHelperService :: prepareSearchQuery()");
+    const defaultOrderBy: string[][] = [["meta.lastUpdated", "DESC"]];
     const queryObject: any = {
       where: {},
-      order: [["meta.lastUpdated", "DESC"]]
+      order: orderBy ? literal(orderBy) : defaultOrderBy
     };
     const searchObject: any = {};
     if (attributes.length > 0) {
@@ -1136,6 +1137,149 @@ class DataHelperService {
     log.info("Generated Query: ", queryObject);
     log.info("Exiting DataHelperService :: prepareSearchQuery()");
     return queryObject;
+  }
+
+  /**
+   * Generates aggregation projections for non-component based aggregation scenario.
+   * @param {object[]} aggregations aggregation attributes from the config.
+   * @param {string} aggregationType Type of aggregation needs to perform stats or histogram or both.
+   * @returns {any[]}
+   */
+  public static prepareAggregationProjections(aggregations: object[], aggregationType: string): any {
+    log.info("Entering DataHelperService :: prepareAggregationProjections()");
+    const projections: any[] = [];
+
+    aggregations.forEach((aggregation) => {
+      const functions: string[] = _.get(aggregation, "functions");
+      const tableCol: string = _.get(aggregation, "column");
+      const tableCast: string = _.get(aggregation, "cast");
+      const alias: string = _.get(aggregation, "alias");
+      const childLiteral: string = _.get(aggregation, "literal");
+      const convertTo: string = _.get(aggregation, "convertTo");
+      if (aggregationType === "stats") {
+        if (functions) {
+          // columns on which specific functions need to be applied
+          functions.forEach((func) => {
+            if (tableCast) {
+              projections.push([fn(func, cast(json(tableCol), tableCast)), alias ? alias : func]);
+            } else if (convertTo) {
+              projections.push([fn(func, json(tableCol)), alias ? alias : func]);
+            } else {
+              projections.push([fn(func, col(tableCol)), alias ? alias : func]);
+            }
+          });
+        } else {
+          // standard columns to output projection
+          const columns = _.get(aggregation, "columns");
+          columns.forEach((column) => {
+            if (convertTo) {
+              if (alias) {
+                if (tableCast) {
+                  projections.push([cast(json(column), "jsonb"), alias]);
+                } else {
+                  projections.push([json(column), alias]);
+                }
+              } else {
+                if (tableCast) {
+                  projections.push([cast(json(column), "jsonb")]);
+                } else {
+                  projections.push([json(column)]);
+                }
+              }
+            } else {
+              projections.push(column);
+            }
+          });
+        }
+      } else if (aggregationType === "histogramSubQuery" || aggregationType === "histogram") {
+        if (alias) {
+          projections.push(childLiteral + " as " + alias);
+        } else {
+          projections.push(childLiteral);
+        }
+      }
+    });
+    log.info("Exiting DataHelperService :: prepareAggregationProjections()");
+    return projections;
+  }
+
+  /**
+   * Generates aggregation subquery for the component based scenario.
+   * @param {any}searchRequest query parameters.
+   * @param {string} endPoint Service name.
+   * @param {object} attributes columns to be fetched.
+   * @param {any} config config attribute to look.
+   * @returns {string}
+   */
+  public static generateAggregationSubQuery(searchRequest, endPoint, attributes: any, config: any): string {
+    let rawQuery: string = `select ${_.join(attributes, ",")}`;
+    rawQuery += ` from "${endPoint}" where `;
+    const conditions: string[] = [];
+    for (const key in searchRequest) {
+      const mappedAttribute: any = _.find(config, { map: key });
+      if (mappedAttribute === undefined) {
+        continue;
+      }
+      switch (mappedAttribute.type) {
+        case "array":
+          conditions.push(`${mappedAttribute.to}`.replace("%arg%", searchRequest[key]));
+          break;
+        case "string":
+          conditions.push(`"${mappedAttribute.to}" = '${searchRequest[key]}'`);
+          break;
+        case "date":
+          searchRequest[key]
+            .toString()
+            .split(",")
+            .forEach((date) => {
+              const dateCondition = Utility.getPrefixDate(date);
+              conditions.push(`"${mappedAttribute.to}"` + Utility.getOperatorByCondition(dateCondition.prefix) + "'" + dateCondition.date + "'");
+            });
+          break;
+      }
+    }
+    rawQuery += _.join(conditions, " and ");
+    return rawQuery.replace("\\", "");
+  }
+
+  /**
+   * Generates aggregation query for the component based scenario.
+   * @param {any}searchRequest query parameters.
+   * @param {object} attributes columns to be fetched.
+   * @param {string} subQuery generated subquery from generateAggregationSubQuery.
+   * @param {string} alias alias to use for subquery.
+   * @param {any} config config attribute to look.
+   * @param {string[]} groupby columns to be used in group by.
+   * @param {string[]} orderby columns to be used in order by.
+   * @returns {string}
+   */
+  public static generateAggregationQuery(
+    searchRequest,
+    attributes: any,
+    subQuery: string,
+    alias: string,
+    config: any,
+    groupby: string[],
+    orderby: string[]
+  ): string {
+    let rawQuery: string = `select ${_.join(attributes, ",")}`;
+    rawQuery += " from ( " + subQuery + " ) as " + alias;
+    const conditions: string[] = [];
+    if (_.has(searchRequest, "component-code")) {
+      const key: string = "component-code";
+      const mappedAttribute: any = _.find(config, { map: key });
+      conditions.push(`${mappedAttribute.to}`.replace("%arg%", searchRequest[key]));
+    }
+    if (conditions.length > 0) {
+      rawQuery += " where " + _.join(conditions, " and ");
+    }
+    if (groupby) {
+      rawQuery += " group by " + _.join(groupby, ",");
+    }
+    if (orderby) {
+      rawQuery += " order by " + _.join(orderby, ",");
+    }
+    return rawQuery.replace("\\", "");
   }
 }
 
