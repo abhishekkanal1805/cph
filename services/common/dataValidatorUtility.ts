@@ -141,12 +141,14 @@ class DataValidatorUtility {
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
-      if (!paramValue || paramValue.toString().trim().length === 0) {
-        error = "Failed for attribute: " + key + " as it contains blank value";
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
-      }
-      if (queryParams[key].toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
-        throw new BadRequestResult(errorCode.InvalidQueryParameterValue, key + " cannot have multiple values");
+      for (const eachValue of paramValue) {
+        if (eachValue.toString().trim().length === 0) {
+          error = "Failed for attribute: " + key + " as it contains blank value";
+          throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+        }
+        if (eachValue.toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
+          throw new BadRequestResult(errorCode.InvalidQueryParameterValue, key + " cannot have multiple values");
+        }
       }
       const isMultivalue = paramValue.length > 1;
       let validationStatus;
