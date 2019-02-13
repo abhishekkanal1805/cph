@@ -61,7 +61,6 @@ const settings = {
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "consentingParty", to: "consentingParty", type: "string" },
-      { map: "id", to: "id", type: "string", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -413,12 +412,6 @@ const settings = {
   },
   medicationplanaggregation: {
     searchAttributes: [
-      {
-        map: "id",
-        to: "id",
-        type: "string",
-        isMultiple: true
-      },
       { map: "subject", to: "subject", type: "string" }
     ],
     endpointAccess: {
@@ -572,8 +565,7 @@ const settings = {
         map: "inviteeReference",
         to: "inviteeReference",
         type: "string"
-      },
-      { map: "id", to: "id", type: "string" }
+      }
     ],
     allowedAttempts: 6,
     codeValidDurationDays: 1, // day
@@ -808,7 +800,6 @@ const settings = {
       "meta"
     ],
     searchAttributes: [
-      { map: "id", to: "id", type: "string" },
       { map: "identifier", to: "identifier[*].value", type: "array" },
       { map: "informationSource", to: "informationSource.reference", type: "string" },
       { map: "platformToken", to: "platformToken.value", type: "string" },
@@ -842,7 +833,6 @@ const settings = {
       "meta"
     ],
     searchAttributes: [
-      { map: "id", to: "id", type: "string" },
       { map: "to", to: "to.reference", type: "string" },
       { map: "from", to: "from.reference", type: "string" },
       { map: "channels", to: "channels[*]", type: "array", isMultiple: true },
