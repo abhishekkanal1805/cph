@@ -14,48 +14,6 @@ const data = {
     withdrawParams: "$withdraw",
     searchAttributes: ["status", "version", "name", "isDeleted", "lastUpdated"]
   },
-  controlGroupParams: {
-    rwe: "switch1234",
-    controlGroup: "ControlGroup",
-    rweGroupName: "Patient",
-    control: 1,
-    enhanced: 2,
-    profileInfo: {
-      itemId: "SiteInformation",
-      text: "Study Site Information",
-      type: "group",
-      profileItem: [
-        {
-          itemId: "site",
-          text: "site code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "cohort",
-          text: "Study cohort",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "patientId",
-          text: "Patient Identifier for the study",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        },
-        {
-          itemId: "switchCode",
-          text: "Switch Code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        }
-      ]
-    }
-  },
   headers: {
     types: {
       contentType: "Content-Type"
@@ -689,14 +647,6 @@ const settings = {
     },
     isUniqueCodeRequired: true
   },
-  cmsBatch: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
   searchContent: {
     searchAttributes: [
       { map: "withdrawalDate", to: "keyDates.withdrawalDate", type: "string" },
@@ -749,32 +699,8 @@ const settings = {
       "care partner": ["*"]
     }
   },
-  getBatchDetails: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
   fetchDownloadRecords: {
     searchAttributes: [{ map: "errorStatus", to: "errorStatus", type: "boolean" }, { map: "s3Url", to: "s3Url", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
-  siteSpecificConsent: {
-    searchAttributes: [
-      { map: "static", to: "static", type: "boolean" },
-      { map: "site", to: "site", type: "number" },
-      { map: "category", to: "category", type: "string", isArray: true },
-      { map: "siteExpiryDate", to: "siteExpiryDate", type: "string" },
-      { map: "siteActivationDate", to: "siteActivationDate", type: "string" },
-      { map: "s3Url", to: "s3Url", type: "string", condition: "NotEquals" }
-    ],
-    acceptedAttributes: [{ map: "studyCode", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
