@@ -411,9 +411,7 @@ const settings = {
     }
   },
   medicationplanaggregation: {
-    searchAttributes: [
-      { map: "subject", to: "subject", type: "string" }
-    ],
+    searchAttributes: [{ map: "subject", to: "subject", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
