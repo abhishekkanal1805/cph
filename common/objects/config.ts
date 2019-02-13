@@ -389,6 +389,7 @@ const settings = {
         type: "array"
       },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
