@@ -629,7 +629,17 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "to", to: "to.reference", type: "string", isMultiple: true },
       { map: "type", to: "type", type: "string", isMultiple: true },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true }
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
     ],
     endpointAccess: {
       "patient": ["*"],
