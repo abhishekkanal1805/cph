@@ -115,8 +115,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhirimmunization: {
@@ -143,8 +143,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhirobservation: {
@@ -186,8 +186,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   observation: {
@@ -258,8 +258,8 @@ const settings = {
     },
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivity: {
@@ -295,8 +295,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityaggregation: {
@@ -345,8 +345,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationorder: {
@@ -368,8 +368,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationplan: {
@@ -406,16 +406,16 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationplanaggregation: {
     searchAttributes: [{ map: "subject", to: "subject", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityoperationaldelete: {
@@ -447,8 +447,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityoperationalupdate: {
@@ -474,8 +474,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhircondition: {
@@ -502,8 +502,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaire: {
@@ -524,8 +524,8 @@ const settings = {
     attachmentParams: "attachment",
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaireresponse: {
@@ -549,8 +549,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   invitation: {
@@ -571,8 +571,8 @@ const settings = {
     acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   userprofile: {
@@ -619,8 +619,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   connection: {
@@ -633,8 +633,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     },
     isUniqueCodeRequired: true
   },
@@ -670,8 +670,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   searchContentOrCondition: {
@@ -686,8 +686,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fetchDownloadRecords: {
@@ -702,8 +702,8 @@ const settings = {
     acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   allergyintolerance: {
@@ -734,8 +734,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   procedure: {
@@ -774,8 +774,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   device: {
@@ -810,8 +810,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   notification: {
@@ -845,8 +845,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   }
 };
