@@ -1069,6 +1069,26 @@ class DataHelperService {
   }
 
   /**
+   * Create non-date multi column based search conditions
+   * @param mappedAttribute
+   * @param value
+   * @param searchObject
+   * @param endPoint
+   */
+  public static createMultiSearchConditions(mappedAttribute, values, searchObject, endPoint) {
+    searchObject[Op.or] = [];
+    for (const item of values) {
+      const searchObjectSingle: any = {};
+      for (const key in item) {
+        const mappedAttributeSingle: any = Utility.getMappedAttribute(key, "map", endPoint);
+        const value = item[key];
+        this.createGenericSearchConditions(mappedAttributeSingle, value[0], searchObjectSingle);
+      }
+      searchObject[Op.or].push(searchObjectSingle);
+    }
+  }
+
+  /**
    * Create dynamic search query for nested objects
    * @param attributes
    * @param value
@@ -1124,6 +1144,9 @@ class DataHelperService {
           break;
         case "date":
           this.createDateSearchConditions(mappedAttribute, value, searchObject);
+          break;
+        case "multicolumn":
+          this.createMultiSearchConditions(mappedAttribute, value, searchObject, endPoint);
           break;
         default:
           this.createGenericSearchConditions(mappedAttribute, value[0], searchObject);

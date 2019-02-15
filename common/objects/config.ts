@@ -316,6 +316,7 @@ const settings = {
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "code", to: "dataResource.medicationCodeableConcept.coding[*].code", type: "array" },
       { map: "date", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "valueCriteria", to: "valueCriteria", type: "multicolumn" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -411,7 +412,15 @@ const settings = {
     }
   },
   medicationplanaggregation: {
-    searchAttributes: [{ map: "subject", to: "subject", type: "string" }],
+    searchAttributes: [
+      {
+        map: "id",
+        to: "id",
+        type: "string",
+        isMultiple: true
+      },
+      { map: "subject", to: "subject", type: "string" }
+    ],
     endpointAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
