@@ -166,17 +166,19 @@ class UserService {
       }
       // check if profile type has access to endpoint or not
       if (!config.settings[endpointName] || !config.settings[endpointName]["endpointAccess"]) {
-        log.error("Error in UserService: profileType/endpointName doesn't exists in congfig section");
-        throw new Error("profileType/endpointName doesn't exists in congfig section");
+        log.error("Error in UserService: profileType/endpointName doesn't exists in config section");
+        throw new Error("profileType/endpointName doesn't exists in config section");
       }
       const allowedMethodTypes: string[] = config.settings[endpointName]["endpointAccess"][result.type];
       if (allowedMethodTypes.length < 1) {
-        log.error("Error in UserService: endpointName doesn't exists in congfig section");
-        throw new Error("endpointName doesn't exists in congfig section");
+        log.error("Error in UserService: endpointName doesn't exists in config section");
+        throw new Error("endpointName doesn't exists in config section");
       }
       // if * then user has access to all methods else selected methods
       if (allowedMethodTypes[0] === "*" || allowedMethodTypes.indexOf(httpMethod) > -1) {
         userAccessObj.endpointPermission = true;
+      } else {
+        throw new Error("endpoint Permission doesn't exists in config section");
       }
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
