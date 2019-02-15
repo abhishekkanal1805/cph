@@ -14,48 +14,6 @@ const data = {
     withdrawParams: "$withdraw",
     searchAttributes: ["status", "version", "name", "isDeleted", "lastUpdated"]
   },
-  controlGroupParams: {
-    rwe: "switch1234",
-    controlGroup: "ControlGroup",
-    rweGroupName: "Patient",
-    control: 1,
-    enhanced: 2,
-    profileInfo: {
-      itemId: "SiteInformation",
-      text: "Study Site Information",
-      type: "group",
-      profileItem: [
-        {
-          itemId: "site",
-          text: "site code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "cohort",
-          text: "Study cohort",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "patientId",
-          text: "Patient Identifier for the study",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        },
-        {
-          itemId: "switchCode",
-          text: "Switch Code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        }
-      ]
-    }
-  },
   headers: {
     types: {
       contentType: "Content-Type"
@@ -103,7 +61,6 @@ const settings = {
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "consentingParty", to: "consentingParty", type: "string" },
-      { map: "id", to: "id", type: "string", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -158,8 +115,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhirimmunization: {
@@ -186,8 +143,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhirobservation: {
@@ -229,8 +186,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   observation: {
@@ -301,8 +258,8 @@ const settings = {
     },
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivity: {
@@ -338,8 +295,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityaggregation: {
@@ -388,8 +345,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationorder: {
@@ -411,8 +368,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationplan: {
@@ -431,6 +388,7 @@ const settings = {
         type: "array"
       },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -448,24 +406,16 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationplanaggregation: {
-    searchAttributes: [
-      {
-        map: "id",
-        to: "id",
-        type: "string",
-        isMultiple: true
-      },
-      { map: "subject", to: "subject", type: "string" }
-    ],
+    searchAttributes: [{ map: "subject", to: "subject", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityoperationaldelete: {
@@ -497,8 +447,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationactivityoperationalupdate: {
@@ -524,8 +474,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhircondition: {
@@ -552,8 +502,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaire: {
@@ -574,8 +524,8 @@ const settings = {
     attachmentParams: "attachment",
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaireresponse: {
@@ -599,8 +549,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   invitation: {
@@ -613,8 +563,7 @@ const settings = {
         map: "inviteeReference",
         to: "inviteeReference",
         type: "string"
-      },
-      { map: "id", to: "id", type: "string" }
+      }
     ],
     allowedAttempts: 6,
     codeValidDurationDays: 1, // day
@@ -622,8 +571,8 @@ const settings = {
     acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   userprofile: {
@@ -670,8 +619,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   connection: {
@@ -680,22 +629,24 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "to", to: "to.reference", type: "string", isMultiple: true },
       { map: "type", to: "type", type: "string", isMultiple: true },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true }
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     },
     isUniqueCodeRequired: true
-  },
-  cmsBatch: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
   },
   searchContent: {
     searchAttributes: [
@@ -729,8 +680,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   searchContentOrCondition: {
@@ -745,16 +696,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
-  getBatchDetails: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fetchDownloadRecords: {
@@ -765,28 +708,12 @@ const settings = {
       "care partner": ["*"]
     }
   },
-  siteSpecificConsent: {
-    searchAttributes: [
-      { map: "static", to: "static", type: "boolean" },
-      { map: "site", to: "site", type: "number" },
-      { map: "category", to: "category", type: "string", isArray: true },
-      { map: "siteExpiryDate", to: "siteExpiryDate", type: "string" },
-      { map: "siteActivationDate", to: "siteActivationDate", type: "string" },
-      { map: "s3Url", to: "s3Url", type: "string", condition: "NotEquals" }
-    ],
-    acceptedAttributes: [{ map: "studyCode", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
   getContentById: {
     acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   allergyintolerance: {
@@ -817,8 +744,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   procedure: {
@@ -857,13 +784,12 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   device: {
     searchAttributes: [
-      { map: "id", to: "id", type: "string" },
       { map: "identifier", to: "identifier[*].value", type: "array" },
       { map: "informationSource", to: "informationSource.reference", type: "string" },
       { map: "platformToken", to: "platformToken.value", type: "string" },
@@ -876,8 +802,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   notification: {
@@ -897,7 +823,6 @@ const settings = {
       "meta"
     ],
     searchAttributes: [
-      { map: "id", to: "id", type: "string" },
       { map: "to", to: "to.reference", type: "string" },
       { map: "from", to: "from.reference", type: "string" },
       { map: "channels", to: "channels[*]", type: "array", isMultiple: true },
@@ -912,8 +837,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   appointment: {
