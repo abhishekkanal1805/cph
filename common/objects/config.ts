@@ -868,8 +868,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   }
 };
