@@ -588,7 +588,7 @@ export class Utility {
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
       if (lodash.isNaN(offset) || offset < 0) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
+        throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid or more than allowed offset");
       }
     }
     return {
