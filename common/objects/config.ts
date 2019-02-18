@@ -555,7 +555,7 @@ const settings = {
         type: "string",
         isMultiple: true
       },
-      { map: "questionnaire", to: "questionnaire.id", type: "string", isMultiple: true }
+      { map: "questionnaire", to: "questionnaire", type: "string", isMultiple: true }
     ],
     endpointAccess: {
       "patient": ["*"],
