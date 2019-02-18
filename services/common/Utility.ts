@@ -272,6 +272,11 @@ export class Utility {
               uniqIds[serviceObj.id] = 1;
             }
           }
+          // removing the display field to prevent it from being saved as part of
+          // display attribute in consideration
+          if (eachEntry[displayAttribute].display) {
+            delete eachEntry[displayAttribute].display;
+          }
         }
       }
       if (insertRecordtoResource) {
