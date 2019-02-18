@@ -586,13 +586,13 @@ export class Utility {
     let offset = 0;
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
-      if (lodash.isNaN(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid or more than allowed limit");
+      if (lodash.isNaN(limit) || lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
+        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
-      if (lodash.isNaN(offset) || offset < 0) {
+      if (lodash.isNaN(offset) || offset < 0 || lodash.isInteger(offset)) {
         throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
       }
     }
