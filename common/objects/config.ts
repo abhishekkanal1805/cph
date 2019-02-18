@@ -554,7 +554,8 @@ const settings = {
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
-      }
+      },
+      { map: "questionnaire", to: "questionnaire", type: "string", isMultiple: true }
     ],
     methodAccess: {
       "patient": ["*"],
