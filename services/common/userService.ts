@@ -165,11 +165,11 @@ class UserService {
         throw new Error("UserProfile status is inactive");
       }
       // check if profile type has access to endpoint or not
-      if (!config.settings[endpointName] || !config.settings[endpointName]["endpointAccess"]) {
+      if (!config.settings[endpointName] || !config.settings[endpointName]["methodAccess"]) {
         log.error("Error in UserService: profileType/endpointName doesn't exists in config section");
         throw new Error("profileType/endpointName doesn't exists in config section");
       }
-      const allowedMethodTypes: string[] = config.settings[endpointName]["endpointAccess"][result.type];
+      const allowedMethodTypes: string[] = config.settings[endpointName]["methodAccess"][result.type];
       if (allowedMethodTypes.length < 1) {
         log.error("Error in UserService: endpointName doesn't exists in config section");
         throw new Error("endpointName doesn't exists in config section");

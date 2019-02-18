@@ -79,7 +79,7 @@ const settings = {
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
     attachmentParams: "attachment",
     withdrawParams: "$withdraw",
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
       "care partner": ["*"]
@@ -113,7 +113,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -141,7 +141,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -184,7 +184,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -256,7 +256,7 @@ const settings = {
       HistogramGroupBy: ["code", "componentcode", "dt", "valueQuantity"],
       orderBy: ["dt ASC"]
     },
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -293,7 +293,7 @@ const settings = {
       }
     ],
 
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -344,7 +344,7 @@ const settings = {
     groupBy: [`code`, "medicationPlan", `dt`, "status", `taken`],
     orderBy: ["dt ASC"],
 
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -367,7 +367,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -405,7 +405,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -421,7 +421,7 @@ const settings = {
       },
       { map: "subject", to: "subject", type: "string" }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -454,7 +454,7 @@ const settings = {
         type: "string"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -481,7 +481,7 @@ const settings = {
         type: "string"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -509,7 +509,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -531,7 +531,7 @@ const settings = {
       }
     ],
     attachmentParams: "attachment",
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -556,7 +556,7 @@ const settings = {
         isMultiple: true
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -578,7 +578,7 @@ const settings = {
     codeValidDurationDays: 1, // day
     requiredParams: ["inviteeEmail", "inviteeReference", "status"],
     acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -626,7 +626,7 @@ const settings = {
       "dea",
       "additionalAttributes"
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -650,7 +650,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -687,7 +687,7 @@ const settings = {
       { map: "static", to: "static", type: "string" },
       { map: "branding", to: "branding", type: "string", isArray: true }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -703,7 +703,7 @@ const settings = {
       },
       { map: "s3Url", to: "s3Url", type: "string", condition: "NotEquals" }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -711,7 +711,7 @@ const settings = {
   },
   fetchDownloadRecords: {
     searchAttributes: [{ map: "errorStatus", to: "errorStatus", type: "boolean" }, { map: "s3Url", to: "s3Url", type: "string" }],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["*"],
       "care partner": ["*"]
@@ -719,7 +719,7 @@ const settings = {
   },
   getContentById: {
     acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -751,7 +751,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -791,7 +791,7 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -809,7 +809,7 @@ const settings = {
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -844,7 +844,7 @@ const settings = {
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
@@ -866,12 +866,17 @@ const settings = {
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
     ],
-    endpointAccess: {
+    methodAccess: {
       "patient": ["*"],
       "practitioner": ["GET"],
       "care partner": ["GET"]
     }
   }
 };
+const connectionTypePermissions = {
+  partner: ["POST", "GET", "PUT", "DELETE"],
+  deligate: ["POST", "GET", "PUT", "DELETE"],
+  friend: ["GET"]
+};
 
-export { data, settings };
+export { data, settings, connectionTypePermissions };
