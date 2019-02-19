@@ -57,21 +57,16 @@ class DataValidatorUtility {
       Requirements:
       1 - only for date if multiple value present then it will perform "AND" operation else "OR" operation
       2 - for other types if multiple value present it is an "OR" operation
-      3 - max 2 dates are allowed for a key
-      4 - both date can't have same prefix
-      5 - if one date prefix is "le" then other shouldn't be "lt", same rule for ["ge", "gt"] and ["eq", "eq"]
-      6 - if no prefix present we assume it is "eq"
-      7 - supported prefix: ["eq", "le", "lt", "ge", "gt"], we get from prefix
+      3 - both date can't have same prefix
+      4 - if one date prefix is "le" then other shouldn't be "lt", same rule for ["ge", "gt"] and ["eq", "eq"]
+      5 - if no prefix present we assume it is "eq"
+      6 - supported prefix: ["eq", "le", "lt", "ge", "gt"], we get from prefix
     */
     let error: string;
     if (!isMultivalue) {
       paramValue = paramValue[0].split(",");
     } else {
       DataValidatorUtility.validateMultiValueDateParams(key, paramValue);
-    }
-    if (paramValue.length > 2) {
-      error = "Failed for attribute: " + key + " as it contains more than 2 dates";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
     }
     for (const value of paramValue) {
       const dateObj: any = Utility.getPrefixDate(value);
