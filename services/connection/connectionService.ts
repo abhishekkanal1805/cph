@@ -91,7 +91,7 @@ export class ConnectionService {
       appendUserProfile
     );
     for (const record of searchResult) {
-      this.getUpdatedResponse(record);
+      await this.getUpdatedResponse(record);
     }
     return searchResult;
   }
@@ -139,9 +139,16 @@ export class ConnectionService {
    * @param {any} responseObj response object
    * @returns {Promise<any>}
    */
-  public static getUpdatedResponse(responseObj: any): Promise<any> {
+  public static async getUpdatedResponse(responseObj: any): Promise<any> {
     const referenceValFrom = responseObj.from.reference.split("/").reverse()[0];
     const referenceValTo = responseObj.to.reference.split("/").reverse()[0];
+    if (!profileDisplay.hasOwnProperty(referenceValFrom) && !profileDisplay.hasOwnProperty(referenceValTo)) {
+      await Promise.all([await this.isProfileValid(referenceValFrom, null, null), await this.isProfileValid(referenceValTo, null, null)]);
+    } else if (profileDisplay.hasOwnProperty(referenceValFrom) && !profileDisplay.hasOwnProperty(referenceValTo)) {
+      await this.isProfileValid(referenceValTo, null, null);
+    } else if (!profileDisplay.hasOwnProperty(referenceValFrom) && profileDisplay.hasOwnProperty(referenceValTo)) {
+      await this.isProfileValid(referenceValFrom, null, null);
+    }
     responseObj.from.display = profileDisplay.hasOwnProperty(referenceValFrom) ? profileDisplay[referenceValFrom] : "";
     responseObj.to.display = profileDisplay.hasOwnProperty(referenceValTo) ? profileDisplay[referenceValTo] : "";
     return responseObj;
