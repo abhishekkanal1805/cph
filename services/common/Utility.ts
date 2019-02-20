@@ -279,6 +279,11 @@ export class Utility {
           }
         }
       }
+      for (const nonUserDisplayAttribute of config.data.nonUserDisplayFields) {
+        if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].display) {
+          eachEntry[nonUserDisplayAttribute].display = "";
+        }
+      }
       if (insertRecordtoResource) {
         resource.savedRecords.push(eachEntry);
       }

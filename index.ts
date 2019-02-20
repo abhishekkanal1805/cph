@@ -20,6 +20,7 @@ export * from "./models/common/codeableConcept";
 export * from "./models/common/coding";
 export * from "./models/common/contactDetail";
 export * from "./models/common/contactPoint";
+export * from "./models/common/device";
 export * from "./models/common/duration";
 export * from "./models/common/entry";
 export * from "./models/common/humanName";

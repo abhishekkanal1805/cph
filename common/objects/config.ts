@@ -37,6 +37,7 @@ const data = {
     "withdrawalDate"
   ],
   displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
+  nonUserDisplayFields: ["device", "medicationPlan"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
