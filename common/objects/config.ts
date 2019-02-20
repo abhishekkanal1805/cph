@@ -274,7 +274,7 @@ const settings = {
       { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
       { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
       { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
-      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "medicationPlan", to: "medicationPlan", type: "string", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
