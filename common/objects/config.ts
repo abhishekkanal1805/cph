@@ -1,12 +1,5 @@
 const data = {
   validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
-  allowedPools: [
-    { poolId: "us-east-1_lhwINc4vG", region: "us-east-1" },
-    { poolId: "us-east-1_v5ed2jXHP", region: "us-east-1" },
-    { poolId: "us-east-1_Vx1IOyGTB", region: "us-east-1" },
-    { poolId: "us-east-1_TvzUmxgeq", region: "us-east-1" }, // Mobile Env
-    { poolId: "us-east-1_IChCUdoMz", region: "us-east-1" } // Mobile Env
-  ],
   consent: {
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
     acceptedAttributes: ["consentingParty", "status", "version", "name", "isDeleted", "lastUpdated"],
