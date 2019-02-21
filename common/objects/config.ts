@@ -197,7 +197,7 @@ const settings = {
       { map: "informationSource", to: "informationSource", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "code", to: "code.coding[*].code", type: "array" },
-      { map: "category", to: "category[*].coding[*].code", type: "array" },
+      { map: "category", to: "category[*].coding[*].code", type: "array", isMultiple: true },
       { map: "component-code", to: "component[*].code.coding[*].code", type: "array" },
       {
         map: "date",

@@ -1025,22 +1025,25 @@ class DataHelperService {
     if (mappedAttribute.type === "array") {
       const attributes = mappedAttribute.to.split(".");
       if (attributes.length > 1) {
-        let nestedAttributes = {};
-        this.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
-        const arrFlag = attributes[0].indexOf("[*]") > -1;
-        let parentAttribute = attributes[0];
-        if (arrFlag) {
-          parentAttribute = parentAttribute.replace("[*]", "");
-          nestedAttributes = [nestedAttributes];
+        const values: string[] = mappedAttribute.isMultiple ? value.split(",") : [value];
+        for (const item of values) {
+          let nestedAttributes = {};
+          this.getNestedAttributes(attributes.slice(1), item, nestedAttributes, false);
+          const arrFlag = attributes[0].indexOf("[*]") > -1;
+          let parentAttribute = attributes[0];
+          if (arrFlag) {
+            parentAttribute = parentAttribute.replace("[*]", "");
+            nestedAttributes = [nestedAttributes];
+          }
+          if (!searchObject[parentAttribute]) {
+            searchObject[parentAttribute] = {
+              [Op.or]: []
+            };
+          }
+          searchObject[parentAttribute][Op.or].push({
+            [Op.contains]: nestedAttributes
+          });
         }
-        if (!searchObject[parentAttribute]) {
-          searchObject[parentAttribute] = {
-            [Op.and]: []
-          };
-        }
-        searchObject[parentAttribute][Op.and].push({
-          [Op.contains]: nestedAttributes
-        });
       } else {
         // comes here if mapped type is array but we match on attribute itself as nested properties are not present (like string)
         const parentAttribute = attributes[0].replace("[*]", "");
