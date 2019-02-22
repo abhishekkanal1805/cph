@@ -2,7 +2,11 @@
   "name": "cph-common-service",
   "repository": "https://stash.tools.deloitteinnovation.us/projects/CHCONHUB",
   "license": "UNLICENSED",
+<<<<<<< HEAD
   "version": "0.0.56",
+=======
+  "version": "0.0.57",
+>>>>>>> 9cff082facf679bbcc72ae5181e761a024a7fa99
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {

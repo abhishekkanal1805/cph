@@ -1,12 +1,5 @@
 const data = {
   validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
-  allowedPools: [
-    { poolId: "us-east-1_lhwINc4vG", region: "us-east-1" },
-    { poolId: "us-east-1_v5ed2jXHP", region: "us-east-1" },
-    { poolId: "us-east-1_Vx1IOyGTB", region: "us-east-1" },
-    { poolId: "us-east-1_TvzUmxgeq", region: "us-east-1" }, // Mobile Env
-    { poolId: "us-east-1_IChCUdoMz", region: "us-east-1" } // Mobile Env
-  ],
   consent: {
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
     acceptedAttributes: ["consentingParty", "status", "version", "name", "isDeleted", "lastUpdated"],
@@ -37,6 +30,7 @@ const data = {
     "withdrawalDate"
   ],
   displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "actor"],
+  nonUserDisplayFields: ["device", "medicationPlan"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -196,7 +190,7 @@ const settings = {
       { map: "informationSource", to: "informationSource", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "code", to: "code.coding[*].code", type: "array" },
-      { map: "category", to: "category[*].coding[*].code", type: "array" },
+      { map: "category", to: "category[*].coding[*].code", type: "array", isMultiple: true },
       { map: "component-code", to: "component[*].code.coding[*].code", type: "array" },
       {
         map: "date",
@@ -274,7 +268,7 @@ const settings = {
       { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
       { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
       { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
-      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "medicationPlan", to: "medicationPlan", type: "string", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
