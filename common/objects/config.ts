@@ -856,7 +856,7 @@ const settings = {
       { map: "actor", to: "participant[*].actorReference.reference", type: "array" },
       { map: "informationSource", to: "informationSource.reference", type: "string" },
       { map: "appointmentType", to: "appointmentType.coding[*].code", type: "array" },
-      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "status", to: "status", type: "string", isMultiple: true, defaultValue: "proposed" },
       { map: "date", to: "start", type: "date", isMultiple: true },
       { map: "reasonCode", to: "reasonCode[*].coding[*].code", type: "array" },
       { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
@@ -869,7 +869,7 @@ const settings = {
     ],
     methodAccess: {
       "patient": ["*"],
-      "practitioner": ["GET"],
+      "practitioner": [],
       "care partner": ["GET"]
     }
   }
