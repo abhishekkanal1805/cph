@@ -392,10 +392,6 @@ class DataService {
     if (!queryParams.hasOwnProperty("isDeleted")) {
       queryParams["isDeleted"] = ["false"];
     }
-    /*if (config.settings[endPoint].status && config.settings[endPoint].status.defaultValue
-      && !queryParams.hasOwnProperty("status")) {
-      queryParams["status"] = [config.settings[endPoint].status.defaultValue];
-    }*/
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
     const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
     log.info("Exiting DataService :: searchRecords()");
