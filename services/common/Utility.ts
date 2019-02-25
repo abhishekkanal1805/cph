@@ -149,9 +149,9 @@ export class Utility {
    * @returns {Object}
    */
   public static getUpdateMetadata(metaDataObject: any, modifiedByUser: string, isDeleted: boolean) {
-    log.info("Inside Utility: getUpdateMetadata()");
     const timestamp = this.getTimeStamp();
-    metaDataObject.versionId = this.getUpdatedVersionId(metaDataObject.versionId);
+    const versionId = metaDataObject.versionId;
+    metaDataObject.versionId = (parseInt(versionId) ? parseInt(versionId) : parseInt(versionId.slice(1))) + 1;
     metaDataObject.lastUpdated = timestamp;
     metaDataObject.lastUpdatedBy = modifiedByUser;
     metaDataObject.isDeleted = isDeleted;
@@ -217,8 +217,11 @@ export class Utility {
     log.info("Inside Utility: findIds()");
     const foundIDs = lodash.uniq(
       lodash.map(bundle, (item) => {
-        const value = this.getAttributeValue(item, key);
-        return value;
+        return String(key)
+          .split(".")
+          .reduce((o, x) => {
+            return typeof o == "undefined" || o === null ? o : o[x];
+          }, item);
       })
     );
     return foundIDs.length ? foundIDs : [];
@@ -325,7 +328,7 @@ export class Utility {
   }
 
   public static getAttributeValue(obj: object, key: string) {
-    log.info("Inside baseService: getAttributeValue()");
+    log.debug("Inside baseService: getAttributeValue()");
     return String(key)
       .split(".")
       .reduce((o, x) => {

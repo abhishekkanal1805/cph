@@ -16,7 +16,7 @@ class DataService {
   /**
    * Adds business logic on top of fetchDatabaseRow()
    * @param serviceModel Sequelize model class of the target table.
-   * @param {string} contextData AWS context data from incoming request.
+   * @param {string} authorizerData AWS context data from incoming request.
    * @param {string} recordId id of the record needs to be fetched.
    * @param {boolean} performUserValidation flag to turn user validation on or off.
    * @param {boolean} fetchDeletedRecord flag to check whether deleted records need to be fetched or not
@@ -164,7 +164,6 @@ class DataService {
     if (performUserValidation === undefined || performUserValidation === null) {
       performUserValidation = true;
     }
-    const savedBundle: any = [];
     // convert to bundle
     const recordArr: any = Utility.getResourceFromRequest(record);
     if (recordArr.length < 1) {
@@ -176,13 +175,13 @@ class DataService {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
     }
-    const resource = { savedRecords: [], errorRecords: [] };
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
     if (_.uniq(recordIds).length !== recordIds.length) {
       throw new BadRequestResult(errorCode.InvalidInput, "Provided list of ID keys contains duplicates");
     }
     // Get all unique userids
+    const resource = { savedRecords: [], errorRecords: [] };
     const patientIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, patientValidationId, resource);
     let userIds: any[];
     if (userValidationId) {
@@ -207,6 +206,7 @@ class DataService {
     // Update record attributes before save
     resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
+    const savedBundle: any = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {
       const thisPromise = serviceModel
@@ -216,7 +216,7 @@ class DataService {
           savedBundle.push(item);
         })
         .catch((err) => {
-          log.error("Error in updating record: ", eachRecord);
+          log.error("Error in updating record: ", err);
           throw new InternalServerErrorResult(errorCode.ResourceNotDeleted, err.message);
         });
       allPromise.push(thisPromise);
