@@ -863,14 +863,14 @@ const settings = {
     ],
     methodAccess: {
       "patient": ["*"],
-      "practitioner": [],
-      "care partner": ["GET"]
+      "practitioner": ["*"],
+      "care partner": ["*"]
     }
   }
 };
 const connectionTypePermissions = {
-  partner: ["POST", "GET", "PUT", "DELETE"],
-  deligate: ["POST", "GET", "PUT", "DELETE"],
+  partner: ["GET"],
+  deligate: ["GET"],
   friend: ["GET"]
 };
 
