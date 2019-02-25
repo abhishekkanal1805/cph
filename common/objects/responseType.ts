@@ -13,6 +13,7 @@ export const responseType = {
     "InvalidRequest",
     "INVALID USER ID",
     "INVALID_Medication_ID",
+    "Invalid_Medication_Plan_Reference",
     "INVALID_EMAIL",
     "Invalid_Email_InviteCode",
     "VersionId_Mismatch",

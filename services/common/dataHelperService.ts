@@ -10,7 +10,6 @@ import { cast, col, fn, json, literal, Op } from "sequelize";
 import * as uuid from "uuid";
 import { errorCode } from "../../common/constants/error-codes";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { DataService } from "./dataService";
 import { Utility } from "./Utility";
 
 class DataHelperService {
@@ -59,52 +58,55 @@ class DataHelperService {
   public static async convertAllToModelsForUpdate(resource: any, serviceModel: any, serviceDataResource: any, userId: string) {
     log.info("Entering DataHelperService :: convertAllToModelsForUpdate()");
     const updatedRecords = [];
-    for (const thisRecord of resource.savedRecords) {
-      let clientRequestId = " ";
-      if (thisRecord.meta.clientRequestId) {
-        clientRequestId = thisRecord.meta.clientRequestId;
-      }
-      // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
-      let existingRecord: any;
-      try {
-        if (serviceDataResource != null) {
-          existingRecord = await DataService.fetchDatabaseRow(thisRecord.id, serviceModel);
-        } else {
-          existingRecord = await DataService.fetchDatabaseRowStandard(thisRecord.id, serviceModel);
+    let records;
+    if (resource.savedRecords) {
+      const recordIds = _.map(resource.savedRecords, "id");
+      // fetching all the rows with matching ids
+      records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
+      for (const thisRecord of resource.savedRecords) {
+        let clientRequestId = " ";
+        if (thisRecord.meta.clientRequestId) {
+          clientRequestId = thisRecord.meta.clientRequestId;
         }
-      } catch (err) {
-        const badRequest = new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
-        badRequest.clientRequestId = clientRequestId;
-        resource.errorRecords.push(badRequest);
-        continue;
+        // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
+        let existingRecord: any;
+        if (serviceDataResource != null) {
+          existingRecord = _.result(_.find(records, { id: thisRecord.id }), "dataResource");
+        } else {
+          existingRecord = _.find(records, { id: thisRecord.id });
+        }
+        if (!existingRecord) {
+          const badRequest = new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+          badRequest.clientRequestId = clientRequestId;
+          resource.errorRecords.push(badRequest);
+          continue;
+        }
+        if (existingRecord.meta && existingRecord.meta.isDeleted) {
+          const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
+          notFoundResult.clientRequestId = clientRequestId;
+          resource.errorRecords.push(notFoundResult);
+          continue;
+        }
+        if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
+          const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
+          badRequest.clientRequestId = clientRequestId;
+          resource.errorRecords.push(badRequest);
+          continue;
+        }
+        // update is legal, now prepare the Model
+        existingRecord.meta.clientRequestId = clientRequestId;
+        if (thisRecord.meta.deviceId) {
+          existingRecord.meta.deviceId = thisRecord.meta.deviceId;
+        }
+        if (thisRecord.meta.isDeleted) {
+          existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
+        }
+        // if no error then update metadata
+        log.debug("Updating metadata information");
+        thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
+        const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
+        updatedRecords.push(recordAsModel.dataValues);
       }
-
-      if (existingRecord.meta && existingRecord.meta.isDeleted) {
-        const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
-        notFoundResult.clientRequestId = clientRequestId;
-        resource.errorRecords.push(notFoundResult);
-        continue;
-      }
-      if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-        const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
-        badRequest.clientRequestId = clientRequestId;
-        resource.errorRecords.push(badRequest);
-        continue;
-      }
-
-      // update is legal, now prepare the Model
-      existingRecord.meta.clientRequestId = thisRecord.meta.clientRequestId;
-      if (thisRecord.meta.deviceId) {
-        existingRecord.meta.deviceId = thisRecord.meta.deviceId;
-      }
-      if (thisRecord.meta.isDeleted) {
-        existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
-      }
-      // if no error then update metadata
-
-      thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
-      const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
-      updatedRecords.push(recordAsModel.dataValues);
     }
     log.info("Exiting DataHelperService :: convertAllToModelsForUpdate()");
     return updatedRecords;
@@ -1306,6 +1308,19 @@ class DataHelperService {
       rawQuery += " order by " + _.join(orderby, ",");
     }
     return rawQuery.replace("\\", "");
+  }
+
+  public static async fetchAllDatabaseRows(serviceModel: any, recordIds: string[]) {
+    log.info("Inside fetchAllDatabaseRows: ");
+    const results = await serviceModel.findAll({
+      where: {
+        id: {
+          [Op.or]: recordIds
+        }
+      }
+    });
+
+    return results;
   }
 }
 
