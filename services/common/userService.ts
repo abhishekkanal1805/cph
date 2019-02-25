@@ -186,7 +186,6 @@ class UserService {
       userAccessObj.profileStatus = result.status;
       userAccessObj.profileType = result.type;
       userAccessObj.displayName = [familyName, givenName.join(" ")].join(", ");
-      log.info("Display Name: " + userAccessObj.displayName);
       if (!ResponseBuilderService.displayMap[profileId]) {
         const displayName = userAccessObj.displayName ? userAccessObj.displayName || [] : [];
         ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";

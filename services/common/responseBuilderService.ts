@@ -156,9 +156,8 @@ class ResponseBuilderService {
   public static getDisplayAttribute(profileId: string) {
     let displayValue = " ";
     if (ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
-      log.info("profileId exists in displayMap" + profileId);
+      log.debug("profileId exists in displayMap" + profileId);
       displayValue = ResponseBuilderService.displayMap[profileId];
-      log.info("Display value : " + displayValue);
     }
     return displayValue;
   }
