@@ -18,8 +18,7 @@ const config = {
     min: 0,
     idle: 10000,
     acquire: 10000,
-    maxIdleTime: 10000,
-    maxConnections: 1
+    maxIdleTime: 10000
   },
   dialectOptions: {
     requestTimeout: 500000,
@@ -39,6 +38,7 @@ class DataSource {
     log.info("Entering DataSource :: getDataSource()");
     if (!sequelize) {
       try {
+        log.info(" ***** Creating a new Sequelize Connection - common");
         dbConfig = config;
         sequelize = new Sequelize(dbConfig);
       } catch (err) {
