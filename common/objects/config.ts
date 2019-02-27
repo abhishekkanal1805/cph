@@ -289,8 +289,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
+      "practitioner": ["GET", "POST"],
+      "care partner": ["GET", "POST"]
     }
   },
   medicationactivityaggregation: {
