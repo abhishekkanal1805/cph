@@ -852,7 +852,7 @@ const settings = {
       { map: "appointmentType", to: "appointmentType.coding[*].code", type: "array" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "date", to: "start", type: "date", isMultiple: true },
-      { map: "reasonCode", to: "reasonCode[*].coding[*].code", type: "array" },
+      { map: "reason", to: "reason[*].coding[*].code", type: "array" },
       { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
       { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
