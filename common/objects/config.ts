@@ -252,8 +252,8 @@ const settings = {
     },
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
+      "practitioner": ["GET", "POST"],
+      "care partner": ["GET", "POST"]
     }
   },
   medicationactivity: {
@@ -340,8 +340,8 @@ const settings = {
 
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
+      "practitioner": ["GET", "POST"],
+      "care partner": ["GET", "POST"]
     }
   },
   medicationorder: {
