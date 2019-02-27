@@ -1,17 +1,15 @@
 export { Utility } from "./services/common/Utility";
+export { DataHelperService } from "./services/common/dataHelperService";
 export { DataService } from "./services/common/dataService";
 export { DataValidatorUtility } from "./services/common/dataValidatorUtility";
-export { EmailService } from "./services/common/emailService";
 export { FieldVisitor } from "./services/common/fieldVisitor";
 export { GatewayUtility } from "./services/common/gatewayUtility";
 export { LogUtility } from "./services/common/logUtility";
-export { PushService } from "./services/common/pushService";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
+export { AggregationUtils } from "./services/common/aggregationUtils";
 
-export * from "./services/security/lambdaAuthorizer";
 export * from "./services/security/userAuthService";
-export * from "./services/security/userAuthServiceHandler";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
@@ -22,6 +20,7 @@ export * from "./models/common/codeableConcept";
 export * from "./models/common/coding";
 export * from "./models/common/contactDetail";
 export * from "./models/common/contactPoint";
+export * from "./models/common/device";
 export * from "./models/common/duration";
 export * from "./models/common/entry";
 export * from "./models/common/humanName";
@@ -42,7 +41,9 @@ export * from "./models/common/simpleQuantity";
 export * from "./models/common/subject";
 
 export * from "./models/CPH/userProfile/userProfile";
+export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
+export * from "./models/CPH/connection/connectionDataResource";
 
 export * from "./services/connection/connectionService";
 
@@ -53,3 +54,4 @@ export * from "./common/objects/api-response-builder";
 export * from "./common/objects/config";
 export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
+export * from "./models/common/patient";

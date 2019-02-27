@@ -9,9 +9,12 @@ class Constants {
   public static readonly RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS = "forbidden";
   public static readonly RESPONSE_TYPE_NOT_FOUND = "notFound";
   public static readonly RESPONSE_TYPE_UNAUTHORIZED = "unauthorized";
+  public static readonly RESPONSE_TYPE_MULTI_STATUS = "multistatus";
 
   public static readonly FETCH_LIMIT = 2000;
   public static readonly POST_LIMIT = 500;
+
+  public static readonly BOUNDSPERIOD_LIMIT = 90;
 }
 
 export { Constants };

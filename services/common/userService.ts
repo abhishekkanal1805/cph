@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
-import { UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
@@ -22,8 +22,10 @@ class UserService {
    */
   public static async performMultiUserValidation(
     accessObj: any,
+    patientIds: string[],
     userIds: string[],
     httpMethod: string,
+    patientValidationId: string,
     userValidationId: string,
     resource: any,
     authorizerData: any
@@ -31,34 +33,60 @@ class UserService {
     log.info("Entering UserService :: performMultiUserValidation()");
     // Check user present in cognito or not and get profile Id
     let newRecords = [];
-    for (const userId of userIds) {
+    for (const patientId of patientIds) {
       const callerUserProfileId = accessObj.loggedinId;
       const calleruserProfileType = accessObj.profileType;
       let userPermissions: string[] = [];
       let isPermissionValid: boolean = false;
       try {
-        userPermissions = await UserAuthService.getUserPermissions(callerUserProfileId, userId, calleruserProfileType, authorizerData, httpMethod);
+        userPermissions = await UserAuthService.getUserPermissions(callerUserProfileId, patientId, calleruserProfileType, authorizerData, httpMethod);
         isPermissionValid = await UserAuthService.validatePermissions(userPermissions, httpMethod);
       } catch (err) {
         // if error occoured for a userId, then skip and go for next userId
-        log.error("Error in UserService :: performMultiUserValidation() " + userId);
+        log.error("Error in UserService :: performMultiUserValidation() " + patientId);
       }
       const filteredRecords: any = _.filter(resource.savedRecords, (eachRecord) => {
-        return Utility.getAttributeValue(eachRecord, userValidationId) === ["UserProfile", userId].join("/");
+        return Utility.getAttributeValue(eachRecord, patientValidationId) === ["UserProfile", patientId].join("/");
       });
       if (userPermissions.length && isPermissionValid) {
         newRecords = newRecords.concat(filteredRecords);
       } else {
         resource.errorRecords = resource.errorRecords.concat(
           _.map(filteredRecords, (d) => {
-            const badRequest = new UnAuthorizedResult(errorCode.InvalidUserId, "User don't have permission to update this record");
+            const badRequest = new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to update this record");
             badRequest.clientRequestId = d.meta ? d.meta.clientRequestId : " ";
             return badRequest;
           })
         );
       }
     }
-    resource.savedRecords = newRecords;
+    if (userValidationId) {
+      let validRecords = [];
+      for (const userId of userIds) {
+        let filteredRecords: any;
+        if (newRecords.length > 0) {
+          filteredRecords = _.filter(newRecords, (eachRecord) => {
+            return Utility.getAttributeValue(eachRecord, userValidationId) === ["UserProfile", userId].join("/");
+          });
+          if (userId === accessObj.loggedinId) {
+            validRecords = validRecords.concat(filteredRecords);
+          } else {
+            resource.errorRecords = resource.errorRecords.concat(
+              _.map(filteredRecords, (d) => {
+                const badRequest = new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to update this record");
+                badRequest.clientRequestId = d.meta ? d.meta.clientRequestId : " ";
+                return badRequest;
+              })
+            );
+          }
+          resource.savedRecords = validRecords;
+        } else {
+          resource.savedRecords = newRecords;
+        }
+      }
+    } else {
+      resource.savedRecords = newRecords;
+    }
   }
 
   /**
@@ -96,6 +124,9 @@ class UserService {
 
   /**
    * Function to check if user has access to this endpoint or not
+   * 1) make sure profileID is present in authorizer data. will be there only for logged in users
+   * 2) Then is profileID Present in DB and in active state
+   * 3) Then see if this user type [patient, practitioner etc] has access to the requested endpoint and request operation [GET, POST etc]
    *
    * @param {*} serviceModel Sequelize model class of the target table
    * @param {*} authorizerData AWS cognito authorizer data from incoming request.
@@ -135,17 +166,19 @@ class UserService {
       }
       // check if profile type has access to endpoint or not
       if (!config.settings[endpointName] || !config.settings[endpointName]["endpointAccess"]) {
-        log.error("Error in UserService: profileType/endpointName doesn't exists in congfig section");
-        throw new Error("profileType/endpointName doesn't exists in congfig section");
+        log.error("Error in UserService: profileType/endpointName doesn't exists in config section");
+        throw new Error("profileType/endpointName doesn't exists in config section");
       }
       const allowedMethodTypes: string[] = config.settings[endpointName]["endpointAccess"][result.type];
       if (allowedMethodTypes.length < 1) {
-        log.error("Error in UserService: endpointName doesn't exists in congfig section");
-        throw new Error("endpointName doesn't exists in congfig section");
+        log.error("Error in UserService: endpointName doesn't exists in config section");
+        throw new Error("endpointName doesn't exists in config section");
       }
       // if * then user has access to all methods else selected methods
       if (allowedMethodTypes[0] === "*" || allowedMethodTypes.indexOf(httpMethod) > -1) {
         userAccessObj.endpointPermission = true;
+      } else {
+        throw new Error("endpoint Permission doesn't exists in config section");
       }
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
@@ -163,6 +196,35 @@ class UserService {
     } catch (err) {
       log.error("Error in UserService :: performUserAcessValidation() " + err.stack);
       throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User don't have permission to access this endpoint");
+    }
+  }
+
+  /**
+   * A function for doing basic user validation that can be used independent of DB operation.
+   * If checks if the reference provided is a UserProfile reference.
+   * If so, it will make sure the id is present in DB and also that it is an active user.
+   * If not it will throw a BadRequestResult error with errorCode.InvalidId
+   * The profile check is very basic. It will NOT check user permissions, user access, match with logged user etc.
+   * Null or undefined references are not validated. So no errors will be thrown
+   *
+   * @param {string} profileReference, example UserProfile/<id>
+   * @returns {Promise<void>} If user is valid ir returns nothing. If invalid it throws BadRequestResult.
+   */
+  public static async validateProfileReference(profileReference: string) {
+    if (!profileReference) {
+      return;
+    }
+    if (!profileReference.startsWith("UserProfile/")) {
+      const errorMessage = "The provided reference [" + profileReference + "] is not a user profile.";
+      throw new BadRequestResult(errorCode.InvalidId, errorMessage);
+    }
+
+    const userProfileId: string = profileReference.split("/")[1];
+    DataSource.addModel(UserProfile);
+    const savedProfile = await DataService.fetchDatabaseRowStandard(userProfileId, UserProfile);
+    if (!savedProfile || savedProfile.status !== "active") {
+      const errorMessage = "The provided profile reference [" + userProfileId + "] is either inactive or missing.";
+      throw new BadRequestResult(errorCode.InvalidId, errorMessage);
     }
   }
 }

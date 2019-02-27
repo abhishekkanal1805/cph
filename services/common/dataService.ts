@@ -3,7 +3,6 @@
  * Summary: This file contains all ORM interaction related services like get put post etc
  */
 import * as log from "lambda-log";
-
 import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
@@ -17,7 +16,7 @@ class DataService {
   /**
    * Adds business logic on top of fetchDatabaseRow()
    * @param serviceModel Sequelize model class of the target table.
-   * @param {string} contextData AWS context data from incoming request.
+   * @param {string} authorizerData AWS context data from incoming request.
    * @param {string} recordId id of the record needs to be fetched.
    * @param {boolean} performUserValidation flag to turn user validation on or off.
    * @param {boolean} fetchDeletedRecord flag to check whether deleted records need to be fetched or not
@@ -77,28 +76,48 @@ class DataService {
     serviceDataResource: any,
     authorizerData: any,
     httpMethod: string,
-    userValidationId: string,
-    performUserValidation?: boolean
+    patientValidationId: string,
+    performUserValidation?: boolean,
+    userValidationId?: string,
+    limitNoOfRecordsToSave?: boolean
   ): Promise<object> {
     log.info("Entering DataService :: saveRecord()");
     if (performUserValidation === undefined) {
       performUserValidation = true;
     }
     // Convert to bundle
-    const recordArr: any = Utility.getResourceFromRequest(record);
+    const recordArr: any = Utility.getResourceFromRequest(record, limitNoOfRecordsToSave);
     if (recordArr.length < 1) {
       log.error("getResourceFromRequest() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
+    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    if (deviceIds.length > 1) {
+      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    }
     const resource = { savedRecords: [], errorRecords: [] };
     // Get all unique userids
-    const userIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, userValidationId, resource);
+    const patientIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, patientValidationId, resource);
+    let userIds: any[];
+    if (userValidationId) {
+      userIds = await Utility.getUniqueIds(recordArr, userValidationId);
+    }
     // Do user validation
-    let loggedinId = userIds[0];
+    let loggedinId = patientIds[0];
     if (performUserValidation) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
-      await UserService.performMultiUserValidation(permissionObj, userIds, httpMethod, userValidationId, resource, authorizerData);
+      await UserService.performMultiUserValidation(
+        permissionObj,
+        patientIds,
+        userIds,
+        httpMethod,
+        patientValidationId,
+        userValidationId,
+        resource,
+        authorizerData
+      );
       loggedinId = permissionObj.loggedinId;
     }
     // Add internal attributes before save
@@ -137,38 +156,57 @@ class DataService {
     serviceDataResource: any,
     authorizerData: any,
     httpMethod: string,
-    userValidationId: string,
-    performUserValidation?: boolean
+    patientValidationId: string,
+    performUserValidation?: boolean,
+    userValidationId?: string
   ): Promise<object> {
     log.info("Entering DataService :: updateRecord()");
     if (performUserValidation === undefined || performUserValidation === null) {
       performUserValidation = true;
     }
-    const savedBundle: any = [];
     // convert to bundle
     const recordArr: any = Utility.getResourceFromRequest(record);
     if (recordArr.length < 1) {
       log.error("Provided resource is invalid");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
-    const resource = { savedRecords: [], errorRecords: [] };
+    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    if (deviceIds.length > 1) {
+      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    }
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
     if (_.uniq(recordIds).length !== recordIds.length) {
       throw new BadRequestResult(errorCode.InvalidInput, "Provided list of ID keys contains duplicates");
     }
     // Get all unique userids
-    const userIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, userValidationId, resource);
+    const resource = { savedRecords: [], errorRecords: [] };
+    const patientIds: any[] = await Utility.getUpdatedRecordAndIds(recordArr, patientValidationId, resource);
+    let userIds: any[];
+    if (userValidationId) {
+      userIds = await Utility.getUniqueIds(recordArr, userValidationId);
+    }
     // Do user validation
-    let loggedinId = userIds[0];
+    let loggedinId = patientIds[0];
     if (performUserValidation) {
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
-      await UserService.performMultiUserValidation(permissionObj, userIds, httpMethod, userValidationId, resource, authorizerData);
+      await UserService.performMultiUserValidation(
+        permissionObj,
+        patientIds,
+        userIds,
+        httpMethod,
+        patientValidationId,
+        userValidationId,
+        resource,
+        authorizerData
+      );
       loggedinId = permissionObj.loggedinId;
     }
     // Update record attributes before save
-    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
+    resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
     const allPromise = [];
+    const savedBundle: any = [];
     // FIXME: Currently it is doing partial update but we need complete replace
     for (const eachRecord of resource.savedRecords) {
       const thisPromise = serviceModel
@@ -178,7 +216,7 @@ class DataService {
           savedBundle.push(item);
         })
         .catch((err) => {
-          log.error("Error in updating record: ", eachRecord);
+          log.error("Error in updating record: ", err);
           throw new InternalServerErrorResult(errorCode.ResourceNotDeleted, err.message);
         });
       allPromise.push(thisPromise);
@@ -232,7 +270,7 @@ class DataService {
     } else if (permanent === "false") {
       log.info("Soft deleting the item" + recordId);
       if (result.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.InvalidRequest, "The record doesn't exist or is already deleted");
+        throw new NotFoundResult(errorCode.RecordNotFound, "The record doesn't exist or is already deleted");
       }
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);
@@ -274,11 +312,13 @@ class DataService {
     // retrieve the record first
     const result: any = await this.searchDatabaseRows(parameters, serviceModel, endpoint, ["dataResource"]);
     // get user id from the result resource for validation
-    if (performUserValidation) {
+    if (performUserValidation && result && result.length) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
       const userIds: string[] = Utility.getUserIds(result, userValidationId);
       await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod);
+    } else {
+      throw new BadRequestResult(errorCode.NoSearchResultsFounds, "No Records found for given search criteria");
     }
     // delete permanently or soft delete
     if (permanent === "true") {
@@ -347,6 +387,10 @@ class DataService {
           queryParams[displayAttribute] = [["UserProfile", queryParams[displayAttribute]].join("/")];
         }
       }
+    }
+    // check added to filter soft deleted records
+    if (!queryParams.hasOwnProperty("isDeleted")) {
+      queryParams["isDeleted"] = ["false"];
     }
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
     const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
@@ -485,6 +529,7 @@ class DataService {
         });
       allPromise.push(thisPromise);
     }
+    await Promise.all(allPromise);
     log.info("Exiting DataService :: softDeleteDatabaseRow");
     return "Resource was successfully deleted";
   }
@@ -500,8 +545,10 @@ class DataService {
   public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
     log.info("Entering BaseService :: getSearchDatabaseRows()");
     log.debug("Start-DBCall: " + new Date().toISOString());
-    const queryObject = DataHelperService.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
+    const queryObject: any = DataHelperService.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
     const result: any = await serviceModel.findAll(queryObject);
+    result.limit = queryObject.limit;
+    result.offset = queryObject.offset;
     log.debug("End-DBCall: " + new Date().toISOString());
     log.info("Number of records retrieved: " + result.length);
     log.info("Exiting DataService :: getSearchDatabaseRows()");
@@ -509,9 +556,13 @@ class DataService {
       dataResource contains whole json object, if dataResource is there in attribute
       then return dataResource else return data for all attributes
     */
-    return _.map(result, (d) => {
+
+    const res: any = _.map(result, (d) => {
       return attributes.indexOf("dataResource") > -1 ? d.dataResource : d;
     });
+    res.limit = result.limit;
+    res.offset = result.offset;
+    return res;
   }
 }
 

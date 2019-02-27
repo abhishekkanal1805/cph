@@ -149,9 +149,9 @@ export class Utility {
    * @returns {Object}
    */
   public static getUpdateMetadata(metaDataObject: any, modifiedByUser: string, isDeleted: boolean) {
-    log.info("Inside Utility: getUpdateMetadata()");
     const timestamp = this.getTimeStamp();
-    metaDataObject.versionId = this.getUpdatedVersionId(metaDataObject.versionId);
+    const versionId = metaDataObject.versionId;
+    metaDataObject.versionId = (parseInt(versionId) ? parseInt(versionId) : parseInt(versionId.slice(1))) + 1;
     metaDataObject.lastUpdated = timestamp;
     metaDataObject.lastUpdatedBy = modifiedByUser;
     metaDataObject.isDeleted = isDeleted;
@@ -209,6 +209,42 @@ export class Utility {
   }
 
   /**
+   *
+   * @param bundle
+   * @param userId
+   */
+  public static findIds(bundle: any[], key: string) {
+    log.info("Inside Utility: findIds()");
+    const foundIDs = lodash.uniq(
+      lodash.map(bundle, (item) => {
+        return String(key)
+          .split(".")
+          .reduce((o, x) => {
+            return typeof o == "undefined" || o === null ? o : o[x];
+          }, item);
+      })
+    );
+    return foundIDs.length ? foundIDs : [];
+  }
+
+  /**
+   * @param {any[]} records
+   * @param {string} userIdAttribute
+   */
+  public static getUniqueIds(records: any[], userIdAttribute: string) {
+    log.info("Entering utility: getUniqueIds()");
+    const uniqueIds = {};
+    for (const eachEntry of records) {
+      const id = Utility.getServiceId(eachEntry[userIdAttribute.trim().split(".")[0]].reference).id;
+      if (id) {
+        uniqueIds[id] = 1;
+      }
+    }
+    log.info("Exiting utility: getUniqueIds()");
+    return Object.keys(uniqueIds);
+  }
+
+  /**
    * Convert ["informationSource", "subject", "patient"].reference to camelcase
    * Convert any variation of userprofile to "UserProfile" before save
    * @param {any[]} record can be a object or bundle
@@ -239,6 +275,16 @@ export class Utility {
               uniqIds[serviceObj.id] = 1;
             }
           }
+          // removing the display field to prevent it from being saved as part of
+          // display attribute in consideration
+          if (eachEntry[displayAttribute].display) {
+            delete eachEntry[displayAttribute].display;
+          }
+        }
+      }
+      for (const nonUserDisplayAttribute of config.data.nonUserDisplayFields) {
+        if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].display) {
+          eachEntry[nonUserDisplayAttribute].display = "";
         }
       }
       if (insertRecordtoResource) {
@@ -250,7 +296,7 @@ export class Utility {
     return Object.keys(uniqIds);
   }
 
-  public static getResourceFromRequest(eventBody: string) {
+  public static getResourceFromRequest(eventBody: string, limitNoOfRecordsToSave?: boolean) {
     log.info("Inside Utility: getResourceFromRequest()");
     let requestBody: any;
     let resourceArray = [];
@@ -260,6 +306,9 @@ export class Utility {
       // error in the above string (in this case, yes)!
       log.error("getResourceFromRequest() failed :: Exiting Utility :: getResourceFromRequest()");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+    }
+    if (limitNoOfRecordsToSave === undefined) {
+      limitNoOfRecordsToSave = true;
     }
     if (!lodash.isArray(requestBody.entry)) {
       log.debug("Single resource received");
@@ -271,7 +320,7 @@ export class Utility {
       log.error("Error: entries length do not match total count");
       throw new BadRequestResult(errorCode.InvalidCount, "Bundle total attribute doesn't match number of records in request");
     }
-    if (resourceArray.length > Constants.POST_LIMIT) {
+    if (resourceArray.length > Constants.POST_LIMIT && limitNoOfRecordsToSave) {
       log.error("Error: entries total count is more than allowed records");
       throw new BadRequestResult(errorCode.InvalidCount, "Bundle record count is more than allowed records");
     }
@@ -279,7 +328,7 @@ export class Utility {
   }
 
   public static getAttributeValue(obj: object, key: string) {
-    log.info("Inside baseService: getAttributeValue()");
+    log.debug("Inside baseService: getAttributeValue()");
     return String(key)
       .split(".")
       .reduce((o, x) => {
@@ -331,6 +380,31 @@ export class Utility {
   }
 
   /**
+   * Generates the Link URL for the provided query parameters.
+   * @param {string} url
+   * @param queryParams
+   * @param acceptedParams
+   * @returns {string}
+   */
+  public static createNextLinkUrl(url: string, queryParams: any) {
+    log.info("Inside Utility: createLinkUrl()");
+    url = url + "?";
+    const searchValue = [];
+    for (const item in queryParams) {
+      // in case date attribute we will get 2 items in array for others it will be 1
+      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&") : queryParams[item].toString();
+      if (config.data.displayFields.indexOf(item) > -1) {
+        // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
+        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
+      }
+      searchValue.push([item, itemValue].join("="));
+    }
+    url += searchValue.join("&");
+    log.debug("Link URL: " + url);
+    return url;
+  }
+
+  /**
    * Parses a string safely to any untyped object. If parsing error occurs it returns null.
    * @param {string} request
    * @returns {any}
@@ -348,20 +422,26 @@ export class Utility {
   public static async getBodyParameters(request: any, toArray?: boolean) {
     const paramObject: any = {};
     for (const eachParam of request.parameter) {
-      if (typeof eachParam.name !== "undefined") {
-        if (toArray) {
-          if (eachParam.valueDate) {
-            paramObject[eachParam.name] = eachParam.name.toLowerCase() === "start" ? ["ge" + eachParam.valueDate] : ["le" + eachParam.valueDate];
-          } else if (eachParam.valueString) {
-            paramObject[eachParam.name] = [eachParam.valueString];
-          } else if (eachParam.valueReference) {
-            paramObject[eachParam.name] = [eachParam.valueReference];
-          } else {
-            paramObject[eachParam.name] = [eachParam.valueBoolean];
-          }
+      if (toArray) {
+        if (eachParam.valueDate) {
+          paramObject[eachParam.name] =
+            eachParam.name.toLowerCase() === "start"
+              ? ["ge" + eachParam.valueDate]
+              : eachParam.name.toLowerCase() === "end"
+              ? ["le" + eachParam.valueDate]
+              : [eachParam.valueDate];
+        } else if (eachParam.valueString) {
+          paramObject[eachParam.name] = [eachParam.valueString];
+        } else if (eachParam.valueReference) {
+          paramObject[eachParam.name] = [eachParam.valueReference];
+        } else if (eachParam.valueObject) {
+          paramObject[eachParam.name] = [eachParam.valueObject];
         } else {
-          paramObject[eachParam.name] = eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean;
+          paramObject[eachParam.name] = [eachParam.valueBoolean];
         }
+      } else {
+        paramObject[eachParam.name] =
+          eachParam.valueDate || eachParam.valueString || eachParam.valueBoolean || eachParam.valueObject || eachParam.valueReference;
       }
     }
     return paramObject;
@@ -514,20 +594,35 @@ export class Utility {
     let offset = 0;
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
-      if (lodash.isNaN(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid or more than allowed limit");
+      if (lodash.isNaN(limit) || !lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
+        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
-      if (lodash.isNaN(offset) || offset < 1) {
+      if (lodash.isNaN(offset) || offset < 0 || !lodash.isInteger(offset)) {
         throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
       }
-      offset *= limit;
     }
     return {
       limit,
       offset
     };
+  }
+
+  public static getOperatorByCondition(prefix: string): string {
+    switch (prefix) {
+      case "ge":
+        return ">=";
+      case "le":
+        return "<=";
+      case "gt":
+        return ">";
+      case "lt":
+        return "<";
+      case "eq":
+      default:
+        return "=";
+    }
   }
 }

@@ -1,60 +1,11 @@
 const data = {
-  validDatePrefixes: ["gt", "ge", "lt", "le", "eq"],
-  allowedPools: [
-    { poolId: "us-east-1_lhwINc4vG", region: "us-east-1" },
-    { poolId: "us-east-1_v5ed2jXHP", region: "us-east-1" },
-    { poolId: "us-east-1_Vx1IOyGTB", region: "us-east-1" },
-    { poolId: "us-east-1_TvzUmxgeq", region: "us-east-1" }, // Mobile Env
-    { poolId: "us-east-1_IChCUdoMz", region: "us-east-1" } // Mobile Env
-  ],
+  validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
   consent: {
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
     acceptedAttributes: ["consentingParty", "status", "version", "name", "isDeleted", "lastUpdated"],
     attachmentParams: "attachment",
     withdrawParams: "$withdraw",
     searchAttributes: ["status", "version", "name", "isDeleted", "lastUpdated"]
-  },
-  controlGroupParams: {
-    rwe: "switch1234",
-    controlGroup: "ControlGroup",
-    rweGroupName: "Patient",
-    control: 1,
-    enhanced: 2,
-    profileInfo: {
-      itemId: "SiteInformation",
-      text: "Study Site Information",
-      type: "group",
-      profileItem: [
-        {
-          itemId: "site",
-          text: "site code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "cohort",
-          text: "Study cohort",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueInteger: "" }]
-        },
-        {
-          itemId: "patientId",
-          text: "Patient Identifier for the study",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        },
-        {
-          itemId: "switchCode",
-          text: "Switch Code",
-          type: "text",
-          isInternal: true,
-          answer: [{ valueString: "" }]
-        }
-      ]
-    }
   },
   headers: {
     types: {
@@ -78,7 +29,8 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
+  nonUserDisplayFields: ["device", "medicationPlan"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -108,6 +60,14 @@ const settings = {
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
       }
     ],
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
@@ -128,72 +88,9 @@ const settings = {
       },
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "dateAsserted", to: "dateAsserted", type: "date" },
-      { map: "effectiveDate", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "boolean" },
-      {
-        map: "clientRequestId",
-        to: "clientRequestId",
-        type: "string",
-        isMultiple: true
-      },
-      {
-        map: "limit",
-        type: "number"
-      },
-      {
-        map: "offset",
-        type: "number"
-      }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
-  fhirimmunization: {
-    searchAttributes: [
-      { map: "patient", to: "patient", type: "string" },
-      { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "date", to: "date", type: "date", isMultiple: true },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
-      {
-        map: "clientRequestId",
-        to: "clientRequestId",
-        type: "string",
-        isMultiple: true
-      },
-      {
-        map: "limit",
-        type: "number"
-      },
-      {
-        map: "offset",
-        type: "number"
-      }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
-  fhirobservation: {
-    searchAttributes: [
-      { map: "subject", to: "subject", type: "string" },
-      { map: "status", to: "status", type: "string" },
-      { map: "category", to: "category[*].coding[*].code", type: "array" },
-      {
-        map: "code",
-        to: "code.coding[*].code",
-        type: "array",
-        isMultiple: true
-      },
-      { map: "date", to: "effectiveDateTime", type: "date" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "effectiveDate", to: "effectiveDateTime", type: "date", isMultiple: true },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
@@ -212,8 +109,79 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
+    }
+  },
+  fhirimmunization: {
+    searchAttributes: [
+      { map: "patient", to: "patient", type: "string" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "date", to: "date", type: "date", isMultiple: true },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
+    }
+  },
+  fhirobservation: {
+    searchAttributes: [
+      { map: "subject", to: "subject", type: "string" },
+      { map: "status", to: "status", type: "string" },
+      { map: "category", to: "category[*].coding[*].code", type: "array" },
+      {
+        map: "code",
+        to: "code.coding[*].code",
+        type: "array",
+        isMultiple: true
+      },
+      {
+        map: "date",
+        to: "effectiveDateTime",
+        type: "date",
+        isMultiple: true,
+        isPeriod: false,
+        condition: " and ",
+        periodAttribute: ["effectivePeriod"]
+      },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   observation: {
@@ -222,7 +190,7 @@ const settings = {
       { map: "informationSource", to: "informationSource", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "code", to: "code.coding[*].code", type: "array" },
-      { map: "category", to: "category[*].coding[*].code", type: "array" },
+      { map: "category", to: "category[*].coding[*].code", type: "array", isMultiple: true },
       { map: "component-code", to: "component[*].code.coding[*].code", type: "array" },
       {
         map: "date",
@@ -250,10 +218,42 @@ const settings = {
         type: "number"
       }
     ],
+    aggregationAttributes: [{ map: "component-code", to: `componentcode->'coding' @> '[{"code": "%arg%"}]'`, type: "array" }],
+    aggregationSubqueryAttributes: [
+      { map: "code", to: `"code"->'coding' @> '[{"code": "%arg%"}]'`, type: "array" },
+      { map: "category", to: `"category" @> '[{"coding":[{"code":"%arg%"}]}]'`, type: "array" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "date", to: "effectiveDateTime", type: "date" },
+      { map: "subject", to: "subject", type: "string" }
+    ],
+    aggregationFunctions: {
+      stats: [
+        { functions: ["sum", "count", "min", "max", "avg"], column: "valueQuantity.value", cast: "integer" },
+        { functions: ["date"], column: "effectiveDateTime", alias: "dt" },
+        { columns: ["code"] }
+      ],
+      histogramSubQuery: [
+        { literal: `code` },
+        { literal: "(jsonb_array_elements_text(component)::jsonb)->'code'", alias: "componentcode" },
+        { literal: "(jsonb_array_elements_text(component)::jsonb)->'valueQuantity'", alias: "valueQuantity" },
+        { literal: `date("effectiveDateTime")`, alias: "dt" }
+      ],
+      histogram: [
+        { literal: `count(CAST((valueQuantity#>>'{value}') AS INTEGER))`, alias: "count" },
+        { literal: `code` },
+        { literal: `componentcode` },
+        { literal: `dt` },
+        { literal: `valueQuantity` }
+      ],
+      subQueryAlias: `subquery`,
+      groupBy: ["code", "dt"],
+      HistogramGroupBy: ["code", "componentcode", "dt", "valueQuantity"],
+      orderBy: ["dt ASC"]
+    },
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET", "POST"],
+      "care partner": ["GET", "POST"]
     }
   },
   medicationactivity: {
@@ -265,12 +265,12 @@ const settings = {
       },
       { map: "subject", to: "subject", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "dateAsserted", to: "dateAsserted", type: "date" },
-      { map: "plannedDateTime", to: "plannedDateTime", type: "date" },
-      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date" },
-      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
+      { map: "medicationPlan", to: "medicationPlan", type: "string", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -286,19 +286,72 @@ const settings = {
         type: "number"
       }
     ],
+
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
+    }
+  },
+  medicationactivityaggregation: {
+    searchAttributes: [
+      {
+        map: "informationSource",
+        to: "informationSource",
+        type: "string"
+      },
+      { map: "subject", to: "subject", type: "string" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
+      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "code", to: "dataResource.medicationCodeableConcept.coding[*].code", type: "array" },
+      { map: "date", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "valueCriteria", to: "valueCriteria", type: "multicolumn" },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    aggregationFunctions: [
+      { functions: ["count"], column: "status", alias: "statuscount" },
+      { columns: ["status"] },
+      { functions: ["count"], column: "dataResource.taken", alias: "takencount", convertTo: "json" },
+      { columns: ["dataResource.taken"], alias: "taken", convertTo: "json" },
+      { functions: ["date"], column: "plannedDateTime", alias: "dt" },
+      { columns: ["medicationPlan"] },
+      { columns: ["dataResource.medicationCodeableConcept"], alias: "code", convertTo: "json", cast: "jsonb" }
+    ],
+    groupBy: [`code`, "medicationPlan", `dt`, "status", `taken`],
+    orderBy: ["dt ASC"],
+
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["GET", "POST"],
+      "care partner": ["GET", "POST"]
     }
   },
   medicationorder: {
     searchAttributes: [
       { map: "patient", to: "patient", type: "string" },
       { map: "status", to: "status", type: "string", isMultiple: true },
-      { map: "dateWritten", to: "dateWritten", type: "date" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date" },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "dateWritten", to: "dateWritten", type: "date", isMultiple: true },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       {
         map: "limit",
         type: "number"
@@ -310,8 +363,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   medicationplan: {
@@ -322,13 +375,15 @@ const settings = {
         type: "string"
       },
       { map: "subject", to: "subject", type: "string" },
-      { map: "status", to: "status", type: "string" },
-      { map: "dateAsserted", to: "dateAsserted", type: "date" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
       {
         map: "code",
         to: "code.coding[*].code",
         type: "array"
       },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -346,11 +401,27 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
-  medicationactivitydelete: {
+  medicationplanaggregation: {
+    searchAttributes: [
+      {
+        map: "id",
+        to: "id",
+        type: "string",
+        isMultiple: true
+      },
+      { map: "subject", to: "subject", type: "string" }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
+    }
+  },
+  medicationactivityoperationaldelete: {
     searchAttributes: [
       {
         map: "start",
@@ -379,11 +450,11 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
-  medicationactivityupdate: {
+  medicationactivityoperationalupdate: {
     searchAttributes: [
       {
         map: "start",
@@ -406,8 +477,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fhircondition: {
@@ -415,11 +486,11 @@ const settings = {
       { map: "patient", to: "patient", type: "string" },
       { map: "clinicalStatus", to: "clinicalStatus", type: "string", isMultiple: true },
       { map: "category", to: "category.coding[*].code", type: "array" },
-      { map: "lastUpdated", to: "lastUpdated", type: "date", isMultiple: true },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -434,8 +505,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaire: {
@@ -445,7 +516,7 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "period", to: "period", type: "number" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
@@ -456,8 +527,8 @@ const settings = {
     attachmentParams: "attachment",
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   questionnaireresponse: {
@@ -471,18 +542,19 @@ const settings = {
         type: "string"
       },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
-      }
+      },
+      { map: "questionnaire", to: "questionnaire", type: "string", isMultiple: true }
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   invitation: {
@@ -495,8 +567,7 @@ const settings = {
         map: "inviteeReference",
         to: "inviteeReference",
         type: "string"
-      },
-      { map: "id", to: "id", type: "string" }
+      }
     ],
     allowedAttempts: 6,
     codeValidDurationDays: 1, // day
@@ -504,20 +575,56 @@ const settings = {
     acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   userprofile: {
     searchAttributes: [
       { map: "id", to: "id", type: "string", isMultiple: true },
       { map: "email", to: "email", type: "string" },
-      { map: "userCode", to: "userCode", type: "string" }
+      { map: "userCode", to: "userCode", type: "string" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    elements: [
+      "id",
+      "dataResource",
+      "name",
+      "email",
+      "meta",
+      "race",
+      "ethnicity",
+      "gender",
+      "birthDate",
+      "status",
+      "type",
+      "telecom",
+      "address",
+      "preferences",
+      "identifier",
+      "userCode",
+      "npi",
+      "dea",
+      "additionalAttributes"
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   connection: {
@@ -526,22 +633,24 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "to", to: "to.reference", type: "string", isMultiple: true },
       { map: "type", to: "type", type: "string", isMultiple: true },
-      { map: "lastUpdated", to: "meta.lastUpdated", type: "date" }
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     },
     isUniqueCodeRequired: true
-  },
-  cmsBatch: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
   },
   searchContent: {
     searchAttributes: [
@@ -575,8 +684,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   searchContentOrCondition: {
@@ -591,16 +700,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
-  getBatchDetails: {
-    searchAttributes: [{ map: "cmsSource", to: "cmsSource", type: "string" }, { map: "batchStatus", to: "batchStatus", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   fetchDownloadRecords: {
@@ -611,44 +712,28 @@ const settings = {
       "care partner": ["*"]
     }
   },
-  siteSpecificConsent: {
-    searchAttributes: [
-      { map: "static", to: "static", type: "boolean" },
-      { map: "site", to: "site", type: "number" },
-      { map: "category", to: "category", type: "string", isArray: true },
-      { map: "siteExpiryDate", to: "siteExpiryDate", type: "string" },
-      { map: "siteActivationDate", to: "siteActivationDate", type: "string" },
-      { map: "s3Url", to: "s3Url", type: "string", condition: "NotEquals" }
-    ],
-    acceptedAttributes: [{ map: "studyCode", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
-  },
   getContentById: {
     acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   allergyintolerance: {
     searchAttributes: [
       { map: "patient", to: "patient" },
-      { map: "date", to: "onset", type: "date", isMultiple: true },
+      { map: "onset", to: "onset", type: "date", isMultiple: true },
       {
         map: "lastUpdated",
-        to: "lastUpdated",
+        to: "meta.lastUpdated",
         type: "date",
         isMultiple: true
       },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -663,8 +748,8 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   procedure: {
@@ -681,14 +766,14 @@ const settings = {
       },
       {
         map: "lastUpdated",
-        to: "lastUpdated",
-        type: "string",
+        to: "meta.lastUpdated",
+        type: "date",
         isMultiple: true
       },
-      { map: "isDeleted", to: "isDeleted", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
-        to: "clientRequestId",
+        to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
       },
@@ -703,24 +788,79 @@ const settings = {
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   },
   device: {
-    allAttributes: ["id", "deviceId", "informationSource", "platformToken", "status", "deviceInformation", "meta", "resourceType"],
+    allAttributes: [
+      "id",
+      "resourceType",
+      "identifier",
+      "platformToken",
+      "status",
+      "statusReason",
+      "informationSource",
+      "manufacturer",
+      "manufactureDate",
+      "expirationDate",
+      "serialNumber",
+      "modelNumber",
+      "type",
+      "deviceName",
+      "version",
+      "meta"
+    ],
     searchAttributes: [
-      { map: "deviceId", to: "deviceId", type: "string" },
+      { map: "identifier", to: "identifier[*].value", type: "array" },
       { map: "informationSource", to: "informationSource.reference", type: "string" },
-      { map: "platformToken", to: "platformToken.token", type: "string" },
-      { map: "platformTokenStatus", to: "platformToken.status", type: "string" },
-      { map: "systemName", to: "deviceInformation.systemName", type: "string" },
-      { map: "status", to: "status", type: "string" }
+      { map: "platformToken", to: "platformToken.value", type: "string" },
+      { map: "status", to: "status", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
     ],
     endpointAccess: {
       "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
+    }
+  },
+  notification: {
+    allAttributes: [
+      "id",
+      "resourceType",
+      "identifier",
+      "category",
+      "to",
+      "from",
+      "source",
+      "channels",
+      "viewedDateTime",
+      "sourceAttachment",
+      "message",
+      "activity",
+      "meta"
+    ],
+    searchAttributes: [
+      { map: "to", to: "to.reference", type: "string" },
+      { map: "from", to: "from.reference", type: "string" },
+      { map: "channels", to: "channels[*]", type: "array", isMultiple: true },
+      { map: "source", to: "source.value", type: "string", isMultiple: true },
+      { map: "category", to: "category", type: "string", isMultiple: true },
+      { map: "created", to: "message.created", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
+    ],
+    endpointAccess: {
+      "patient": ["*"],
+      "practitioner": ["GET"],
+      "care partner": ["GET"]
     }
   }
 };

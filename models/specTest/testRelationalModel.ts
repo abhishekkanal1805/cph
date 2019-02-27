@@ -16,6 +16,9 @@ export class TestRelationalModel extends Model<TestRelationalModel> {
   active: boolean;
 
   @Column({ type: DataType.STRING })
+  status: string;
+
+  @Column({ type: DataType.STRING })
   resourceType: string;
 
   @Column({ type: DataType.JSONB })

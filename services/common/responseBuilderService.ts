@@ -13,9 +13,13 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
+import { responseType } from "../../common/objects/responseType";
+import { DataSource } from "../../dataSource";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
+import { UserProfile } from "../../models/CPH/userProfile/userProfile";
+import { DataService } from "./dataService";
 import { Utility } from "./Utility";
 
 const response = {
@@ -45,7 +49,7 @@ class ResponseBuilderService {
 
   public static displayMap: any = {};
 
-  public static generateSuccessResponse(
+  public static async generateSuccessResponse(
     result: any,
     createBundle?: boolean,
     populateDisplayAttribute?: boolean,
@@ -64,7 +68,7 @@ class ResponseBuilderService {
     response.responseType = Constants.RESPONSE_TYPE_OK;
     if (populateDisplayAttribute) {
       log.info("Display attribute set as true in ResponseBuilderService :: generateSuccessResponse()");
-      result = this.setDisplayAttribute(result);
+      result = await this.setDisplayAttribute(result);
     }
     // createBundle = true;
     response["responseObject"] = this.createResponseObject(result, fullUrl, type, queryParams, createBundle);
@@ -79,7 +83,7 @@ class ResponseBuilderService {
    *
    * @returns Updated response w.r.t service response and parameter passed.
    */
-  public static generateErrorResponse(err: any, errorLogRef: string): Response {
+  public static generateErrorResponse(err: any, errorLogRef: string, clientRequestId?: string): Response {
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
     let result: ErrorResult;
     if (err.description) {
@@ -90,6 +94,7 @@ class ResponseBuilderService {
       result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
     }
     result.errorLogRef = errorLogRef;
+    result.clientRequestId = clientRequestId;
     response["responseObject"] = result;
 
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
@@ -121,7 +126,7 @@ class ResponseBuilderService {
    * @param {any} result records where display attribute needs to be updated.
    * @returns Updated records.
    */
-  public static setDisplayAttribute(result: any): any {
+  public static async setDisplayAttribute(result: any) {
     log.info("Entering ResponseBuilderService :: setDisplayAttribute()");
     let displayValue = "";
     const createBundle = lodash.isArray(result);
@@ -134,13 +139,15 @@ class ResponseBuilderService {
         if (eachResult[displayAttribute] && eachResult[displayAttribute].reference) {
           const serviceObj: any = Utility.getServiceId(eachResult[displayAttribute].reference);
           if (serviceObj.resourceType.toLowerCase() === "userprofile") {
-            displayValue = this.getDisplayAttribute(serviceObj.id);
+            displayValue = await this.getDisplayAttribute(serviceObj.id);
             eachResult[displayAttribute].display = displayValue;
           }
         }
       }
     }
     // if input is bundle then return updated bundle else return object
+    // clear display map to avoid data inconsistency
+    ResponseBuilderService.displayMap = {};
     log.info("Exiting ResponseBuilderService :: setDisplayAttribute()");
     return createBundle ? result : result[0];
   }
@@ -150,13 +157,38 @@ class ResponseBuilderService {
    * @param {string} profileId profile id.
    * @returns display value.
    */
-  public static getDisplayAttribute(profileId: string) {
-    let displayValue = " ";
-    if (ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
+  public static async getDisplayAttribute(profileId: string) {
+    if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
+      log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
+      await ResponseBuilderService.initDisplayName(profileId);
+    } else {
       log.debug("profileId exists in displayMap" + profileId);
-      displayValue = ResponseBuilderService.displayMap[profileId];
     }
+    const displayValue = ResponseBuilderService.displayMap[profileId];
+    log.info("displayValue=" + displayValue);
     return displayValue;
+  }
+
+  /**
+   * If the display name for this profile is not found inthe map we attempt to fetch profile
+   * and construct the name and add it to the map for later use.
+   * If exception, we will not add any map entry
+   * @param {string} profileId
+   * @returns {Promise<string>}
+   */
+  public static async initDisplayName(profileId: string) {
+    try {
+      DataSource.addModel(UserProfile);
+      const result = await DataService.fetchDatabaseRowStandard(profileId, UserProfile);
+      // if user is valid then set display attribute and profile status
+      const givenName = result.name ? result.name.given || [] : [];
+      const familyName = result.name ? result.name.family || "" : "";
+      const displayName = [familyName, givenName.join(" ")].join(", ");
+      log.info("Initialized the displayMap with {profileId:" + profileId + ", displayName=" + displayName + "}");
+      ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
+    } catch (e) {
+      log.error("Error constructing display name for profileId=" + profileId);
+    }
   }
 
   /**
@@ -168,7 +200,7 @@ class ResponseBuilderService {
    * @param {boolean} createBundle records bundle needs to be created or not.
    * @returns response object.
    */
-  public static createResponseObject(objectArray: any[], fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
+  public static createResponseObject(objectArray: any, fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
     const entryArray = [];
     const links = [];
@@ -187,6 +219,15 @@ class ResponseBuilderService {
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
+      if (objectArray.length == objectArray.limit) {
+        entryArray.splice(-1, 1);
+        const nextLinkObj: Link = new Link();
+        nextLinkObj.relation = "next";
+        queryParams.limit = objectArray.limit - 1;
+        queryParams.offset = objectArray.offset + objectArray.limit - 1;
+        nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);
+        links.push(nextLinkObj);
+      }
       responseObject = this.createBundle(entryArray, links, true);
     } else {
       if (!createBundle) {
@@ -195,7 +236,6 @@ class ResponseBuilderService {
       }
       for (const eachObject of objectArray) {
         const entry: any = {};
-        entry.resource = eachObject;
         entry.resource = eachObject;
         entryArray.push(Object.assign(new Entry(), entry));
       }
@@ -226,7 +266,7 @@ class ResponseBuilderService {
     return bundle;
   }
 
-  public static generateUpdateResponse(
+  public static async generateUpdateResponse(
     result: any,
     isBundle?: boolean,
     isDisplay?: boolean,
@@ -244,32 +284,44 @@ class ResponseBuilderService {
     }
     log.info("Entering ResponseBuilderService :: generateUpdateResponse()");
     if (result.savedRecords && result.savedRecords.length > 0) {
-      response.responseType = Constants.RESPONSE_TYPE_OK;
       if (isDisplay) {
-        result.savedRecords = this.setDisplayAttribute(result.savedRecords);
+        result.savedRecords = await this.setDisplayAttribute(result.savedRecords);
       }
       const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
       const errorResult = [];
+      let multiStatus = false;
       if (result.errorRecords && result.errorRecords.length > 0) {
+        multiStatus = true;
         result.errorRecords.forEach((record) => {
+          // set errorLogRef
+          record.errorLogRef = errLogRef;
           const err = { error: record };
           errorResult.push(err);
         });
       }
-      successResult.entry = [...successResult.entry, ...errorResult];
-      response.responseType = Constants.RESPONSE_TYPE_OK;
+      if (isBundle) {
+        successResult.entry = [...successResult.entry, ...errorResult];
+      }
+      response.responseType = multiStatus ? Constants.RESPONSE_TYPE_MULTI_STATUS : Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
-    } else if (result.savedRecords && result.savedRecords.length === 0) {
-      response.responseType = Constants.RESPONSE_TYPE_OK;
-      const successResult = this.createResponseObject(result.savedRecords, fullUrl, type, queryParams, isBundle);
+    } else if (result.errorRecords && result.errorRecords.length > 0) {
       const errorResult = [];
-      if (result.errorRecords && result.errorRecords.length > 0) {
-        result.errorRecords.forEach((record) => {
-          const err = { error: record };
-          errorResult.push(err);
-        });
+      result.errorRecords.forEach((record) => {
+        // set errorLogRef
+        record.errorLogRef = errLogRef;
+        errorResult.push(record);
+      });
+      if (errorResult.length > 1) {
+        response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
+      } else {
+        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
       }
-      successResult.entry = [...successResult.entry, ...errorResult];
+      response["responseObject"] = { errors: errorResult };
+    } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
+      const successResult: Bundle = new Bundle();
+      successResult.resourceType = Constants.BUNDLE;
+      successResult.total = 0;
+      successResult.entry = [];
       response.responseType = Constants.RESPONSE_TYPE_OK;
       response["responseObject"] = successResult;
     } else {

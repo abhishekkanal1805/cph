@@ -11,6 +11,7 @@ export const errorCode = {
   MissingPermission: "MISSING_PERMISSION",
   MissingBody: "Missing_Body",
   ResourceNotFound: "Resource_Not_Found",
+  NoSearchResultsFounds: "No_Search_Results_Founds",
   ResourceNotDeleted: "Resource_Not_Deleted",
   InvalidPatientId: "INVALID_CONSENTINGPARTY_ID",
   InvalidJSON: "InvalidJSON",
@@ -25,6 +26,7 @@ export const errorCode = {
   ActiveConsentNotFound: "ActiveConsentNotFound",
   InvalidUserId: "INVALID USER ID",
   InvalidMedicationId: "INVALID_Medication_ID",
+  InvalidMedicationPlanReference: "Invalid_Medication_Plan_Reference",
   InvalidEmail: "INVALID_EMAIL",
   InvalidEmailInviteCode: "Invalid_Email_InviteCode",
   SesError: "SES_FAILURE",
@@ -33,5 +35,6 @@ export const errorCode = {
   VersionIdMismatch: "VersionId_Mismatch",
   UnprocessableEntity: "UNPROCESSABLE_ENTITY",
   SequelizeError: "SEQUELIZE_ERROR",
-  InvalidCount: "INVALID_COUNT"
+  InvalidCount: "INVALID_COUNT",
+  RecordNotFound: "Record_Not_Found"
 };
