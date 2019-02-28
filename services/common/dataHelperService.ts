@@ -62,7 +62,11 @@ class DataHelperService {
     if (resource.savedRecords) {
       const recordIds = _.map(resource.savedRecords, "id");
       // fetching all the rows with matching ids
-      records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
+      try {
+        records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
+      } catch (err) {
+        log.error("Error occured while fetching records from DB: ", err.stack);
+      }
       for (const thisRecord of resource.savedRecords) {
         let clientRequestId = " ";
         if (thisRecord.meta.clientRequestId) {
