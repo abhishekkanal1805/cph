@@ -72,12 +72,7 @@ const settings = {
     ],
     requiredParams: ["resourceType", "name", "version", "consentingParty", "consentingParty.reference", "consentDateTime"],
     attachmentParams: "attachment",
-    withdrawParams: "$withdraw",
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
+    withdrawParams: "$withdraw"
   },
   fhirmedicationstatement: {
     searchAttributes: [
@@ -106,12 +101,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   fhirimmunization: {
     searchAttributes: [
@@ -134,12 +124,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   fhirobservation: {
     searchAttributes: [
@@ -177,12 +162,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   observation: {
     searchAttributes: [
@@ -249,11 +229,6 @@ const settings = {
       groupBy: ["code", "dt"],
       HistogramGroupBy: ["code", "componentcode", "dt", "valueQuantity"],
       orderBy: ["dt ASC"]
-    },
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET", "POST"],
-      "care partner": ["GET", "POST"]
     }
   },
   medicationactivity: {
@@ -285,13 +260,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET", "POST"],
-      "care partner": ["GET", "POST"]
-    }
+    ]
   },
   medicationactivityaggregation: {
     searchAttributes: [
@@ -336,13 +305,7 @@ const settings = {
       { columns: ["dataResource.medicationCodeableConcept"], alias: "code", convertTo: "json", cast: "jsonb" }
     ],
     groupBy: [`code`, "medicationPlan", `dt`, "status", `taken`],
-    orderBy: ["dt ASC"],
-
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET", "POST"],
-      "care partner": ["GET", "POST"]
-    }
+    orderBy: ["dt ASC"]
   },
   medicationorder: {
     searchAttributes: [
@@ -360,12 +323,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   medicationplan: {
     searchAttributes: [
@@ -398,12 +356,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   medicationplanaggregation: {
     searchAttributes: [
@@ -414,12 +367,7 @@ const settings = {
         isMultiple: true
       },
       { map: "subject", to: "subject", type: "string" }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   medicationactivityoperationaldelete: {
     searchAttributes: [
@@ -447,12 +395,7 @@ const settings = {
         condition: "Equals",
         type: "string"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   medicationactivityoperationalupdate: {
     searchAttributes: [
@@ -474,12 +417,7 @@ const settings = {
         condition: "Equals",
         type: "string"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   fhircondition: {
     searchAttributes: [
@@ -502,12 +440,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   questionnaire: {
     searchAttributes: [
@@ -524,12 +457,7 @@ const settings = {
         isMultiple: true
       }
     ],
-    attachmentParams: "attachment",
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    attachmentParams: "attachment"
   },
   questionnaireresponse: {
     searchAttributes: [
@@ -550,12 +478,7 @@ const settings = {
         isMultiple: true
       },
       { map: "questionnaire", to: "questionnaire", type: "string", isMultiple: true }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   invitation: {
     searchAttributes: [
@@ -572,12 +495,7 @@ const settings = {
     allowedAttempts: 6,
     codeValidDurationDays: 1, // day
     requiredParams: ["inviteeEmail", "inviteeReference", "status"],
-    acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    acceptedAttributes: ["id", "inviteeEmail", "invitee", "status", "inviteCode", "inviter", "inviteeReference"]
   },
   userprofile: {
     searchAttributes: [
@@ -620,12 +538,7 @@ const settings = {
       "npi",
       "dea",
       "additionalAttributes"
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   connection: {
     searchAttributes: [
@@ -645,11 +558,6 @@ const settings = {
         type: "number"
       }
     ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    },
     isUniqueCodeRequired: true
   },
   searchContent: {
@@ -681,12 +589,7 @@ const settings = {
       { map: "taxonomy", to: "taxonomy", type: "string", isArray: true },
       { map: "static", to: "static", type: "string" },
       { map: "branding", to: "branding", type: "string", isArray: true }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   searchContentOrCondition: {
     searchAttributes: [
@@ -697,28 +600,13 @@ const settings = {
         condition: "NotEquals"
       },
       { map: "s3Url", to: "s3Url", type: "string", condition: "NotEquals" }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   fetchDownloadRecords: {
-    searchAttributes: [{ map: "errorStatus", to: "errorStatus", type: "boolean" }, { map: "s3Url", to: "s3Url", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["*"],
-      "care partner": ["*"]
-    }
+    searchAttributes: [{ map: "errorStatus", to: "errorStatus", type: "boolean" }, { map: "s3Url", to: "s3Url", type: "string" }]
   },
   getContentById: {
-    acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    acceptedAttributes: [{ map: "userId", type: "string" }, { map: "articleId", type: "string" }]
   },
   allergyintolerance: {
     searchAttributes: [
@@ -745,12 +633,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   procedure: {
     searchAttributes: [
@@ -785,12 +668,7 @@ const settings = {
         map: "offset",
         type: "number"
       }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   device: {
     allAttributes: [
@@ -821,12 +699,7 @@ const settings = {
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   },
   notification: {
     allAttributes: [
@@ -856,12 +729,7 @@ const settings = {
       { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
-    ],
-    endpointAccess: {
-      "patient": ["*"],
-      "practitioner": ["GET"],
-      "care partner": ["GET"]
-    }
+    ]
   }
 };
 

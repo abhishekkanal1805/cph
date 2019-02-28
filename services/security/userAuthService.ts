@@ -59,6 +59,11 @@ export class UserAuthService {
       log.debug("Friend profile :: Exiting UserAuthService :: getPermissions()");
       return permissions;
     }
+    if (calleruserProfileType === "system") {
+      permissions = ["READ", "WRITE"];
+      log.info("System admin :: Exiting UserAuthService :: getPermissions()");
+      return permissions;
+    }
     if (calleruserProfileType === "patient") {
       if (callerUserProfileId !== calledUserProfileId) {
         log.error("callerUserProfileId and calledUserProfileId are different");
@@ -67,7 +72,7 @@ export class UserAuthService {
       log.info("patient profile :: Exiting UserAuthService :: getPermissions()");
       return permissions;
     }
-    if (["practitioner", "partner", "deligate", "carepatner"].indexOf(calleruserProfileType) > -1) {
+    if (["practitioner", "partner", "deligate", "care partner"].indexOf(calleruserProfileType) > -1) {
       const query: any = {
         to: callerUserProfileId,
         from: calledUserProfileId,

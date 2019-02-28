@@ -1,7 +1,6 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
-import * as config from "../../common/objects/config";
 import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
@@ -163,22 +162,6 @@ class UserService {
       if (result.status !== "active") {
         log.error("Error in UserService: UserProfile status is inactive");
         throw new Error("UserProfile status is inactive");
-      }
-      // check if profile type has access to endpoint or not
-      if (!config.settings[endpointName] || !config.settings[endpointName]["endpointAccess"]) {
-        log.error("Error in UserService: profileType/endpointName doesn't exists in config section");
-        throw new Error("profileType/endpointName doesn't exists in config section");
-      }
-      const allowedMethodTypes: string[] = config.settings[endpointName]["endpointAccess"][result.type];
-      if (allowedMethodTypes.length < 1) {
-        log.error("Error in UserService: endpointName doesn't exists in config section");
-        throw new Error("endpointName doesn't exists in config section");
-      }
-      // if * then user has access to all methods else selected methods
-      if (allowedMethodTypes[0] === "*" || allowedMethodTypes.indexOf(httpMethod) > -1) {
-        userAccessObj.endpointPermission = true;
-      } else {
-        throw new Error("endpoint Permission doesn't exists in config section");
       }
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
