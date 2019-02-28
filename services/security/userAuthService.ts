@@ -72,7 +72,7 @@ export class UserAuthService {
       log.info("patient profile :: Exiting UserAuthService :: getPermissions()");
       return permissions;
     }
-    if (["practitioner", "partner", "deligate", "care partner"].indexOf(calleruserProfileType) > -1) {
+    if (["practitioner", "partner", "deligate", "carepartner"].indexOf(calleruserProfileType) > -1) {
       const query: any = {
         to: callerUserProfileId,
         from: calledUserProfileId,
