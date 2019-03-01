@@ -216,7 +216,7 @@ class DataService {
           savedBundle.push(item);
         })
         .catch((err) => {
-          log.error("Error in updating record: ", err);
+          log.error("Error in updating record: " + err);
           throw new InternalServerErrorResult(errorCode.ResourceNotUpdated, err.message);
         });
       allPromise.push(thisPromise);
@@ -524,7 +524,7 @@ class DataService {
           savedBundle.push(eachRecord.dataResource);
         })
         .catch((err) => {
-          log.error("Error in updating record: ", eachRecord);
+          log.error("Error in updating record: " + err);
           throw new InternalServerErrorResult(errorCode.ResourceNotDeleted, err.message);
         });
       allPromise.push(thisPromise);
