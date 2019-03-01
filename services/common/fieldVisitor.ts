@@ -57,7 +57,7 @@ export class FieldVisitor {
       }
     } catch (err) {
       this.error = FieldVisitor.INTERNAL_ERROR + ". Error determining uniqueness of item ids for the user profile. Error" + err.toString();
-      log.error(this.error, err);
+      log.error(this.error + err);
     }
   }
 
