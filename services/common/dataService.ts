@@ -217,7 +217,7 @@ class DataService {
         })
         .catch((err) => {
           log.error("Error in updating record: ", err);
-          throw new InternalServerErrorResult(errorCode.ResourceNotDeleted, err.message);
+          throw new InternalServerErrorResult(errorCode.ResourceNotUpdated, err.message);
         });
       allPromise.push(thisPromise);
     }
