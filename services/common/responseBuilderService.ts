@@ -87,10 +87,10 @@ class ResponseBuilderService {
     log.info("Entering ResponseBuilderService :: generateErrorResponse()");
     let result: ErrorResult;
     if (err.description) {
-      log.error("Custom Error occurred :: ", err.description);
+      log.error("Custom Error occurred :: " + err.description);
       result = err;
     } else {
-      log.error("Internal error occurred :: ", err);
+      log.error("Internal error occurred :: " + err);
       result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
     }
     result.errorLogRef = errorLogRef;
