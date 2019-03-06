@@ -65,7 +65,7 @@ class DataHelperService {
       try {
         records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       } catch (err) {
-        log.error("Error occured while fetching records from DB: ", err.stack);
+        log.error("Error occured while fetching records from DB: " + err.stack);
       }
       for (const thisRecord of resource.savedRecords) {
         let clientRequestId = " ";

@@ -853,6 +853,7 @@ const settings = {
       { map: "status", to: "status", type: "string", isMultiple: true },
       { map: "date", to: "start", type: "date", isMultiple: true },
       { map: "reason", to: "reason[*].coding[*].code", type: "array" },
+      { map: "indication", to: "indication[*].reference", type: "array", partialMatch: true },
       { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
       { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
