@@ -176,7 +176,7 @@ class UserService {
       }
       // Add reference Type
       if (!ResponseBuilderService.typeMap[profileId]) {
-        ResponseBuilderService.typeMap[profileId] = [serviceModel.name, userAccessObj.profileType].join(".");
+        ResponseBuilderService.typeMap[profileId] = ["UserProfile", userAccessObj.profileType].join(".");
       }
       log.info("performUserAcessValidation() success :: Exiting UserService: performUserAcessValidation()");
       return userAccessObj;

@@ -148,8 +148,10 @@ class ResponseBuilderService {
       }
       // Adding type value non display attributes
       const nonDisplayAttributes = lodash.concat(config.data.nonUserDisplayFields, config.data.typeAttributeAdditionalFields);
-      for (const displayAttribute of nonDisplayAttributes) {
-        eachResult[displayAttribute].type = eachResult.resourceType;
+      for (const nonDisplayAttribute of nonDisplayAttributes) {
+        if (eachResult[nonDisplayAttribute]) {
+          eachResult[nonDisplayAttribute].type = eachResult.resourceType;
+        }
       }
     }
     // if input is bundle then return updated bundle else return object
