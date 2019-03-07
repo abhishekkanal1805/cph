@@ -64,10 +64,7 @@ class DataHelperService {
       // fetching all the rows with matching ids
       records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       for (const thisRecord of resource.savedRecords) {
-        let clientRequestId = " ";
-        if (thisRecord.meta.clientRequestId) {
-          clientRequestId = thisRecord.meta.clientRequestId;
-        }
+        let clientRequestId = thisRecord.meta.clientRequestId;
         // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
         let existingRecord: any;
         if (serviceDataResource != null) {
@@ -94,6 +91,9 @@ class DataHelperService {
           continue;
         }
         // update is legal, now prepare the Model
+        if (!clientRequestId) {
+          clientRequestId = existingRecord.meta.clientRequestId;
+        }
         existingRecord.meta.clientRequestId = clientRequestId;
         if (thisRecord.meta.deviceId) {
           existingRecord.meta.deviceId = thisRecord.meta.deviceId;
