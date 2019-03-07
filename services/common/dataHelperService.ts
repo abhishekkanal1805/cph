@@ -67,6 +67,7 @@ class DataHelperService {
       } catch (err) {
         log.error("Error occured while fetching records from DB: " + err.stack);
       }
+      records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       for (const thisRecord of resource.savedRecords) {
         let clientRequestId = " ";
         if (thisRecord.meta.clientRequestId) {
@@ -1033,6 +1034,11 @@ class DataHelperService {
       if (attributes.length > 1) {
         const values: string[] = mappedAttribute.isMultiple ? value.split(",") : [value];
         for (const item of values) {
+          // generating raw query to fetch partially matched records in appointment
+          if (mappedAttribute.likeQuery) {
+            this.generateRawQueryForPartialMatch(mappedAttribute.likeQuery, item, searchObject);
+            continue;
+          }
           let nestedAttributes = {};
           this.getNestedAttributes(attributes.slice(1), item, nestedAttributes, false);
           const arrFlag = attributes[0].indexOf("[*]") > -1;
@@ -1325,6 +1331,11 @@ class DataHelperService {
     });
 
     return results;
+  }
+
+  public static generateRawQueryForPartialMatch(rawQuery: string, item: string, searchObject: any) {
+    rawQuery = rawQuery.replace(/{searchValue}/g, item);
+    searchObject[Op.or].push(literal(rawQuery));
   }
 }
 

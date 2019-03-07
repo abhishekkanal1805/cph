@@ -149,7 +149,6 @@ class ResponseBuilderService {
     // clear display map to avoid data inconsistency
     ResponseBuilderService.displayMap = {};
     log.info("Exiting ResponseBuilderService :: setDisplayAttribute()");
-    ResponseBuilderService.displayMap = {};
     return createBundle ? result : result[0];
   }
 
