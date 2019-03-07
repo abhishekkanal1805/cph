@@ -174,6 +174,10 @@ class UserService {
         const displayName = userAccessObj.displayName ? userAccessObj.displayName || [] : [];
         ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
       }
+      // Add reference Type
+      if (!ResponseBuilderService.typeMap[profileId]) {
+        ResponseBuilderService.typeMap[profileId] = [serviceModel.name, userAccessObj.profileType].join(".");
+      }
       log.info("performUserAcessValidation() success :: Exiting UserService: performUserAcessValidation()");
       return userAccessObj;
     } catch (err) {

@@ -48,6 +48,7 @@ class ResponseBuilderService {
    */
 
   public static displayMap: any = {};
+  public static typeMap: any = {};
 
   public static async generateSuccessResponse(
     result: any,
@@ -141,8 +142,14 @@ class ResponseBuilderService {
           if (serviceObj.resourceType.toLowerCase() === "userprofile") {
             displayValue = await this.getDisplayAttribute(serviceObj.id);
             eachResult[displayAttribute].display = displayValue;
+            eachResult[displayAttribute].type = ResponseBuilderService.typeMap[serviceObj.id];
           }
         }
+      }
+      // Adding type value non display attributes
+      const nonDisplayAttributes = lodash.concat(config.data.nonUserDisplayFields, config.data.typeAttributeAdditionalFields);
+      for (const displayAttribute of nonDisplayAttributes) {
+        eachResult[displayAttribute].type = eachResult.resourceType;
       }
     }
     // if input is bundle then return updated bundle else return object
@@ -186,6 +193,7 @@ class ResponseBuilderService {
       const displayName = [familyName, givenName.join(" ")].join(", ");
       log.info("Initialized the displayMap with {profileId:" + profileId + ", displayName=" + displayName + "}");
       ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
+      ResponseBuilderService.typeMap[profileId] = [result.resourceType, result.type].join(".");
     } catch (e) {
       log.error("Error constructing display name for profileId=" + profileId);
     }
