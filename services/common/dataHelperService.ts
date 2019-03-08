@@ -1335,7 +1335,11 @@ class DataHelperService {
 
   public static generateRawQueryForPartialMatch(rawQuery: string, item: string, searchObject: any) {
     rawQuery = rawQuery.replace(/{searchValue}/g, item);
-    searchObject[Op.or].push(literal(rawQuery));
+    const operator = Op.or;
+    if (!searchObject[operator]) {
+      searchObject[operator] = [];
+    }
+    searchObject[operator].push(literal(rawQuery));
   }
 }
 
