@@ -179,10 +179,17 @@ class DataService {
       log.error("Provided resource is invalid");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
-    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    } else if (deviceIds.length == 1) {
+      DataSource.addModel(Device);
+      const count = await this.recordsCount(deviceIds[0], Device);
+      if (count == 0) {
+        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains invalid device id.");
+      }
     }
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
