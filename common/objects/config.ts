@@ -455,6 +455,14 @@ const settings = {
         to: "meta.clientRequestId",
         type: "string",
         isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
       }
     ],
     attachmentParams: "attachment"
