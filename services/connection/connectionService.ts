@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
@@ -77,8 +78,8 @@ export class ConnectionService {
     const endPoint = "connection";
     const performUserValidation = false;
     const appendUserProfile = false;
-    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta"];
-    const searchResult = await DataService.searchRecords(
+    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta", "dataResource"];
+    let searchResult = await DataService.searchRecords(
       serviceModel,
       authorizerData,
       httpMethod,
@@ -90,6 +91,9 @@ export class ConnectionService {
       performUserValidation,
       appendUserProfile
     );
+    if (searchResult.length > 0) {
+      searchResult = _.compact(searchResult);
+    }
     for (const record of searchResult) {
       await this.getUpdatedResponse(record);
     }
