@@ -99,6 +99,9 @@ class DataHelperService {
           continue;
         }
         // update is legal, now prepare the Model
+        if (!thisRecord.meta.clientRequestId) {
+          clientRequestId = existingRecord.meta.clientRequestId;
+        }
         existingRecord.meta.clientRequestId = clientRequestId;
         if (thisRecord.meta.deviceId) {
           existingRecord.meta.deviceId = thisRecord.meta.deviceId;

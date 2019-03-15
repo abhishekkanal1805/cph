@@ -7,6 +7,8 @@ import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { DataSource } from "../../dataSource";
+import { Device } from "../../models/CPH/device/device";
 import { DataHelperService } from "./dataHelperService";
 import { DataValidatorUtility } from "./dataValidatorUtility";
 import { UserService } from "./userService";
@@ -91,10 +93,17 @@ class DataService {
       log.error("getResourceFromRequest() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
-    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    } else if (deviceIds.length == 1) {
+      DataSource.addModel(Device);
+      const count = await this.recordsCount(deviceIds[0], Device);
+      if (count == 0) {
+        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains invalid device id.");
+      }
     }
     const resource = { savedRecords: [], errorRecords: [] };
     // Get all unique userids
@@ -170,10 +179,17 @@ class DataService {
       log.error("Provided resource is invalid");
       throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
     }
-    const deviceIds = _.compact(Utility.findIds(recordArr, "meta.deviceId"));
+    const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+    } else if (deviceIds.length == 1) {
+      DataSource.addModel(Device);
+      const count = await this.recordsCount(deviceIds[0], Device);
+      if (count == 0) {
+        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains invalid device id.");
+      }
     }
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
@@ -430,6 +446,18 @@ class DataService {
     } catch (err) {
       log.error("Error in fetching the record :: " + err);
       throw new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+    }
+  }
+
+  public static async recordsCount(id: string, serviceModel: any): Promise<any> {
+    log.info("Entering DataService :: fetchDatabaseRowStandard()");
+    try {
+      const count = await serviceModel.count({ where: { id } });
+      log.info("Exiting DataService: fetchDatabaseRowStandard() :: Record retrieved successfully");
+      return count;
+    } catch (err) {
+      log.error("Error in counting records :: " + err);
+      throw new InternalServerErrorResult(errorCode.GeneralError, "Internal error occurred");
     }
   }
 

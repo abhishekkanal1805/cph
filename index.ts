@@ -44,6 +44,8 @@ export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
 export * from "./models/CPH/connection/connectionDataResource";
+export { Device } from "./models/CPH/device/device";
+export * from "./models/CPH/device/deviceDataResource";
 
 export * from "./services/connection/connectionService";
 
