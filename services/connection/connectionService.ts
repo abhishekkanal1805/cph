@@ -79,7 +79,7 @@ export class ConnectionService {
     const performUserValidation = false;
     const appendUserProfile = false;
     const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta", "dataResource"];
-    let searchResult = await DataService.searchRecords(
+    const searchResult = await DataService.searchRecords(
       serviceModel,
       authorizerData,
       httpMethod,
@@ -91,9 +91,6 @@ export class ConnectionService {
       performUserValidation,
       appendUserProfile
     );
-    if (searchResult.length > 0) {
-      searchResult = _.compact(searchResult);
-    }
     for (const record of searchResult) {
       await this.getUpdatedResponse(record);
     }
