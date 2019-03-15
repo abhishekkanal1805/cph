@@ -1,5 +1,4 @@
 import * as log from "lambda-log";
-import * as _ from "lodash";
 import { errorCode } from "../../common/constants/error-codes";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
