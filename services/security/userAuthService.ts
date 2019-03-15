@@ -77,7 +77,7 @@ export class UserAuthService {
       if (result.length) {
         log.info("searchConnection() success in BaseService :: getPermissions()");
         // if profile type doesn't exists in config then return no permission
-        permissions = config.connectionTypePermissions[calleruserProfileType] || [];
+        permissions = config.connectionTypePermissions[result[0].type] || [];
       } else {
         throw new Error("Validation failed :: Connection doesn't have permission to perform this operation");
       }
