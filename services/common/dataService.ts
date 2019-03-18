@@ -55,12 +55,18 @@ class DataService {
     if (performUserValidation) {
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
       const userIds: string[] = Utility.getUserIds(result, userValidationId);
-      await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod);
+      await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod); :: update this flow 
+            -- no httpMethod
+
     }
     log.info("getRecord() successful :: Exiting DataService: getRecord()");
     return result;
   }
 
+  get(recordId : string, serviceModel, fetchSoftDeletedRecords?: boolean = false)
+  fetchUserProfileInformation(profileId, userProfileModel)
+  performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod) :: (creator , for whom created and which service ) => true /false
+==> 
   /**
    * Service to save records in database after business validations.
    * @param {string} record Request body from POST request.
