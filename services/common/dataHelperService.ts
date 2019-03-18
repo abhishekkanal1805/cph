@@ -9,6 +9,7 @@ import * as moment from "moment";
 import { cast, col, fn, json, literal, Op } from "sequelize";
 import * as uuid from "uuid";
 import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { Utility } from "./Utility";
 
@@ -29,7 +30,7 @@ class DataHelperService {
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
       const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
-      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : " ";
+      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : "";
       // add new meta data to the provided record
       thisRecord.id = uuid();
       if (thisRecord.meta) {
@@ -88,7 +89,7 @@ class DataHelperService {
           continue;
         }
         if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-          const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidResourceVersion.value, existingRecord.meta.versionId);
           badRequest.clientRequestId = clientRequestId;
           resource.errorRecords.push(badRequest);
           continue;
