@@ -1,7 +1,7 @@
 export const errorCodeMap = {
   InvalidRequest: { value: "InvalidRequest", description: "The request payload is invalid and does not adhere to specification." },
   InvalidBundle: {
-    value: "InvalidBundle",
+    value: "InvalidRequestBundle",
     description:
       "The request bundle is invalid. The size of the bundle should be correct. If supplied all resources should contain unique identifiers and be submitted from same device."
   },
