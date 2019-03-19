@@ -1,5 +1,7 @@
 import { Reference } from "../../common/reference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
+import { StringObject } from "../../common/stringObject";
+import { SharingRule } from "./sharingRule";
 
 class ConnectionDataResource {
   id: string;
@@ -9,6 +11,9 @@ class ConnectionDataResource {
   status: string;
   requestExpirationDate: string;
   to: Reference;
+  requestParameter: StringObject[];
+  sharingRules: SharingRule[];
+  sharingRulesLogic: string;
   lastStatusChangeDateTime: string;
   meta: ResourceMetadata;
 }

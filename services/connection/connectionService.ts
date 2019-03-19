@@ -77,7 +77,7 @@ export class ConnectionService {
     const endPoint = "connection";
     const performUserValidation = false;
     const appendUserProfile = false;
-    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta"];
+    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta", "dataResource"];
     const searchResult = await DataService.searchRecords(
       serviceModel,
       authorizerData,
