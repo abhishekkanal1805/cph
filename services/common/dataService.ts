@@ -445,7 +445,7 @@ class DataService {
       return results.dataValues;
     } catch (err) {
       log.error("Error in fetching the record :: " + err);
-      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
   }
 
@@ -477,7 +477,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       });
   }
 
@@ -498,7 +498,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       });
   }
 

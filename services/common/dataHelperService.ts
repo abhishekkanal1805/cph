@@ -76,7 +76,7 @@ class DataHelperService {
           existingRecord = _.find(records, { id: thisRecord.id });
         }
         if (!existingRecord) {
-          const badRequest = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
+          const badRequest = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
           badRequest.clientRequestId = clientRequestId;
           resource.errorRecords.push(badRequest);
           continue;
