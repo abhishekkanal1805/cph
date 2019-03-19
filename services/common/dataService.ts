@@ -4,7 +4,7 @@
  */
 import * as log from "lambda-log";
 import * as _ from "lodash";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
@@ -49,7 +49,7 @@ class DataService {
     log.info("Success:" + recordId + "Info Retrieved");
     // if fetchDeletedRecord is false then return record whose result.meta.isDeleted is false
     if (!fetchDeletedRecord && result.meta.isDeleted) {
-      throw new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     // get user id from the result resource for validation
     if (performUserValidation) {
@@ -91,18 +91,18 @@ class DataService {
     const recordArr: any = Utility.getResourceFromRequest(record, limitNoOfRecordsToSave);
     if (recordArr.length < 1) {
       log.error("getResourceFromRequest() failed :: Exiting DataService :: saveRecord()");
-      throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
-      throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     } else if (deviceIds.length == 1) {
       DataSource.addModel(Device);
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains invalid device id.");
+        throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
       }
     }
     const resource = { savedRecords: [], errorRecords: [] };
@@ -136,7 +136,7 @@ class DataService {
       log.debug("Resource saved ");
     } catch (err) {
       log.error("Error while saving Record: " + err.stack);
-      throw new InternalServerErrorResult(errorCode.ResourceNotSaved, "Error while saving resource");
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
     log.info("Exiting DataService :: saveRecord()");
     /*
@@ -177,24 +177,24 @@ class DataService {
     const recordArr: any = Utility.getResourceFromRequest(record);
     if (recordArr.length < 1) {
       log.error("Provided resource is invalid");
-      throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
-      throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains duplicate device id.");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     } else if (deviceIds.length == 1) {
       DataSource.addModel(Device);
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new BadRequestResult(errorCode.InvalidRequest, "Provided bundle contains invalid device id.");
+        throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       }
     }
     // Checking whether the bundle is having duplicate record ids or not
     const recordIds = _.map(recordArr, "id");
     if (_.uniq(recordIds).length !== recordIds.length) {
-      throw new BadRequestResult(errorCode.InvalidInput, "Provided list of ID keys contains duplicates");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
     // Get all unique userids
     const resource = { savedRecords: [], errorRecords: [] };
@@ -233,7 +233,7 @@ class DataService {
         })
         .catch((err) => {
           log.error("Error in updating record: " + err);
-          throw new InternalServerErrorResult(errorCode.ResourceNotUpdated, err.message);
+          throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
         });
       allPromise.push(thisPromise);
     }
@@ -286,12 +286,12 @@ class DataService {
     } else if (permanent === "false") {
       log.info("Soft deleting the item" + recordId);
       if (result.meta.isDeleted) {
-        throw new NotFoundResult(errorCode.RecordNotFound, "The record doesn't exist or is already deleted");
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       }
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);
     } else {
-      throw new BadRequestResult(errorCode.InvalidQueryParameterValue, "Invalid query parameters");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
@@ -334,7 +334,7 @@ class DataService {
       const userIds: string[] = Utility.getUserIds(result, userValidationId);
       await UserService.performUserValidation(permissionObj, userIds[0], authorizerData, httpMethod);
     } else {
-      throw new BadRequestResult(errorCode.NoSearchResultsFounds, "No Records found for given search criteria");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     // delete permanently or soft delete
     if (permanent === "true") {
@@ -344,7 +344,7 @@ class DataService {
       log.info("Soft deleting the item");
       await this.softDeleteDatabaseRows(parameters, result, serviceModel, serviceDataResource, endpoint);
     } else {
-      throw new BadRequestResult(errorCode.InvalidQueryParameterValue, "Invalid query parameters");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
@@ -389,7 +389,7 @@ class DataService {
     const isParamValid = DataValidatorUtility.validateQueryParams(queryParams, searchAttributes);
     if (!isParamValid) {
       log.error("Query Parameters are not valid");
-      throw new BadRequestResult(errorCode.InvalidQueryParameterValue, "Invalid query parameters");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
     }
     if (performUserValidation) {
       // check if user has permission to access endpoint or not
@@ -445,7 +445,7 @@ class DataService {
       return results.dataValues;
     } catch (err) {
       log.error("Error in fetching the record :: " + err);
-      throw new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
     }
   }
 
@@ -457,7 +457,7 @@ class DataService {
       return count;
     } catch (err) {
       log.error("Error in counting records :: " + err);
-      throw new InternalServerErrorResult(errorCode.GeneralError, "Internal error occurred");
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }
 
@@ -477,7 +477,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
       });
   }
 
@@ -498,7 +498,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.value);
       });
   }
 
@@ -525,7 +525,7 @@ class DataService {
       })
       .catch((err) => {
         log.debug("Error while updating resource: " + err.stack);
-        throw new BadRequestResult(errorCode.ResourceNotDeleted, "Unable to delete resource");
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       });
   }
 
@@ -553,7 +553,7 @@ class DataService {
         })
         .catch((err) => {
           log.error("Error in updating record: " + err);
-          throw new InternalServerErrorResult(errorCode.ResourceNotDeleted, err.message);
+          throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
         });
       allPromise.push(thisPromise);
     }
