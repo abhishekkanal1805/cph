@@ -8,7 +8,7 @@ import * as _ from "lodash";
 import * as moment from "moment";
 import { cast, col, fn, json, literal, Op } from "sequelize";
 import * as uuid from "uuid";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { Utility } from "./Utility";
 
@@ -29,7 +29,7 @@ class DataHelperService {
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
       const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
-      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : " ";
+      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : "";
       // add new meta data to the provided record
       thisRecord.id = uuid();
       if (thisRecord.meta) {
@@ -81,19 +81,19 @@ class DataHelperService {
           existingRecord = _.find(records, { id: thisRecord.id });
         }
         if (!existingRecord) {
-          const badRequest = new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
+          const badRequest = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
           badRequest.clientRequestId = clientRequestId;
           resource.errorRecords.push(badRequest);
           continue;
         }
         if (existingRecord.meta && existingRecord.meta.isDeleted) {
-          const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
+          const notFoundResult = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
           notFoundResult.clientRequestId = clientRequestId;
           resource.errorRecords.push(notFoundResult);
           continue;
         }
         if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-          const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidResourceVersion.value, existingRecord.meta.versionId);
           badRequest.clientRequestId = clientRequestId;
           resource.errorRecords.push(badRequest);
           continue;
@@ -203,7 +203,7 @@ class DataHelperService {
       } else if (isYear) {
         DataHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else {
-        throw new BadRequestResult(errorCode.InvalidRequest, "Value for " + mappedAttribute.map + " is invalid.");
+        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + mappedAttribute.map);
       }
     }
     log.info("Exiting DataHelperService :: createDateSearchConditions()");

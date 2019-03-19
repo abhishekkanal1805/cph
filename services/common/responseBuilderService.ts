@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as lodash from "lodash";
 import { Constants } from "../../common/constants/constants";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import {
   BadRequestResult,
@@ -91,7 +91,7 @@ class ResponseBuilderService {
       result = err;
     } else {
       log.error("Internal error occurred :: " + err);
-      result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
+      result = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
     result.errorLogRef = errorLogRef;
     result.clientRequestId = clientRequestId;
@@ -161,11 +161,8 @@ class ResponseBuilderService {
     if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
       log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
       await ResponseBuilderService.initDisplayName(profileId);
-    } else {
-      log.debug("profileId exists in displayMap" + profileId);
     }
     const displayValue = ResponseBuilderService.displayMap[profileId];
-    log.info("displayValue=" + displayValue);
     return displayValue;
   }
 
@@ -342,7 +339,7 @@ class ResponseBuilderService {
         response["responseObject"] = errorResult;
       } else {
         response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
-        response["responseObject"] = new InternalServerErrorResult(errorCode.ResourceNotFound, "Error occoured during this operation");
+        response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
     }
     return response;

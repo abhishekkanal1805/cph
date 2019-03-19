@@ -3,7 +3,7 @@ import * as log from "lambda-log";
 import * as lodash from "lodash";
 import * as moment from "moment";
 import { Constants } from "../../common/constants/constants";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ApiEvent } from "../../common/objects/api-interfaces";
 import * as config from "../../common/objects/config";
 import { BadRequestResult } from "../../common/objects/custom-errors";
@@ -261,7 +261,7 @@ export class Utility {
           const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
           if (serviceObj.resourceType.toLowerCase() != "userprofile") {
             log.error("Error occoured as resourceType is not userprofile");
-            const badRequest = new BadRequestResult(errorCode.InvalidUserId, "UserProfile missing in reference");
+            const badRequest = new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
             if (eachEntry.meta && eachEntry.meta.clientRequestId) {
               badRequest.clientRequestId = eachEntry.meta.clientRequestId;
             }
@@ -305,7 +305,7 @@ export class Utility {
     } catch (error) {
       // error in the above string (in this case, yes)!
       log.error("getResourceFromRequest() failed :: Exiting Utility :: getResourceFromRequest()");
-      throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     if (limitNoOfRecordsToSave === undefined) {
       limitNoOfRecordsToSave = true;
@@ -318,11 +318,11 @@ export class Utility {
     resourceArray = requestBody.entry.map((entry) => entry.resource);
     if (resourceArray.length !== requestBody.total) {
       log.error("Error: entries length do not match total count");
-      throw new BadRequestResult(errorCode.InvalidCount, "Bundle total attribute doesn't match number of records in request");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
     if (resourceArray.length > Constants.POST_LIMIT && limitNoOfRecordsToSave) {
       log.error("Error: entries total count is more than allowed records");
-      throw new BadRequestResult(errorCode.InvalidCount, "Bundle record count is more than allowed records");
+      throw new BadRequestResult(errorCodeMap.RequestTooLarge.value, errorCodeMap.RequestTooLarge.description);
     }
     return resourceArray;
   }
@@ -595,13 +595,13 @@ export class Utility {
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
       if (lodash.isNaN(limit) || !lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid");
+        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + "limit");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
       if (lodash.isNaN(offset) || offset < 0 || !lodash.isInteger(offset)) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
+        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + "offset");
       }
     }
     return {
