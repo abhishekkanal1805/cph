@@ -161,11 +161,8 @@ class ResponseBuilderService {
     if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
       log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
       await ResponseBuilderService.initDisplayName(profileId);
-    } else {
-      log.debug("profileId exists in displayMap" + profileId);
     }
     const displayValue = ResponseBuilderService.displayMap[profileId];
-    log.info("displayValue=" + displayValue);
     return displayValue;
   }
 
