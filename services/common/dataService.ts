@@ -102,7 +102,7 @@ class DataService {
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+        throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       }
     }
     const resource = { savedRecords: [], errorRecords: [] };
