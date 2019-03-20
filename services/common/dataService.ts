@@ -129,6 +129,14 @@ class DataService {
       );
       loggedinId = permissionObj.loggedinId;
     }
+    /*
+    This check is added for Questionnaire service.
+    Questionnaire service doesn't have userValidationId or patientValidationId hence createdBy and updateBy is not populated.
+    To fix this issue we will use profileId as createdBy and updatedBy.
+     */
+    if (!loggedinId) {
+      loggedinId = authorizerData.profile || "";
+    }
     // Add internal attributes before save
     resource.savedRecords = DataHelperService.convertAllToModelsForSave(resource.savedRecords, serviceModel, serviceDataResource, loggedinId);
     try {
@@ -218,6 +226,14 @@ class DataService {
         authorizerData
       );
       loggedinId = permissionObj.loggedinId;
+    }
+    /*
+    This check is added for Questionnaire service.
+    Questionnaire service doesn't have userValidationId or patientValidationId hence createdBy and updateBy is not populated.
+    To fix this issue we will use profileId as createdBy and updatedBy.
+     */
+    if (!loggedinId) {
+      loggedinId = authorizerData.profile || "";
     }
     // Update record attributes before save
     resource.savedRecords = await DataHelperService.convertAllToModelsForUpdate(resource, serviceModel, serviceDataResource, loggedinId);
