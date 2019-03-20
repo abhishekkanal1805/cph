@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
@@ -179,6 +179,33 @@ class UserService {
     } catch (err) {
       log.error("Error in UserService :: performUserAcessValidation() " + err.stack);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+  }
+
+  /**
+   * A function for doing basic user validation that can be used independent of DB operation.
+   * If checks if the reference provided is a UserProfile reference.
+   * If so, it will make sure the id is present in DB and also that it is an active user.
+   * If not it will throw a BadRequestResult error with errorCode.InvalidId
+   * The profile check is very basic. It will NOT check user permissions, user access, match with logged user etc.
+   * Null or undefined references are not validated. So no errors will be thrown
+   *
+   * @param {string} profileReference, example UserProfile/<id>
+   * @returns {Promise<void>} If user is valid ir returns nothing. If invalid it throws BadRequestResult.
+   */
+  public static async validateProfileReference(profileReference: string) {
+    if (!profileReference) {
+      return;
+    }
+    if (!profileReference.startsWith("UserProfile/")) {
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+    }
+
+    const userProfileId: string = profileReference.split("/")[1];
+    DataSource.addModel(UserProfile);
+    const savedProfile = await DataService.fetchDatabaseRowStandard(userProfileId, UserProfile);
+    if (!savedProfile || savedProfile.status !== "active") {
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
   }
 }
