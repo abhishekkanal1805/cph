@@ -28,7 +28,7 @@ class DataHelperService {
     const metaObj = Utility.getRecordMeta(userIdKey, userIdKey);
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
-      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
+      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : "";
       const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : "";
       // add new meta data to the provided record
       thisRecord.id = uuid();
