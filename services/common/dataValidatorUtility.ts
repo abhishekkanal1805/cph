@@ -89,18 +89,18 @@ class DataValidatorUtility {
     log.info("Inside DataValidatorUtility: validateMultiValueDateParams()");
     if (dateValues.length > 2) {
       log.error("Failed for attribute: " + key + " as it has more than two values for MultiValue Date Param");
-      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.value + key);
+      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + key);
     }
     if (Utility.getPrefixDate(dateValues[0]).prefix.length === 0 || Utility.getPrefixDate(dateValues[1]).prefix.length === 0) {
       log.error("Failed for attribute: " + key + " as all input dates do not have prefixes.");
-      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.value + key);
+      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + key);
     }
     if (
       Utility.getPrefixDate(dateValues[0]).prefix === Utility.getPrefixDate(dateValues[1]).prefix ||
       Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) === Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
     ) {
       log.error("Failed for attribute: " + key + " as all input dates have same prefixes.");
-      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.value + key);
+      throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + key);
     }
   }
   /**
@@ -128,7 +128,7 @@ class DataValidatorUtility {
           throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + key);
         }
         if (eachValue.toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
-          throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.value + key);
+          throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + key);
         }
       }
       const isMultivalue = paramValue.length > 1;
