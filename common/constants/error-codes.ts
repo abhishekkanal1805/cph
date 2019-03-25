@@ -36,5 +36,8 @@ export const errorCode = {
   UnprocessableEntity: "UNPROCESSABLE_ENTITY",
   SequelizeError: "SEQUELIZE_ERROR",
   InvalidCount: "INVALID_COUNT",
-  RecordNotFound: "Record_Not_Found"
+  RecordNotFound: "Record_Not_Found",
+  InternalError: "InternalError",
+  InvalidInvite: "InvalidInvite",
+  NotFound: "NotFound"
 };

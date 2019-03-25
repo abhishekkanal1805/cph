@@ -10,7 +10,8 @@ import {
   MultiStatusResult,
   NotFoundResult,
   UnAuthorizedResult,
-  UnprocessableEntityErrorResult
+  UnprocessableEntityErrorResult,
+  PreConditionFailedResult
 } from "./custom-errors";
 
 /**
@@ -48,6 +49,10 @@ export class APIResponseBuilder {
 
   public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback): void {
     APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(errorResult, HttpStatusCode.UNPROCESSABLE_ENTITY, callback);
+  }
+
+  public static preconditionFailed(errorResult: PreConditionFailedResult, callback: ApiCallback): void {
+    APIResponseBuilder._returnAs<PreConditionFailedResult>(errorResult, HttpStatusCode.PRECONDITION_FAILED, callback);
   }
 
   public static ok<T>(result: T, callback: ApiCallback): void {
