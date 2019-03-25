@@ -39,5 +39,7 @@ export const errorCode = {
   RecordNotFound: "Record_Not_Found",
   InternalError: "InternalError",
   InvalidInvite: "InvalidInvite",
-  NotFound: "NotFound"
+  NotFound: "NotFound",
+  InvalidHeader: "InvalidHeader",
+  MissingResource: "MissingResource"
 };
