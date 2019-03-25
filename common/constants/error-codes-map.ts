@@ -17,5 +17,6 @@ export const errorCodeMap = {
   InvalidParameterValue: { value: "InvalidParameterValue", description: "The request failed because it contained an invalid parameter or parameter value." },
   InvalidInvite: { value: "InvalidInvite", description: "Invite is invalid because it is in state :"},
   InvalidHeader: { value: "InvalidHeader", description: "The request has failed because Content-Type of request is invalid"},
-  MissingResource: { value: "MissingResource", description: "The request must contain a valid Consent resource"}
+  MissingResource: { value: "MissingResource", description: "The request must contain a valid Consent resource"},
+  MalformedData: { value: "MalformedData", description: "The request data is malformed"}
 };
