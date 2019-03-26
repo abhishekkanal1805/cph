@@ -16,4 +16,3 @@ export class SequelizeInitializationError extends ErrorResult {}
 export class UnprocessableEntityResult extends ErrorResult {}
 export class UnprocessableEntityErrorResult extends ErrorResult {}
 export class MultiStatusResult extends ErrorResult {}
-export class PreConditionFailedResult extends ErrorResult {}
