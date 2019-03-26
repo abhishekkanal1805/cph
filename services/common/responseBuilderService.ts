@@ -13,7 +13,6 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
-import { responseType } from "../../common/objects/responseType";
 import { DataSource } from "../../dataSource";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
@@ -311,7 +310,7 @@ class ResponseBuilderService {
       if (errorResult.length > 1) {
         response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       } else {
-        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
+        response.responseType = lodash.camelCase(errorResult[0].errorCode);
       }
       response["responseObject"] = { errors: errorResult };
     } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {

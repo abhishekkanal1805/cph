@@ -59,7 +59,7 @@ class DataHelperService {
     log.info("Entering DataHelperService :: convertAllToModelsForUpdate()");
     const updatedRecords = [];
     let records;
-    if (resource.savedRecords) {
+    if (resource.savedRecords && resource.savedRecords.length > 0) {
       const recordIds = _.map(resource.savedRecords, "id");
       // fetching all the rows with matching ids
       records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
