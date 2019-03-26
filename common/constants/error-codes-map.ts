@@ -14,5 +14,5 @@ export const errorCodeMap = {
     description: "The request contains an invalid combination of parameters or an invalid parameter value. Check the value of parameter : "
   },
   InvalidResourceVersion: { value: "InvalidResourceVersion", description: "" },
-  InvalidParameterValue: { value: "InvalidParameterValue", description: "The request failed because it contained an invalid parameter or parameter value." }
+  InvalidParameterValue: { value: "InvalidParameter", description: "The request failed because it contained an invalid parameter or parameter value." }
 };

@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
-import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { ForbiddenResult, NotFoundResult, BadRequestResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
 
@@ -118,13 +118,13 @@ export class ConnectionService {
       fetchDeletedRecord
     );
     if (!userProfileObj.id) {
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     if (userProfileObj.status != "active") {
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     if (uniqueCode && userProfileObj.userCode != uniqueCode) {
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     const referenceId = userProfileObj.id;
     if (!profileDisplay.hasOwnProperty(referenceId)) {

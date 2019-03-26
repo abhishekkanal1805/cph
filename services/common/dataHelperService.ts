@@ -64,7 +64,7 @@ class DataHelperService {
       // fetching all the rows with matching ids
       records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       for (const thisRecord of resource.savedRecords) {
-        let clientRequestId = " ";
+        let clientRequestId = "";
         if (thisRecord.meta.clientRequestId) {
           clientRequestId = thisRecord.meta.clientRequestId;
         }
