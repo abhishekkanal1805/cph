@@ -19,5 +19,4 @@ export const errorCodeMap = {
   MalformedData: { value: "MalformedData", description: "The request data is malformed"},
   InvalidParameterValue: { value: "InvalidParameter", description: "The request failed because it contained an invalid parameter or parameter value." },
   ResourceNotEditable: { value: "ResourceNotEditable", description: "The requested operation failed because a resource associated with the request can not be edited." }
-
 };
