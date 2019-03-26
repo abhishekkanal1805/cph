@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
-import { ForbiddenResult, NotFoundResult, BadRequestResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
 
@@ -43,6 +43,14 @@ export class ConnectionService {
         mandatoryAttribute = "from";
       } else {
         mandatoryAttribute = "from";
+      }
+    } else if (["system"].indexOf(userProfile.type) > -1) {
+      const keys = Object.keys(queryParams);
+      if (keys.length > 0) {
+        mandatoryAttribute = keys[0];
+      } else {
+        mandatoryAttribute = "to";
+        queryParams["to"] = loggedinId;
       }
     } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
