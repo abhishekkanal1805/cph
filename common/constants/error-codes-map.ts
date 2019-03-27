@@ -21,5 +21,9 @@ export const errorCodeMap = {
   ResourceNotEditable: {
     value: "ResourceNotEditable",
     description: "The requested operation failed because a resource associated with the request can not be edited."
+  },
+  FileNotFound: {
+    value: "FileNotFound",
+    description: "The requested operation failed because a file associated with the request could not be found."
   }
 };
