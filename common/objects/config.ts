@@ -31,7 +31,7 @@ const data = {
   ],
   displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
   nonUserDisplayFields: ["device", "medicationPlan"],
-  typeAttributeAdditionalFields: ["derivedFrom", "basedOn"],
+  typeAttributeAdditionalFields: ["derivedFrom", "basedOn", "assigner"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
