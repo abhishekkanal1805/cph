@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
@@ -204,7 +204,7 @@ class UserService {
     DataSource.addModel(UserProfile);
     const savedProfile = await DataService.fetchDatabaseRowStandard(userProfileId, UserProfile);
     if (!savedProfile || savedProfile.status !== "active") {
-      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
   }
 }

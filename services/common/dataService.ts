@@ -189,13 +189,13 @@ class DataService {
     }
     const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
-      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      log.error("findIds() failed :: Exiting DataService :: updateRecord()");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     } else if (deviceIds.length == 1) {
       DataSource.addModel(Device);
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
-        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        log.error("Fetching device record failed :: Exiting DataService :: updateRecord()");
         throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       }
     }
@@ -255,7 +255,7 @@ class DataService {
     }
     await Promise.all(allPromise);
     log.info("Record saved successfully :: Exiting DataService :: updateRecord()");
-    log.info("Exiting DataService :: saveRecord()");
+    log.info("Exiting DataService :: updateRecord()");
     resource.savedRecords = savedBundle;
     return resource;
   }

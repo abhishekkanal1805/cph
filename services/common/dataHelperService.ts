@@ -28,7 +28,7 @@ class DataHelperService {
     const metaObj = Utility.getRecordMeta(userIdKey, userIdKey);
     for (const thisRecord of recordsToSave) {
       // extracting the clientRequestID from the record if it was provided in request
-      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
+      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : "";
       const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : "";
       // add new meta data to the provided record
       thisRecord.id = uuid();
@@ -59,7 +59,7 @@ class DataHelperService {
     log.info("Entering DataHelperService :: convertAllToModelsForUpdate()");
     const updatedRecords = [];
     let records;
-    if (resource.savedRecords) {
+    if (resource.savedRecords && resource.savedRecords.length > 0) {
       const recordIds = _.map(resource.savedRecords, "id");
       // fetching all the rows with matching ids
       try {
@@ -69,7 +69,7 @@ class DataHelperService {
       }
       records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       for (const thisRecord of resource.savedRecords) {
-        let clientRequestId = " ";
+        let clientRequestId = "";
         if (thisRecord.meta.clientRequestId) {
           clientRequestId = thisRecord.meta.clientRequestId;
         }
