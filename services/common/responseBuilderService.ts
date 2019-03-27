@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as lodash from "lodash";
 import { Constants } from "../../common/constants/constants";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import {
   BadRequestResult,
@@ -13,7 +13,6 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
-import { responseType } from "../../common/objects/responseType";
 import { DataSource } from "../../dataSource";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
@@ -92,7 +91,7 @@ class ResponseBuilderService {
       result = err;
     } else {
       log.error("Internal error occurred :: " + err);
-      result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
+      result = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
     result.errorLogRef = errorLogRef;
     result.clientRequestId = clientRequestId;
@@ -170,11 +169,8 @@ class ResponseBuilderService {
     if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
       log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
       await ResponseBuilderService.initDisplayName(profileId);
-    } else {
-      log.debug("profileId exists in displayMap" + profileId);
     }
     const displayValue = ResponseBuilderService.displayMap[profileId];
-    log.info("displayValue=" + displayValue);
     return displayValue;
   }
 
@@ -324,7 +320,20 @@ class ResponseBuilderService {
       if (errorResult.length > 1) {
         response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       } else {
-        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
+        if (errorResult[0] instanceof BadRequestResult) {
+          response.responseType = Constants.RESPONSE_TYPE_BAD_REQUEST;
+        } else if (errorResult[0] instanceof InternalServerErrorResult) {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+        } else if (errorResult[0] instanceof NotFoundResult) {
+          response.responseType = Constants.RESPONSE_TYPE_NOT_FOUND;
+        } else if (errorResult[0] instanceof ForbiddenResult || result instanceof InsufficientAccountPermissions) {
+          response.responseType = Constants.RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS;
+        } else if (errorResult[0] instanceof UnAuthorizedResult) {
+          response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
+        } else {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+          response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+        }
       }
       response["responseObject"] = { errors: errorResult };
     } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
@@ -352,7 +361,7 @@ class ResponseBuilderService {
         response["responseObject"] = errorResult;
       } else {
         response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
-        response["responseObject"] = new InternalServerErrorResult(errorCode.ResourceNotFound, "Error occoured during this operation");
+        response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
     }
     return response;

@@ -6,7 +6,7 @@ class ResourceMetadata {
   lastUpdatedBy?: string;
   isDeleted?: boolean;
   clientRequestId?: string;
-  sourceUrl?: string;
   deviceId?: string;
+  source?: string;
 }
 export { ResourceMetadata };

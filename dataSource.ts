@@ -4,8 +4,8 @@
  */
 import * as log from "lambda-log";
 import { ISequelizeConfig, Model, Sequelize } from "sequelize-typescript";
-import { errorCode } from "./common/constants/error-codes";
-import { SequelizeInitializationError } from "./common/objects/custom-errors";
+import { errorCodeMap } from "./common/constants/error-codes-map";
+import { InternalServerErrorResult } from "./common/objects/custom-errors";
 
 const config = {
   dialect: process.env.rdsConnectionDialect,
@@ -43,7 +43,7 @@ class DataSource {
         sequelize = new Sequelize(dbConfig);
       } catch (err) {
         log.error("Error creating sequelize connection: " + err.stack);
-        throw new SequelizeInitializationError(errorCode.SequelizeError, "Error while initializing Sequelize");
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
     }
     log.info("Entering DataSource :: getDataSource()");

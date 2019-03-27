@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
-import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
 
@@ -20,9 +20,9 @@ export class ConnectionService {
   public static async searchConnection(serviceModel: any, queryParams: any, loggedinId: any, authorizerData: any, httpMethod: string): Promise<any> {
     const userProfile: any = await this.isProfileValid(loggedinId, authorizerData, httpMethod);
     let mandatoryAttribute;
-    if (["practitioner", "careteam", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
+    if (["practitioner", "carepartner", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
       log.error("Error occoured due to invalid userType: " + userProfile.type);
-      throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User Validation Failed");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // Condition added for Patient. Patient must give his id in from
     // using this attibute to validate whether its a userProfile or not
@@ -30,7 +30,7 @@ export class ConnectionService {
       // Validate from and loggedinId both are same for patient
       if (queryParams.hasOwnProperty("from") && queryParams["from"] != loggedinId) {
         log.error("Error occoured due to patient type");
-        throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User Validation Failed");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       } else if (queryParams.hasOwnProperty("to")) {
         if (queryParams["to"] != loggedinId) {
           queryParams["from"] = loggedinId;
@@ -44,11 +44,19 @@ export class ConnectionService {
       } else {
         mandatoryAttribute = "from";
       }
-    } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
+    } else if (["system"].indexOf(userProfile.type) > -1) {
+      const keys = Object.keys(queryParams);
+      if (keys.length > 0) {
+        mandatoryAttribute = keys[0];
+      } else {
+        mandatoryAttribute = "to";
+        queryParams["to"] = loggedinId;
+      }
+    } else if (["practitioner", "carepartner"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
-        log.error("Error occoured due to practitioner/careteam type");
-        throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User Validation Failed");
+        log.error("Error occoured due to practitioner/carepartner type");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       } else if (queryParams.hasOwnProperty("from")) {
         if (queryParams["from"] != loggedinId) {
           queryParams["to"] = loggedinId;
@@ -64,7 +72,7 @@ export class ConnectionService {
       }
     } else {
       log.error("Error occoured due to invalid type");
-      throw new UnAuthorizedResult(errorCode.UnauthorizedUser, "User Validation Failed");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("queryParams", queryParams);
     if (queryParams.hasOwnProperty("to")) {
@@ -77,7 +85,7 @@ export class ConnectionService {
     const endPoint = "connection";
     const performUserValidation = false;
     const appendUserProfile = false;
-    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta"];
+    const attributes = ["id", "resourceType", "from", "type", "status", "requestExpirationDate", "to", "lastStatusChangeDateTime", "meta", "dataResource"];
     const searchResult = await DataService.searchRecords(
       serviceModel,
       authorizerData,
@@ -118,13 +126,13 @@ export class ConnectionService {
       fetchDeletedRecord
     );
     if (!userProfileObj.id) {
-      throw new BadRequestResult(errorCode.ResourceNotSaved, "UserProfile doesn't exists");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     if (userProfileObj.status != "active") {
-      throw new BadRequestResult(errorCode.ResourceNotSaved, "UserProfile is not active");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     if (uniqueCode && userProfileObj.userCode != uniqueCode) {
-      throw new BadRequestResult(errorCode.InvalidRequest, "Provided userCode is invalid");
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     const referenceId = userProfileObj.id;
     if (!profileDisplay.hasOwnProperty(referenceId)) {

@@ -44,14 +44,17 @@ export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
 export * from "./models/CPH/connection/connectionDataResource";
+export { Device } from "./models/CPH/device/device";
+export * from "./models/CPH/device/deviceDataResource";
 
 export * from "./services/connection/connectionService";
 
 export * from "./common/constants/constants";
-export * from "./common/constants/error-codes";
+export * from "./common/constants/error-codes-map";
 export * from "./common/objects/api-interfaces";
 export * from "./common/objects/api-response-builder";
 export * from "./common/objects/config";
+export * from "./common/constants/error-codes";
 export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
 export * from "./models/common/patient";
