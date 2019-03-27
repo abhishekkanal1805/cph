@@ -64,6 +64,7 @@ export class UserAuthService {
         }
       });
     }
+    return result;
   }
 
   /**
