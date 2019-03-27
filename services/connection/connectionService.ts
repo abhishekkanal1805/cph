@@ -20,7 +20,7 @@ export class ConnectionService {
   public static async searchConnection(serviceModel: any, queryParams: any, loggedinId: any, authorizerData: any, httpMethod: string): Promise<any> {
     const userProfile: any = await this.isProfileValid(loggedinId, authorizerData, httpMethod);
     let mandatoryAttribute;
-    if (["practitioner", "careteam", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
+    if (["practitioner", "carepartner", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
       log.error("Error occoured due to invalid userType: " + userProfile.type);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -52,10 +52,10 @@ export class ConnectionService {
         mandatoryAttribute = "to";
         queryParams["to"] = loggedinId;
       }
-    } else if (["practitioner", "careteam"].indexOf(userProfile.type) > -1) {
+    } else if (["practitioner", "carepartner"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {
-        log.error("Error occoured due to practitioner/careteam type");
+        log.error("Error occoured due to practitioner/carepartner type");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       } else if (queryParams.hasOwnProperty("from")) {
         if (queryParams["from"] != loggedinId) {
