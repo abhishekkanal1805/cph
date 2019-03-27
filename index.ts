@@ -13,6 +13,7 @@ export * from "./services/security/userAuthService";
 export * from "./services/dao/dataService";
 export * from "./services/utility/businessValidator";
 export * from "./services/utility/dataConvertor";
+export * from "./services/utility/dataTransform";
 export * from "./services/utility/customDataConvertor";
 
 export * from "./models/common/address";

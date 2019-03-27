@@ -1,9 +1,71 @@
 import * as log from "lambda-log";
+import { Op } from "sequelize";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
+import { Utility } from "../common/Utility";
 import { ConnectionService } from "../connection/connectionService";
 
 export class UserAuthService {
+  /**
+   * checking permissions for Practioner/Care partner type user
+   * @param {*} accessObj User endpoint access object.
+   * @param {string} userId Profile ID of request's reference object
+   * @param {string} httpMethod operation that is being performed e.g. POST, GET etc.
+   * @param {*} resource operation that is being performed e.g. POST, GET etc.
+   *
+   * @returns Returns a custom error in case user validation fails.
+   */
+  public static async performUserAccessValidation(loggedInUserInfo: any, patientIds: string[], patientValidationId: string, resource: any) {
+    // 1. are we anywhere checking if loggedinId is same as informationsourceId?
+    log.info("Entering UserService :: performMultiUserValidation()");
+    // Check user present in cognito or not and get profile Id
+    const loggedInId = loggedInUserInfo.loggedinId;
+    const loggedInUserType = loggedInUserInfo.profileType.toLowerCase();
+    const result = {
+      errorRecords: [],
+      saveRecords: []
+    };
+    if (loggedInUserType === "system") {
+      result.saveRecords = resource;
+    }
+    if (loggedInUserType === "patient") {
+      resource.forEach((record) => {
+        if (Utility.getAttributeValue(record, patientValidationId) === "UserProfile/" + loggedInId) {
+          result.saveRecords.push(record);
+        } else {
+          const badRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+          badRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
+          result.errorRecords.push(badRequest);
+        }
+      });
+    } else if (loggedInUserType === "practitioner" || loggedInUserType === "carepartner") {
+      const queryOptions = {
+        where: {
+          from: {
+            [Op.or]: patientIds
+          },
+          to: loggedInId,
+          status: ["active"]
+        },
+        attributes: ["from"]
+      };
+      DataSource.addModel(Connection);
+      const searchPatientResults = await Connection.findAll(queryOptions);
+      resource.forEach((record) => {
+        if (searchPatientResults.includes(Utility.getAttributeValue(record, patientValidationId))) {
+          // practioner can do all operation if connection exists?
+          result.saveRecords.push(record);
+        } else {
+          const badRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+          badRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
+          result.errorRecords.push(badRequest);
+        }
+      });
+    }
+  }
+
   /**
    * Validate permission set against requested permission
    * @param permissions Allowed set of permissions for that user

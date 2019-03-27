@@ -5,7 +5,6 @@ import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-er
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../common/dataService";
-import { DataConvertor } from "./dataConvertor";
 
 export class BusinessValidator {
   /**
@@ -13,9 +12,9 @@ export class BusinessValidator {
    * @param {string} request
    * @returns {any}
    */
-  public static validateBundleTotal(record): any {
+  public static validateBundleTotal(record, total): any {
     log.info("Inside Utility: safeParse()");
-    if (record.length !== record.total) {
+    if (record.length !== total) {
       log.error("Error: entries length do not match total count");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
@@ -29,9 +28,8 @@ export class BusinessValidator {
     }
   }
 
-  public static async validateDeviceIds(records): Promise<any> {
+  public static async validateDeviceIds(deviceIds): Promise<any> {
     log.info("Inside Utility: safeParse()");
-    const deviceIds = DataConvertor.findValuesForKey(records, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
