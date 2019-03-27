@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
-import { ForbiddenResult, NotFoundResult, BadRequestResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../common/dataService";
 
