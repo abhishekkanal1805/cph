@@ -205,7 +205,7 @@ class UserService {
     DataSource.addModel(UserProfile);
     const savedProfile = await DataService.fetchDatabaseRowStandard(userProfileId, UserProfile);
     if (!savedProfile || savedProfile.status !== "active") {
-      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
   }
 }
