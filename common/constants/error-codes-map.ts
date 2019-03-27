@@ -25,5 +25,10 @@ export const errorCodeMap = {
   FileNotFound: {
     value: "FileNotFound",
     description: "The requested operation failed because a file associated with the request could not be found."
-  }
+  },
+  InvalidAggregationRequest: {
+    value: "InvalidAggregationRequest",
+    description: "The request does not contain one or more mandatory parameters or their values are invalid"
+  },
+  InvalidBoundPeriod: { value: "InvalidBoundPeriod", description: "The request can not contain range in boundsPeriod greater than " }
 };
