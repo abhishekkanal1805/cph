@@ -44,6 +44,14 @@ export class ConnectionService {
       } else {
         mandatoryAttribute = "from";
       }
+    } else if (["system"].indexOf(userProfile.type) > -1) {
+      const keys = Object.keys(queryParams);
+      if (keys.length > 0) {
+        mandatoryAttribute = keys[0];
+      } else {
+        mandatoryAttribute = "to";
+        queryParams["to"] = loggedinId;
+      }
     } else if (["practitioner", "carepartner"].indexOf(userProfile.type) > -1) {
       // Validate to and loggedinId both are same for partner and delegate
       if (queryParams.hasOwnProperty("to") && queryParams["to"] != loggedinId) {

@@ -310,7 +310,20 @@ class ResponseBuilderService {
       if (errorResult.length > 1) {
         response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       } else {
-        response.responseType = lodash.camelCase(errorResult[0].errorCode);
+        if (errorResult[0] instanceof BadRequestResult) {
+          response.responseType = Constants.RESPONSE_TYPE_BAD_REQUEST;
+        } else if (errorResult[0] instanceof InternalServerErrorResult) {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+        } else if (errorResult[0] instanceof NotFoundResult) {
+          response.responseType = Constants.RESPONSE_TYPE_NOT_FOUND;
+        } else if (errorResult[0] instanceof ForbiddenResult || result instanceof InsufficientAccountPermissions) {
+          response.responseType = Constants.RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS;
+        } else if (errorResult[0] instanceof UnAuthorizedResult) {
+          response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
+        } else {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+          response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+        }
       }
       response["responseObject"] = { errors: errorResult };
     } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
