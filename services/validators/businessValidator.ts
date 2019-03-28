@@ -68,11 +68,11 @@ export class BusinessValidator {
    * @returns {Promise<void>}
    * @memberof BusinessValidator
    */
-  public static async validateUserReferenceAgainstLoggedInUser(loggedInId: string, userReferenceId: string): Promise<void> {
+  public static validateUserReferenceAgainstLoggedInUser(loggedInId: string, userReferenceId: string): void {
     log.info("In BusinessValidator: validateUserReferenceAgainstLoggedInUser()");
     userReferenceId = userReferenceId.split("/")[1];
     if (loggedInId != userReferenceId) {
-      log.error("Error: entries total count is more than allowed records");
+      log.error("Error: Logged In Id is different from user Reference Id");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
   }
@@ -85,9 +85,10 @@ export class BusinessValidator {
    * @returns {Promise<void>}
    * @memberof BusinessValidator
    */
-  public static async validateNumberOfUniqueUserReference(userIds: string[]): Promise<void> {
+  public static validateNumberOfUniqueUserReference(userIds: string[]): void {
     log.info("In BusinessValidator: validateNumberOfUniqueUserReference()");
     if (userIds.length != 1) {
+      log.error("Error: Multiple user Id's found in request");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
   }
