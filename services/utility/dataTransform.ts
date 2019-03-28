@@ -1,6 +1,14 @@
 import * as log from "lambda-log";
 
 export class DataTransform {
+  /**
+   * Transforms incoming request to generate an array in case of non bundle. 
+   * In case of bundle request, generates a new array with bundle's resource section.
+   * @static
+   * @param {*} request
+   * @returns {any[]}
+   * @memberof DataTransform
+   */
   public static extractRecordsFromRequest(request: any): any[] {
     if (!Array.isArray(request.entry)) {
       request = [request];
@@ -10,6 +18,16 @@ export class DataTransform {
     return request;
   }
 
+  /**
+   * Generates record's metadata as per information passed to it.
+   *
+   * @static
+   * @param {*} record
+   * @param {string} createdByUser
+   * @param {string} modifiedByUser
+   * @returns
+   * @memberof DataTransform
+   */
   public static getRecordMetaData(record, createdByUser: string, modifiedByUser: string) {
     log.info("Entering Utility: getRecordMeta()");
     const timestamp = new Date().toISOString();

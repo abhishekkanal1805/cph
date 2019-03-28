@@ -3,6 +3,14 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 
 export class JsonParser {
+  /**
+   * Safe parses incoming string to JSON format
+   *
+   * @static
+   * @param {string} request
+   * @returns {*}
+   * @memberof JsonParser
+   */
   public static safeParse(request: string): any {
     log.info("Inside Utility: safeParse()");
     try {
@@ -13,6 +21,16 @@ export class JsonParser {
     }
   }
 
+  /**
+   * Find all values against searchkey passed in request. 
+   *
+   * @static
+   * @param {any[]} records : array of records where search key need to be search. e.g. {a:1,b:{c:2}}
+   * @param {string} searchKey : string formatted search key in format of "b.c"
+   * @param {boolean} [uniqueValuesOnly=true] : setting it to true only returns unique key values
+   * @returns {any[]}
+   * @memberof JsonParser
+   */
   public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly: boolean = true): any[] {
     log.info("Inside Utility: findIds()");
     const keyValues = records.map((record) => {
@@ -26,6 +44,15 @@ export class JsonParser {
     return keyValues;
   }
 
+  /**
+   * Find multiple value map against given set of search keys. 
+   * This function is an extentsion of findValuesForKey() where it supports multiple key search in single loop
+   * @static
+   * @param {any[]} records
+   * @param {Map<string, any[]>} searchKey
+   * @returns {Map<string, any[]>}
+   * @memberof JsonParser
+   */
   public static findValuesForKeyMap(records: any[], searchKey: Map<string, any[]>): Map<string, any[]> {
     log.info("Inside Utility: findIds()");
     const getValues = (object, path, defaultValue) => path.split(".").reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
