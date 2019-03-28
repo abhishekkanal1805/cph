@@ -2,12 +2,7 @@ import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 
-export class DataConvertor {
-  /**
-   * Parses a string safely to any untyped object. If parsing error occurs it throw an error.
-   * @param {string} request
-   * @returns {any}
-   */
+export class JsonParser {
   public static safeParse(request: string): any {
     log.info("Inside Utility: safeParse()");
     try {
@@ -18,14 +13,8 @@ export class DataConvertor {
     }
   }
 
-  /**
-   *
-   * @param bundle
-   * @param userId
-   */
-  public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly = true) {
+  public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly: boolean = true): any[] {
     log.info("Inside Utility: findIds()");
-
     const keyValues = records.map((record) => {
       return searchKey.split(".").reduce((key, value) => {
         return typeof key == "undefined" || key === null ? key : key[value];
@@ -37,16 +26,9 @@ export class DataConvertor {
     return keyValues;
   }
 
-  /**
-   *
-   * @param bundle
-   * @param userId
-   */
-  public static findValuesForKeys(records: any[], searchKey, uniqueValuesOnly = true) {
+  public static findValuesForKeyMap(records: any[], searchKey: Map<string, any[]>): Map<string, any[]> {
     log.info("Inside Utility: findIds()");
-
-    const getValues = (obj, path, defaultValue) => path.split(".").reduce((a, c) => (a && a[c] ? a[c] : defaultValue || null), obj);
-
+    const getValues = (object, path, defaultValue) => path.split(".").reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
     records.forEach((record) => {
       searchKey.forEach((value, key) => {
         value.push(getValues(record, key, null));

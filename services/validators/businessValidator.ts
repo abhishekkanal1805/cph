@@ -7,12 +7,7 @@ import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../common/dataService";
 
 export class BusinessValidator {
-  /**
-   * Parses a string safely to any untyped object. If parsing error occurs it throw an error.
-   * @param {string} request
-   * @returns {any}
-   */
-  public static validateBundleTotal(record, total): any {
+  public static validateBundleTotal(record: any[], total: number): void {
     log.info("Inside Utility: safeParse()");
     if (record.length !== total) {
       log.error("Error: entries length do not match total count");
@@ -20,7 +15,7 @@ export class BusinessValidator {
     }
   }
 
-  public static validateBundlePostLimit(record): any {
+  public static validateBundlePostLimit(record: any[]): void {
     log.info("Inside Utility: safeParse()");
     if (record.length > Constants.POST_LIMIT) {
       log.error("Error: entries total count is more than allowed records");
@@ -28,7 +23,7 @@ export class BusinessValidator {
     }
   }
 
-  public static async validateDeviceIds(deviceIds): Promise<any> {
+  public static async validateDeviceIds(deviceIds: string[]): Promise<void> {
     log.info("Inside Utility: safeParse()");
     if (deviceIds.length > 1) {
       log.error("findIds() failed :: Exiting DataService :: saveRecord()");
@@ -43,11 +38,19 @@ export class BusinessValidator {
     }
   }
 
-  public static async validateUserReference(loggedInId, userReferenceId): Promise<any> {
+  public static async validateUserReferenceAgainstLoggedInUser(loggedInId: string, userReferenceId: string): Promise<void> {
     log.info("Inside Utility: safeParse()");
+    userReferenceId = userReferenceId.split("/")[1];
     if (loggedInId != userReferenceId) {
       log.error("Error: entries total count is more than allowed records");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+  }
+
+  public static async validateNumberOfUniqueUserReference(userIds: string[]): Promise<void> {
+    log.info("Inside Utility: safeParse()");
+    if (userIds.length != 1) {
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
   }
 }
