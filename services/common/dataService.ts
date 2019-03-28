@@ -476,6 +476,25 @@ class DataService {
     }
   }
 
+  /**
+   * Makes database call to fetch a single record id from DB.
+   * The models are returned flat instead of looking up dataResource
+   * @param id id of the record needs to be fetched.
+   * @param {any} serviceModel Sequelize model class of the target table.
+   * @returns {object}
+   */
+  public static async fetchRowByPk(id: string, serviceModel: any): Promise<any> {
+    log.info("Entering DataService :: fetchDatabaseRowStandard()");
+    try {
+      const results = await serviceModel.findByPk(id);
+      log.info("Exiting DataService: fetchDatabaseRowStandard() :: Record retrieved successfully");
+      return results.dataValues;
+    } catch (err) {
+      log.error("Error in fetching the record :: " + err);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+  }
+
   public static async recordsCount(id: string, serviceModel: any): Promise<any> {
     log.info("Entering DataService :: fetchDatabaseRowStandard()");
     try {

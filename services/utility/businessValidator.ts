@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../common/dataService";
@@ -40,6 +40,14 @@ export class BusinessValidator {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
         throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       }
+    }
+  }
+
+  public static async validateUserReference(loggedInId, userReferenceId): Promise<any> {
+    log.info("Inside Utility: safeParse()");
+    if (loggedInId != userReferenceId) {
+      log.error("Error: entries total count is more than allowed records");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
   }
 }

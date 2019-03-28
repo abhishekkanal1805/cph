@@ -29,8 +29,7 @@ export class UserAuthService {
     };
     if (loggedInUserType === "system") {
       result.saveRecords = resource;
-    }
-    if (loggedInUserType === "patient") {
+    } else if (loggedInUserType === "patient") {
       resource.forEach((record) => {
         if (Utility.getAttributeValue(record, patientValidationId) === "UserProfile/" + loggedInId) {
           result.saveRecords.push(record);

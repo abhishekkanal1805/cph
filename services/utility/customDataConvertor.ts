@@ -33,7 +33,7 @@ export class CustomDataConvertor {
     // check if record exists in userProfile table for the profileId
     // UserProfile model added to sequlize to perfrom db operation
     DataSource.addModel(UserProfile);
-    const result = await DataService.fetchDatabaseRowStandard(profileId, UserProfile);
+    const result = await DataService.fetchRowByPk(profileId, UserProfile);
     if (result.status !== "active") {
       log.error("Error in UserService: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
