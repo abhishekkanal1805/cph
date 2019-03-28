@@ -29,11 +29,11 @@ export const errorCodeMap = {
   InvaidStartDate: { value: "InvaidStartDate", description: "The requested aggregation cannot be processed as the start date is greater than the end date." },
   MissingAggregationCriteria: {
     value: "MissingAggregationCriteria",
-    description: "This aggregation request cannot be fufilled as it doen not have any aggregationCriteria specified."
+    description: "This aggregation request cannot be fulfilled as it does not have any aggregationCriteria specified."
   },
-  MissingParameter: { value: "MissingParameter", description: "The request cannot be fufilled as one or more required parameters are missing." },
-  InvalidIdentifier: { value: "InvalidIdentifier", description: "The request cannot be fullfilled as provided Identifier is invalid." },
-  MissingIdentifier: { value: "MissingIdentifier", description: "The request cannot be fullfilled as Idetifier is missing." },
+  MissingParameter: { value: "MissingParameter", description: "The request cannot be fulfilled as one or more required parameters are missing." },
+  InvalidIdentifier: { value: "InvalidIdentifier", description: "The request cannot be fulfilled as provided Identifier is invalid." },
+  MissingIdentifier: { value: "MissingIdentifier", description: "The request cannot be fulfilled as Identifier is missing." },
   MissingUserProfile: { value: "MissingUserProfile", description: "There is no matching user profile with the details provided to initiate connection." },
   InvalidUserProfile: { value: "InvalidUserProfile", description: "The requested operation cannot be performed as the UserProfile is inactive." }
 };
