@@ -280,11 +280,25 @@ export class Utility {
           if (eachEntry[displayAttribute].display) {
             delete eachEntry[displayAttribute].display;
           }
+          // removing type field from json to prevent it from being saved
+          if (eachEntry[displayAttribute].type) {
+            delete eachEntry[displayAttribute].type;
+          }
         }
       }
       for (const nonUserDisplayAttribute of config.data.nonUserDisplayFields) {
         if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].display) {
           eachEntry[nonUserDisplayAttribute].display = "";
+        }
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].type) {
+          delete eachEntry[nonUserDisplayAttribute].type;
+        }
+      }
+      for (const typeAttribute of config.data.typeAttributeAdditionalFields) {
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[typeAttribute] && eachEntry[typeAttribute].reference && eachEntry[typeAttribute].type) {
+          delete eachEntry[typeAttribute].type;
         }
       }
       if (insertRecordtoResource) {
