@@ -9,10 +9,9 @@ export const errorCodeMap = {
   Forbidden: { value: "InsufficientPermissions", description: "The requested operation is forbidden and cannot be completed." },
   InternalError: { value: "InternalError", description: "The request processing has failed because of an internal error, exception or failure." },
   NotFound: { value: "ResourceNotFound", description: "The requested operation failed because a resource associated with the request could not be found." },
-  InvalidQuery: {
-    value: "InvalidQuery",
-    description: "The request contains an invalid combination of parameters or an invalid parameter value. Check the value of parameter : "
-  },
+  InvalidReference: { value: "InvalidReference", description: "The request contains invalid reference to resource " },
+  InvalidQueryParameter: { value: "InvalidQueryParameter", description: "The query string contains invalid parameter " },
+  InvalidQueryParameterValue: { value: "InvalidQueryParameterValue", description: "The query string contains invalid value for parameter: " },
   InvalidResourceVersion: { value: "InvalidResourceVersion", description: "" },
   InvalidInvite: { value: "InvalidInvite", description: "Invite is invalid because it is in state :" },
   InvalidHeader: { value: "InvalidHeader", description: "The request has failed because Content-Type of request is invalid" },
