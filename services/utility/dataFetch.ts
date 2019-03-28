@@ -15,7 +15,7 @@ export class DataFetch {
    * @memberof DataFetch
    */
   public static async fetchUserProfileInformationFromAuthorizer(authorizerData: any): Promise<any> {
-    log.info("Entering UserService :: performUserAcessValidation()");
+    log.info("Entering DataFetch :: fetchUserProfileInformationFromAuthorizer()");
     const profileId: string = authorizerData.profile;
     const userAccessObj = {
       endpointPermission: false,
@@ -25,12 +25,12 @@ export class DataFetch {
       displayName: ""
     };
     if (!profileId) {
-      log.error("Error in UserService: User is not Authorized to perform requested operation");
+      log.error("Error in DataFetch: ProfileId is missing in authorizer");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     const result = await DataService.fetchRowByPk(profileId, UserProfile);
     if (result.status !== "active") {
-      log.error("Error in UserService: UserProfile status is inactive");
+      log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // if user is valid then set display attribute and profile status
@@ -39,7 +39,6 @@ export class DataFetch {
     userAccessObj.profileStatus = result.status;
     userAccessObj.profileType = result.type;
     userAccessObj.displayName = [familyName, givenName.join(" ")].join(", ");
-    log.info("performUserAcessValidation() success :: Exiting UserService: performUserAcessValidation()");
     return userAccessObj;
   }
 }

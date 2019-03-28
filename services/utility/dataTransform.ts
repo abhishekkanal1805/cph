@@ -10,6 +10,7 @@ export class DataTransform {
    * @memberof DataTransform
    */
   public static extractRecordsFromRequest(request: any): any[] {
+    log.info("Entering DataTransform: extractRecordsFromRequest()");
     if (!Array.isArray(request.entry)) {
       request = [request];
     } else {
@@ -29,7 +30,6 @@ export class DataTransform {
    * @memberof DataTransform
    */
   public static getRecordMetaData(record, createdByUser: string, modifiedByUser: string) {
-    log.info("Entering Utility: getRecordMeta()");
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
       versionId: 1,
@@ -44,7 +44,6 @@ export class DataTransform {
       metaDataObject.deviceId = record.meta.deviceId;
       metaDataObject.source = record.meta.source;
     }
-    log.info("Exiting Utility: getRecordMeta()");
     return metaDataObject;
   }
 }

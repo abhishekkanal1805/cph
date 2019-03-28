@@ -18,7 +18,7 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async performUserAccessValidation(loggedInUserInfo: any, patientIds: string[], patientValidationId: string, records: any[]) {
-    log.info("Entering UserService :: performMultiUserValidation()");
+    log.info("Entering AuthService :: performMultiUserValidation()");
     const loggedInId = loggedInUserInfo.loggedinId;
     const loggedInUserType = loggedInUserInfo.profileType.toLowerCase();
     const result = {

@@ -12,11 +12,11 @@ export class JsonParser {
    * @memberof JsonParser
    */
   public static safeParse(request: string): any {
-    log.info("Inside Utility: safeParse()");
+    log.info("Inside JsonParser: safeParse()");
     try {
       return JSON.parse(request);
     } catch (err) {
-      log.error("Error parsing this resource.");
+      log.error("Error parsing the resource.");
       throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
   }
@@ -32,7 +32,7 @@ export class JsonParser {
    * @memberof JsonParser
    */
   public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly: boolean = true): any[] {
-    log.info("Inside Utility: findIds()");
+    log.info("Inside JsonParser: findValuesForKey()");
     const keyValues = records.map((record) => {
       return searchKey.split(".").reduce((key, value) => {
         return typeof key == "undefined" || key === null ? key : key[value];
@@ -54,7 +54,7 @@ export class JsonParser {
    * @memberof JsonParser
    */
   public static findValuesForKeyMap(records: any[], searchKey: Map<string, any[]>): Map<string, any[]> {
-    log.info("Inside Utility: findIds()");
+    log.info("Inside JsonParser: findValuesForKeyMap()");
     const getValues = (object, path, defaultValue) => path.split(".").reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
     records.forEach((record) => {
       searchKey.forEach((value, key) => {
