@@ -53,9 +53,9 @@ export class AuthService {
         if (searchPatientResults.includes(Utility.getAttributeValue(record, patientValidationId))) {
           result.saveRecords.push(record);
         } else {
-          const badRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-          badRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
-          result.errorRecords.push(badRequest);
+          const forbiddenRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+          forbiddenRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
+          result.errorRecords.push(forbiddenRequest);
         }
       });
     }
