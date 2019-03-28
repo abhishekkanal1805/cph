@@ -22,7 +22,7 @@ export class JsonParser {
   }
 
   /**
-   * Find all values against searchkey passed in request. 
+   * Find all values against searchkey passed in request.
    *
    * @static
    * @param {any[]} records : array of records where search key need to be search. e.g. {a:1,b:{c:2}}
@@ -45,7 +45,7 @@ export class JsonParser {
   }
 
   /**
-   * Find multiple value map against given set of search keys. 
+   * Find multiple value map against given set of search keys.
    * This function is an extentsion of findValuesForKey() where it supports multiple key search in single loop
    * @static
    * @param {any[]} records

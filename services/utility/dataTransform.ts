@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 
 export class DataTransform {
   /**
-   * Transforms incoming request to generate an array in case of non bundle. 
+   * Transforms incoming request to generate an array in case of non bundle.
    * In case of bundle request, generates a new array with bundle's resource section.
    * @static
    * @param {*} request

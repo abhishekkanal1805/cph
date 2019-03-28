@@ -5,7 +5,6 @@ import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DataService } from "../dao/dataService";
 
 export class DataFetch {
-
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
    *

@@ -7,7 +7,7 @@ import { Utility } from "../common/Utility";
 
 export class AuthService {
   /**
-   * Checks logged in user type and filter records based on his access type. 
+   * Checks logged in user type and filter records based on his access type.
    *
    * @static
    * @param {*} loggedInUserInfo : logged in user info coming from Authorizer data
