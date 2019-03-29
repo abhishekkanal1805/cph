@@ -53,14 +53,14 @@ export class JsonParser {
    * @returns {Map<string, any[]>}
    * @memberof JsonParser
    */
-  public static findValuesForKeyMap(records: any[], searchKey: Map<string, any[]>): Map<string, any[]> {
+  public static findValuesForKeyMap(records: any[], searchKeys: Map<string, any[]>): Map<string, any[]> {
     log.info("Inside JsonParser: findValuesForKeyMap()");
     const getValues = (object, path, defaultValue) => path.split(".").reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
     records.forEach((record) => {
-      searchKey.forEach((value, key) => {
+      searchKeys.forEach((value, key) => {
         value.push(getValues(record, key, null));
       });
     });
-    return searchKey;
+    return searchKeys;
   }
 }

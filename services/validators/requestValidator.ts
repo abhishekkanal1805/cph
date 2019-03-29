@@ -1,11 +1,10 @@
 import * as log from "lambda-log";
-import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../common/dataService";
 
-export class BusinessValidator {
+export class RequestValidator {
   /**
    * Validates the total number of records in bundle against total field.
    * Throw an error if bundle length is not same as total attribute
@@ -29,9 +28,9 @@ export class BusinessValidator {
    * @param {any[]} records : records array
    * @memberof BusinessValidator
    */
-  public static validateBundlePostLimit(records: any[]): void {
+  public static validateBundlePostLimit(records: any[], limit: number): void {
     log.info("In BusinessValidator: validateBundlePostLimit()");
-    if (records.length > Constants.POST_LIMIT) {
+    if (records.length > limit) {
       log.error("Error: entries total count is more than allowed records");
       throw new BadRequestResult(errorCodeMap.RequestTooLarge.value, errorCodeMap.RequestTooLarge.description);
     }

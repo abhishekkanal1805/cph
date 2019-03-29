@@ -11,7 +11,7 @@ export { AggregationUtils } from "./services/common/aggregationUtils";
 
 export * from "./services/security/userAuthService";
 export * from "./services/dao/dataService";
-export * from "./services/validators/businessValidator";
+export * from "./services/validators/requestValidator";
 export * from "./services/utility/jsonParser";
 export * from "./services/utility/dataFetch";
 export * from "./services/utility/dataTransform";
