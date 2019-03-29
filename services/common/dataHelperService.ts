@@ -104,6 +104,9 @@ class DataHelperService {
         if (thisRecord.meta.isDeleted) {
           existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
         }
+        if (thisRecord.meta.source) {
+          existingRecord.meta.source = thisRecord.meta.source;
+        }
         // if no error then update metadata
         log.debug("Updating metadata information");
         thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
