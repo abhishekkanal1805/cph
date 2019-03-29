@@ -19,7 +19,7 @@ export const errorCodeMap = {
   MalformedData: { value: "MalformedData", description: "The request data is malformed" },
   ResourceNotEditable: {
     value: "ResourceNotEditable",
-    description: "The requested operation failed because a resource associated with the request can not be edited."
+    description: "The resource associated with the request can not be edited."
   },
   FileNotFound: {
     value: "FileNotFound",
