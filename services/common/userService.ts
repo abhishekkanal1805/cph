@@ -32,9 +32,9 @@ class UserService {
     log.info("Entering UserService :: performMultiUserValidation()");
     // Check user present in cognito or not and get profile Id
     let newRecords = [];
+    const callerUserProfileId = accessObj.loggedinId;
+    const calleruserProfileType = accessObj.profileType;
     for (const patientId of patientIds) {
-      const callerUserProfileId = accessObj.loggedinId;
-      const calleruserProfileType = accessObj.profileType;
       let userPermissions: string[] = [];
       let isPermissionValid: boolean = false;
       try {
@@ -59,7 +59,7 @@ class UserService {
         );
       }
     }
-    if (userValidationId) {
+    if (userValidationId && calleruserProfileType != "system") {
       let validRecords = [];
       for (const userId of userIds) {
         let filteredRecords: any;
