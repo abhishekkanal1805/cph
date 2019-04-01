@@ -62,11 +62,6 @@ class DataHelperService {
     if (resource.savedRecords && resource.savedRecords.length > 0) {
       const recordIds = _.map(resource.savedRecords, "id");
       // fetching all the rows with matching ids
-      try {
-        records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
-      } catch (err) {
-        log.error("Error occured while fetching records from DB: " + err.stack);
-      }
       records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
       for (const thisRecord of resource.savedRecords) {
         let clientRequestId = "";
@@ -1341,9 +1336,9 @@ class DataHelperService {
 
   /**
    * This function is used to create raw query for implementaion of like operator on array type attribute
-   * @param {string} rawQuery - Array type attribute is unnested and raw query is created in config file
-   * @param {string} item
-   * @param searchObject
+   * @param {string} rawQuery - Query which has like operation
+   * @param {string} item - nested attribute on which like opration needs to be performed
+   * @param searchObject - returns searchObject with created raw query after adding it with existing sequelize queries
    */
   public static generateRawQueryForPartialMatch(rawQuery: string, item: string, searchObject: any) {
     rawQuery = rawQuery.replace(/{searchValue}/g, item);
