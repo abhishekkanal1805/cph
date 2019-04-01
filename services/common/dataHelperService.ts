@@ -201,7 +201,7 @@ class DataHelperService {
       } else if (isYear) {
         DataHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else {
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + mappedAttribute.map);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + mappedAttribute.map);
       }
     }
     log.info("Exiting DataHelperService :: createDateSearchConditions()");

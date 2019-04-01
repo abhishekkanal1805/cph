@@ -14,7 +14,7 @@ class DataValidatorUtility {
   public static validateStringAttributes(key, paramValue, isMultivalue) {
     // multiple value support is not there for string
     if (isMultivalue) {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
@@ -22,11 +22,11 @@ class DataValidatorUtility {
   public static validateBooleanAttributes(key, paramValue, isMultivalue) {
     // multiple value support is not there for boolean
     if (isMultivalue) {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     const boolStatus = ["true", "false"].indexOf(paramValue[0].toLowerCase());
     if (boolStatus === -1) {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
@@ -34,12 +34,12 @@ class DataValidatorUtility {
   public static validateNumberAttributes(key, paramValue, isMultivalue) {
     // multiple value support is not there for number
     if (isMultivalue) {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     paramValue = Utility.getPrefixDate(paramValue[0]).date;
     const numberStatus = lodash.isNaN(lodash.toNumber(paramValue));
     if (numberStatus) {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
@@ -70,11 +70,11 @@ class DataValidatorUtility {
       const isYearMonth = moment(dateObj.date, "YYYY-MM", true).isValid();
       const isYear = moment(dateObj.date, "YYYY", true).isValid();
       if (!(isdateTime || isDate || isYearMonth || isYear)) {
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
       }
       // error for invalid prefix
       if (config.data.validDatePrefixes.indexOf(dateObj.prefix) === -1) {
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
       }
     }
     return true;
@@ -89,18 +89,18 @@ class DataValidatorUtility {
     log.info("Inside DataValidatorUtility: validateMultiValueDateParams()");
     if (dateValues.length > 2) {
       log.error("Failed for attribute: " + key + " as it has more than two values for MultiValue Date Param");
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     if (Utility.getPrefixDate(dateValues[0]).prefix.length === 0 || Utility.getPrefixDate(dateValues[1]).prefix.length === 0) {
       log.error("Failed for attribute: " + key + " as all input dates do not have prefixes.");
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     if (
       Utility.getPrefixDate(dateValues[0]).prefix === Utility.getPrefixDate(dateValues[1]).prefix ||
       Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) === Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
     ) {
       log.error("Failed for attribute: " + key + " as all input dates have same prefixes.");
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
   }
   /**
@@ -120,16 +120,16 @@ class DataValidatorUtility {
       const attrIdx = lodash.findIndex(validParams, (d: any) => d.map === key);
       if (attrIdx === -1) {
         // paramater is unsupported based on allowed config
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameter.value, errorCodeMap.InvalidQueryParameter.description + key);
+        throw new BadRequestResult(errorCodeMap.InvalidParameter.value, errorCodeMap.InvalidParameter.description + key);
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
       for (const eachValue of paramValue) {
         if (eachValue.toString().trim().length === 0) {
-          throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+          throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
         }
         if (eachValue.toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
-          throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + key);
+          throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
         }
       }
       const isMultivalue = paramValue.length > 1;
