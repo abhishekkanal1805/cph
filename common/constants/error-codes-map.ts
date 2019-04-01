@@ -11,7 +11,7 @@ export const errorCodeMap = {
   Forbidden: { value: "InsufficientPermissions", description: "The user does not have sufficient permissions to execute the request." },
   InternalError: { value: "InternalError", description: "The request processing has failed because of an internal error, exception or failure." },
   NotFound: { value: "ResourceNotFound", description: "The resource associated with the request could not be found." },
-  InvalidResourceReference: { value: "InvalidResourceReference", description: "The request contains invalid reference to resource " },
+  UserProfileNotFound: { value: "UserProfileNotFound", description: "The request contains invalid reference to resource " },
   InvalidParameter: { value: "InvalidQueryParameter", description: "The request contains an invalid parameter " },
   InvalidParameterValue: { value: "InvalidQueryParameterValue", description: "The request contains an invalid value of parameter " },
   InvalidResourceVersion: { value: "InvalidResourceVersion", description: "" },
