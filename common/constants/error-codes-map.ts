@@ -11,10 +11,9 @@ export const errorCodeMap = {
   Forbidden: { value: "InsufficientPermissions", description: "The user does not have sufficient permissions to execute the request." },
   InternalError: { value: "InternalError", description: "The request processing has failed because of an internal error, exception or failure." },
   NotFound: { value: "ResourceNotFound", description: "The resource associated with the request could not be found." },
-  InvalidQuery: {
-    value: "InvalidParameterValue",
-    description: "The request contains an invalid value of parameter "
-  },
+  InvalidResourceReference: { value: "InvalidResourceReference", description: "The request contains invalid reference to resource " },
+  InvalidQueryParameter: { value: "InvalidQueryParameter", description: "The request contains an invalid parameter " },
+  InvalidQueryParameterValue: { value: "InvalidQueryParameterValue", description: "The request contains an invalid value of parameter " },
   InvalidResourceVersion: { value: "InvalidResourceVersion", description: "" },
   InvalidInvite: { value: "InvalidInvite", description: "Invite is invalid because it is in state :" },
   InvalidHeader: { value: "InvalidHeader", description: "The request has failed because Content-Type of request is invalid" },
@@ -42,5 +41,6 @@ export const errorCodeMap = {
   InvalidIdentifier: { value: "InvalidIdentifier", description: "The request cannot be fulfilled as provided Identifier is invalid." },
   MissingIdentifier: { value: "MissingIdentifier", description: "The request cannot be fulfilled as Identifier is missing." },
   MissingUserProfile: { value: "MissingUserProfile", description: "There is no matching user profile with the details provided to initiate connection." },
-  InvalidUserProfile: { value: "InvalidUserProfile", description: "The requested operation cannot be performed as the UserProfile is inactive." }
+  InvalidUserProfile: { value: "InvalidUserProfile", description: "The requested operation cannot be performed as the UserProfile is inactive." },
+  UserProfileExists: { value: "UserProfileExists", description: "A UserProfile with requested email already exists." }
 };
