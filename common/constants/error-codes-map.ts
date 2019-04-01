@@ -1,4 +1,6 @@
 export const errorCodeMap = {
+  MissingElement: { value: "MissingElement", description: "The request is missing element " },
+  InvalidElementValue: { value: "InvalidElementValue", description: "The resource contains an invalid value of element " },
   InvalidRequest: { value: "InvalidRequest", description: "The request payload is invalid and does not adhere to specification." },
   InvalidBundle: {
     value: "InvalidRequestBundle",
