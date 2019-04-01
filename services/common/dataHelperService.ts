@@ -1339,6 +1339,12 @@ class DataHelperService {
     return results;
   }
 
+  /**
+   * This function is used to create raw query for implementaion of like operator on array type attribute
+   * @param {string} rawQuery - Array type attribute is unnested and raw query is created in config file
+   * @param {string} item
+   * @param searchObject
+   */
   public static generateRawQueryForPartialMatch(rawQuery: string, item: string, searchObject: any) {
     rawQuery = rawQuery.replace(/{searchValue}/g, item);
     const operator = Op.or;
