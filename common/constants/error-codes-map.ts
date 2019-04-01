@@ -1,4 +1,6 @@
 export const errorCodeMap = {
+  MissingElement: { value: "MissingElement", description: "The request is missing element " },
+  InvalidElementValue: { value: "InvalidElementValue", description: "The resource contains an invalid value of element " },
   InvalidRequest: { value: "InvalidRequest", description: "The request payload is invalid and does not adhere to specification." },
   InvalidBundle: {
     value: "InvalidRequestBundle",
@@ -25,7 +27,7 @@ export const errorCodeMap = {
     value: "FileNotFound",
     description: "The requested operation failed because a file associated with the request could not be found."
   },
-  InvaidStartDate: { value: "InvaidStartDate", description: "The requested aggregation cannot be processed as the start date is greater than the end date." },
+  InvalidStartDate: { value: "InvalidStartDate", description: "The requested aggregation cannot be processed as the start date is greater than the end date." },
   MissingAggregationCriteria: {
     value: "MissingAggregationCriteria",
     description: "This aggregation request cannot be fulfilled as it does not have any aggregationCriteria specified."
