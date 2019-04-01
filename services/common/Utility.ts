@@ -609,13 +609,13 @@ export class Utility {
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
       if (lodash.isNaN(limit) || !lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + "limit");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "limit");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
       if (lodash.isNaN(offset) || offset < 0 || !lodash.isInteger(offset)) {
-        throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + "offset");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "offset");
       }
     }
     return {
