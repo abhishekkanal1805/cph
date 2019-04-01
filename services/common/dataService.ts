@@ -102,7 +102,7 @@ class DataService {
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new NotFoundResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
+        throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
       }
     }
     const resource = { savedRecords: [], errorRecords: [] };
@@ -196,7 +196,7 @@ class DataService {
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: updateRecord()");
-        throw new NotFoundResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
+        throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
       }
     }
     // Checking whether the bundle is having duplicate record ids or not
