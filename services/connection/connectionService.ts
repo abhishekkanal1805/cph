@@ -20,7 +20,7 @@ export class ConnectionService {
   public static async searchConnection(serviceModel: any, queryParams: any, loggedinId: any, authorizerData: any, httpMethod: string): Promise<any> {
     const userProfile: any = await this.isProfileValid(loggedinId, authorizerData, httpMethod);
     let mandatoryAttribute;
-    if (["practitioner", "carepartner", "patient"].indexOf(userProfile.type.toLowerCase()) === -1) {
+    if (["practitioner", "carepartner", "patient", "system"].indexOf(userProfile.type.toLowerCase()) === -1) {
       log.error("Error occoured due to invalid userType: " + userProfile.type);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -111,7 +111,13 @@ export class ConnectionService {
    * @param {string} httpMethod http method
    * @returns {Promise<any>}
    */
-  public static async isProfileValid(profileId: string, authorizerData: any, httpMethod: string, uniqueCode?: string): Promise<any> {
+  public static async isProfileValid(
+    profileId: string,
+    authorizerData: any,
+    httpMethod: string,
+    uniqueCode?: string,
+    requiredActivationCheck?: boolean
+  ): Promise<any> {
     log.info("profileId", profileId);
     const performUserValidation = false;
     const fetchDeletedRecord = false;
@@ -125,10 +131,13 @@ export class ConnectionService {
       userValidationId,
       fetchDeletedRecord
     );
+    if (!requiredActivationCheck) {
+      requiredActivationCheck = true;
+    }
     if (!userProfileObj.id) {
       throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
-    if (userProfileObj.status != "active") {
+    if (requiredActivationCheck && userProfileObj.status != "active") {
       throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     if (uniqueCode && userProfileObj.userCode != uniqueCode) {
@@ -151,11 +160,14 @@ export class ConnectionService {
     const referenceValFrom = responseObj.from.reference.split("/").reverse()[0];
     const referenceValTo = responseObj.to.reference.split("/").reverse()[0];
     if (!profileDisplay.hasOwnProperty(referenceValFrom) && !profileDisplay.hasOwnProperty(referenceValTo)) {
-      await Promise.all([await this.isProfileValid(referenceValFrom, null, null), await this.isProfileValid(referenceValTo, null, null)]);
+      await Promise.all([
+        await this.isProfileValid(referenceValFrom, null, null, null, false),
+        await this.isProfileValid(referenceValTo, null, null, null, false)
+      ]);
     } else if (profileDisplay.hasOwnProperty(referenceValFrom) && !profileDisplay.hasOwnProperty(referenceValTo)) {
-      await this.isProfileValid(referenceValTo, null, null);
+      await this.isProfileValid(referenceValTo, null, null, null, false);
     } else if (!profileDisplay.hasOwnProperty(referenceValFrom) && profileDisplay.hasOwnProperty(referenceValTo)) {
-      await this.isProfileValid(referenceValFrom, null, null);
+      await this.isProfileValid(referenceValFrom, null, null, null, false);
     }
     responseObj.from.display = profileDisplay.hasOwnProperty(referenceValFrom) ? profileDisplay[referenceValFrom] : "";
     responseObj.to.display = profileDisplay.hasOwnProperty(referenceValTo) ? profileDisplay[referenceValTo] : "";

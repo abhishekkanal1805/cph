@@ -1,4 +1,6 @@
 export const errorCodeMap = {
+  MissingElement: { value: "MissingElement", description: "The request is missing element " },
+  InvalidElementValue: { value: "InvalidElementValue", description: "The resource contains an invalid value of element " },
   InvalidRequest: { value: "InvalidRequest", description: "The request payload is invalid and does not adhere to specification." },
   InvalidBundle: {
     value: "InvalidRequestBundle",
@@ -19,13 +21,13 @@ export const errorCodeMap = {
   MalformedData: { value: "MalformedData", description: "The request data is malformed" },
   ResourceNotEditable: {
     value: "ResourceNotEditable",
-    description: "The requested operation failed because a resource associated with the request can not be edited."
+    description: "The resource associated with the request can not be edited."
   },
   FileNotFound: {
     value: "FileNotFound",
     description: "The requested operation failed because a file associated with the request could not be found."
   },
-  InvaidStartDate: { value: "InvaidStartDate", description: "The requested aggregation cannot be processed as the start date is greater than the end date." },
+  InvalidStartDate: { value: "InvalidStartDate", description: "The requested aggregation cannot be processed as the start date is greater than the end date." },
   MissingAggregationCriteria: {
     value: "MissingAggregationCriteria",
     description: "This aggregation request cannot be fulfilled as it does not have any aggregationCriteria specified."
