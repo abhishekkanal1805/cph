@@ -23,6 +23,10 @@ export const errorCodeMap = {
     value: "ResourceNotEditable",
     description: "The resource associated with the request can not be edited."
   },
+  ResourceAlreadyExist: {
+    value: "ResourceExists",
+    description: "The resource already exists with same value of element "
+  },
   FileNotFound: {
     value: "FileNotFound",
     description: "The requested operation failed because a file associated with the request could not be found."
