@@ -131,7 +131,7 @@ export class ConnectionService {
       userValidationId,
       fetchDeletedRecord
     );
-    if (!requiredActivationCheck) {
+    if (requiredActivationCheck === undefined) {
       requiredActivationCheck = true;
     }
     if (!userProfileObj.id) {
