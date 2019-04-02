@@ -307,7 +307,7 @@ class DataService {
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);
     } else {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + "permanent");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "permanent");
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
@@ -360,7 +360,7 @@ class DataService {
       log.info("Soft deleting the item");
       await this.softDeleteDatabaseRows(parameters, result, serviceModel, serviceDataResource, endpoint);
     } else {
-      throw new BadRequestResult(errorCodeMap.InvalidQueryParameterValue.value, errorCodeMap.InvalidQueryParameterValue.description + "permanent");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "permanent");
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
