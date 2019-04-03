@@ -15,6 +15,7 @@ class Constants {
   public static readonly POST_LIMIT = 500;
 
   public static readonly BOUNDSPERIOD_LIMIT = 90;
+  public static readonly DEVICE_REFERENCE_KEY = 90;
 }
 
 export { Constants };

@@ -1,9 +1,8 @@
 import * as log from "lambda-log";
-import { Op } from "sequelize";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
-import { Utility } from "../common/Utility";
+import { DataService } from "../dao/dataService";
 
 export class AuthService {
   /**
@@ -17,48 +16,29 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async performUserAccessValidation(loggedInUserInfo: any, patientIds: string[], patientValidationId: string, records: any[]) {
+  public static async performUserAccessValidation(loggedInUserInfo: any, patientId: string) {
     log.info("Entering AuthService :: performMultiUserValidation()");
     const loggedInId = loggedInUserInfo.loggedinId;
     const loggedInUserType = loggedInUserInfo.profileType.toLowerCase();
-    const result = {
-      errorRecords: [],
-      saveRecords: []
-    };
     if (loggedInUserType === "system") {
-      result.saveRecords = records;
+      return;
     } else if (loggedInUserType === "patient") {
-      records.forEach((record) => {
-        if (Utility.getAttributeValue(record, patientValidationId) === "UserProfile/" + loggedInId) {
-          result.saveRecords.push(record);
-        } else {
-          const badRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-          badRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
-          result.errorRecords.push(badRequest);
-        }
-      });
+      if (patientId != loggedInId) {
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
     } else if (loggedInUserType === "practitioner" || loggedInUserType === "carepartner") {
       const queryOptions = {
         where: {
-          from: {
-            [Op.or]: patientIds
-          },
+          from: patientId,
           to: loggedInId,
           status: ["active"]
         },
         attributes: ["from"]
       };
-      const searchPatientResults = await Connection.findAll(queryOptions);
-      records.forEach((record) => {
-        if (searchPatientResults.includes(Utility.getAttributeValue(record, patientValidationId))) {
-          result.saveRecords.push(record);
-        } else {
-          const forbiddenRequest = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-          forbiddenRequest.clientRequestId = record.meta ? record.meta.clientRequestId : "";
-          result.errorRecords.push(forbiddenRequest);
-        }
-      });
+      const count = await DataService.recordsCount(queryOptions, Connection);
+      if (count != 1) {
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
     }
-    return result;
   }
 }

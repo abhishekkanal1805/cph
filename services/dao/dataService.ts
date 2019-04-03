@@ -32,10 +32,10 @@ export class DataService {
    * @returns {Promise<any>}
    * @memberof DataService
    */
-  public static async recordsCount(id: string, serviceModel: any): Promise<any> {
+  public static async recordsCount(query, serviceModel: any): Promise<any> {
     log.info("Entering DataService :: recordsCount()");
     try {
-      const count = await serviceModel.count({ where: { id } });
+      const count = await serviceModel.count(query);
       return count;
     } catch (err) {
       log.error("recordsCount() :: Error in counting records :: " + err);

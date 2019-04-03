@@ -16,6 +16,7 @@ export * from "./services/utility/jsonParser";
 export * from "./services/utility/dataFetch";
 export * from "./services/utility/dataTransform";
 export * from "./services/security/authService";
+export * from "./services/wrapper/postWrapper";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
