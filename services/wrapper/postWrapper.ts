@@ -10,7 +10,7 @@ import { JsonParser } from "../utility/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class PostWrapper {
-  public static async saveRecord(records, userReferenceKey, patientReferenceKey, authorizerData, sequelizeModel, modelDataResource) {
+  public static async saveRecord(records, userReferenceKey : string, patientReferenceKey: string, authorizerData, sequelizeModel, modelDataResource) {
     if (!Array.isArray(records.entry)) {
       records = [records];
     } else {
