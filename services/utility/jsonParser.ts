@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 
@@ -22,29 +23,6 @@ export class JsonParser {
   }
 
   /**
-   * Find all values against searchkey passed in request.
-   *
-   * @static
-   * @param {any[]} records : array of records where search key need to be search. e.g. {a:1,b:{c:2}}
-   * @param {string} searchKey : string formatted search key in format of "b.c"
-   * @param {boolean} [uniqueValuesOnly=true] : setting it to true only returns unique key values
-   * @returns {any[]}
-   * @memberof JsonParser
-   */
-  public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly: boolean = true): any[] {
-    log.info("Inside JsonParser: findValuesForKey()");
-    const keyValues = records.map((record) => {
-      return searchKey.split(".").reduce((key, value) => {
-        return typeof key == "undefined" || key === null ? key : key[value];
-      }, record);
-    });
-    if (uniqueValuesOnly) {
-      return [...new Set(keyValues)];
-    }
-    return keyValues;
-  }
-
-  /**
    * Find multiple value map against given set of search keys.
    * This function is an extentsion of findValuesForKey() where it supports multiple key search in single loop
    * @static
@@ -55,7 +33,8 @@ export class JsonParser {
    */
   public static findValuesForKeyMap(records: any[], searchKeys: Map<string, any[]>): Map<string, any[]> {
     log.info("Inside JsonParser: findValuesForKeyMap()");
-    const getValues = (object, path, defaultValue) => path.split(".").reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
+    const getValues = (object, path, defaultValue) =>
+      path.split(Constants.DOT_VALUE).reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
     records.forEach((record) => {
       searchKeys.forEach((value, key) => {
         value.push(getValues(record, key, null));

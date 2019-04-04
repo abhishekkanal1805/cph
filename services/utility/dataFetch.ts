@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
@@ -37,7 +38,7 @@ export class DataFetch {
     const familyName = result.name ? result.name.family || "" : "";
     userAccessObj.profileStatus = result.status;
     userAccessObj.profileType = result.type;
-    userAccessObj.displayName = [familyName, givenName.join(" ")].join(", ");
+    userAccessObj.displayName = [familyName, givenName.join(Constants.SPACE_VALUE)].join(Constants.COMMA_SPACE_VALUE);
     return userAccessObj;
   }
 }

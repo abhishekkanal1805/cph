@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
@@ -20,20 +21,20 @@ export class AuthService {
     log.info("Entering AuthService :: performMultiUserValidation()");
     const loggedInId = loggedInUserInfo.loggedinId;
     const loggedInUserType = loggedInUserInfo.profileType.toLowerCase();
-    if (loggedInUserType === "system") {
+    if (loggedInUserType === Constants.SYSTEM_USER) {
       return;
-    } else if (loggedInUserType === "patient") {
+    } else if (loggedInUserType === Constants.PATIENT_USER) {
       if (patientId != loggedInId) {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-    } else if (loggedInUserType === "practitioner" || loggedInUserType === "carepartner") {
+    } else if (loggedInUserType === Constants.PRACTITIONER_USER || loggedInUserType === Constants.CAREPARTNER_USER) {
       const queryOptions = {
         where: {
           from: patientId,
           to: loggedInId,
-          status: ["active"]
+          status: [Constants.CONNECTION_ACTIVE]
         },
-        attributes: ["from"]
+        attributes: [Constants.CONNECTION_FROM]
       };
       const count = await DataService.recordsCount(queryOptions, Connection);
       if (count != 1) {
