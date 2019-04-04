@@ -10,7 +10,7 @@ import { JsonParser } from "../utility/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class PostWrapper {
-  public static async saveRecord(records, userReferenceKey : string, patientReferenceKey: string, authorizerData, sequelizeModel, modelDataResource) {
+  public static async saveRecord(records, userReferenceKey: string, patientReferenceKey: string, authorizerData, sequelizeModel, modelDataResource) {
     if (!Array.isArray(records.entry)) {
       records = [records];
     } else {
@@ -39,7 +39,7 @@ export class PostWrapper {
       RequestValidator.validateUniquePatientReference(patientIds);
       RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userIds[0]);
     }
-    await AuthService.performUserAccessValidation(loggedInUserInfo, patientIds[0]);
+    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientIds[0]);
     const result: any = { saveRecords: [], errorRecords: [] };
     result.saveRecords = records;
     // TODO above 2 lines need to be update once response builder is fixed.

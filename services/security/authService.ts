@@ -17,24 +17,22 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async performUserAccessValidation(loggedInUserInfo: any, patientId: string) {
+  public static async performUserAccessValidation(loggedInUserId: string, loggedInUserType: string, patientId: string) {
     log.info("Entering AuthService :: performMultiUserValidation()");
-    const loggedInId = loggedInUserInfo.loggedinId;
-    const loggedInUserType = loggedInUserInfo.profileType.toLowerCase();
+    loggedInUserType = loggedInUserType.toLowerCase();
     if (loggedInUserType === Constants.SYSTEM_USER) {
       return;
     } else if (loggedInUserType === Constants.PATIENT_USER) {
-      if (patientId != loggedInId) {
+      if (patientId != loggedInUserId) {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     } else if (loggedInUserType === Constants.PRACTITIONER_USER || loggedInUserType === Constants.CAREPARTNER_USER) {
       const queryOptions = {
         where: {
           from: patientId,
-          to: loggedInId,
+          to: loggedInUserId,
           status: [Constants.CONNECTION_ACTIVE]
-        },
-        attributes: [Constants.CONNECTION_FROM]
+        }
       };
       const count = await DataService.recordsCount(queryOptions, Connection);
       if (count != 1) {

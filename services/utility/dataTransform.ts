@@ -1,24 +1,4 @@
-import * as log from "lambda-log";
-
 export class DataTransform {
-  /**
-   * Transforms incoming request to generate an array in case of non bundle.
-   * In case of bundle request, generates a new array with bundle's resource section.
-   * @static
-   * @param {*} request
-   * @returns {any[]}
-   * @memberof DataTransform
-   */
-  public static extractRecordsFromRequest(request: any): any[] {
-    log.info("Entering DataTransform: extractRecordsFromRequest()");
-    if (!Array.isArray(request.entry)) {
-      request = [request];
-    } else {
-      request = request.entry.map((entry) => entry.resource);
-    }
-    return request;
-  }
-
   /**
    * Generates record's metadata as per information passed to it.
    *

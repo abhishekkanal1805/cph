@@ -18,7 +18,6 @@ export class DataFetch {
     log.info("Entering DataFetch :: fetchUserProfileInformationFromAuthorizer()");
     const profileId: string = authorizerData.profile;
     const userAccessObj = {
-      endpointPermission: false,
       loggedinId: profileId,
       profileStatus: "",
       profileType: "",
@@ -29,7 +28,7 @@ export class DataFetch {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     const result = await DataService.fetchRowByPk(profileId, UserProfile);
-    if (result.status !== "active") {
+    if (result.status !== Constants.CONNECTION_ACTIVE) {
       log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
