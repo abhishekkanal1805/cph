@@ -44,5 +44,5 @@ export const errorCodeMap = {
   InvalidUserProfile: { value: "InvalidUserProfile", description: "The requested operation cannot be performed as the UserProfile is inactive" },
   UserProfileExists: { value: "UserProfileExists", description: "A UserProfile with requested email already exists" },
   ResourceExists: { value: "ResourceExists", description: "The resource already exists with same value of element(s) " },
-  OperationFailed: { value: "OperationFailed", description: "The resource status is already " }
+  OperationFailed: { value: "OperationFailed", description: "The resource status is " }
 };
