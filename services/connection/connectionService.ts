@@ -145,8 +145,9 @@ export class ConnectionService {
     }
     const referenceId = userProfileObj.id;
     if (!profileDisplay.hasOwnProperty(referenceId)) {
-      const givenName = userProfileObj.name.given || [];
-      profileDisplay[referenceId] = userProfileObj.name ? givenName.join(" ") : "";
+      const givenName = userProfileObj.name ? userProfileObj.name.given || [] : [];
+      const familyName = userProfileObj.name ? userProfileObj.name.family || "" : "";
+      profileDisplay[referenceId] = [familyName, givenName.join(" ")].join(", ");
     }
     return userProfileObj;
   }
