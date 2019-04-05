@@ -9,8 +9,23 @@ import { DataTransform } from "../utility/dataTransform";
 import { JsonParser } from "../utility/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
 
-export class PostWrapper {
-  public static async saveRecord(records, userReferenceKey: string, patientReferenceKey: string, authorizerData, sequelizeModel, modelDataResource) {
+export class BasePost {
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} records
+   * @param {string} userReferenceKey
+   * @param {string} patientReferenceKey
+   * @param {*} authorizerData
+   * @param {*} model
+   * @param {*} modelDataResource
+   * @returns
+   * @memberof BasePost
+   */
+  public static async saveRecord(records, patientReferenceKey: string, profile : string, model, modelDataResource) {
+    // remove model data resource as it has to be mandatory.
     if (!Array.isArray(records.entry)) {
       records = [records];
     } else {
@@ -23,7 +38,7 @@ export class PostWrapper {
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientReferenceKey, []);
-    keysToFetch.set(userReferenceKey, []);
+    keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
     const response = JsonParser.findValuesForKeyMap(records, keysToFetch);
     log.info("Reference Keys retrieved successfully :: saveRecord()");
     const uniqueDeviceId = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -31,8 +46,10 @@ export class PostWrapper {
     // patientvalidationid
     const patientIds: any = [...new Set(response.get(patientReferenceKey))];
     // userids
-    const userIds = [...new Set(response.get(userReferenceKey))];
-    const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(authorizerData);
+    const userIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
+    // authorizerData to context.profile only 
+    // merge line 37-44 :: peformAuthorization()
+    const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
     if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
       RequestValidator.validateNumberOfUniqueUserReference(userIds);
@@ -47,13 +64,15 @@ export class PostWrapper {
     result.saveRecords.forEach((record) => {
       record.meta = DataTransform.getRecordMetaData(record, loggedInUserInfo.loggedinId, loggedInUserInfo.loggedinId);
       record.id = uuid();
-      record = DataHelperService.convertToModel(record, sequelizeModel, modelDataResource).dataValues;
+      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
     });
-    DataService.bulkSave(result.saveRecords, sequelizeModel);
+    DataService.bulkSave(result.saveRecords, model);
     log.info("Bulk Save successfully :: saveRecord()");
     result.savedRecords = result.saveRecords.map((record) => {
       return record.dataResource ? record.dataResource : record;
     });
     return result;
   }
+
+  // fhir :: remove information source checks ... another save 
 }
