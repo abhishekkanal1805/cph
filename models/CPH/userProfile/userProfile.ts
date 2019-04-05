@@ -64,9 +64,6 @@ class UserProfile extends Model<UserProfile> {
   @Column({ type: DataType.JSONB })
   identifier: Identifier[];
 
-  @Column({ type: DataType.STRING })
-  userCode: string;
-
   @Column({ type: DataType.JSONB })
   additionalAttributes: Additional[];
 
