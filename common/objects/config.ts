@@ -512,6 +512,7 @@ const settings = {
       { map: "email", to: "email", type: "string" },
       { map: "userCode", to: "userCode", type: "string" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",
