@@ -10,7 +10,7 @@ import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
   /**
-   *  Wrapper function to perform save for CPH users 
+   *  Wrapper function to perform save for CPH users
    *
    * @static
    * @param {*} records Records array in JSON format
