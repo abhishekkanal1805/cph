@@ -8,6 +8,15 @@ import { DataFetch } from "../utility/dataFetch";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class AuthService {
+  /**
+   *  Wrapper class to perform all User access authentication
+   *
+   * @static
+   * @param {string} profile profileId of logged in User
+   * @param {string[]} userIds User Id references
+   * @param {string[]} patientIds patientId references
+   * @memberof AuthService
+   */
   public static async performAuthentication(profile: string, userIds: string[], patientIds: string[]) {
     log.info("Entering AuthService :: performMultiUserValidation()");
     const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
@@ -17,7 +26,8 @@ export class AuthService {
       RequestValidator.validateUniquePatientReference(patientIds);
       RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userIds[0]);
     }
-    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientIds[0]);
+    const patientId = patientIds[0].split("/")[1];
+    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId);
   }
 
   /**
