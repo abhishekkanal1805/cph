@@ -47,17 +47,16 @@ export class BasePost {
     // perform authentication
     await AuthService.performAuthentication(profile, userIds, patientIds);
     log.info("User Authentication successfully :: saveRecord()");
-    const result: any = { saveRecords: [], errorRecords: [] };
-    result.saveRecords = records;
+    const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
-    result.saveRecords.forEach((record) => {
+    records.forEach((record) => {
       record.meta = DataTransform.getRecordMetaData(record, profile, profile);
       record.id = uuid();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
     });
-    DataService.bulkSave(result.saveRecords, model);
+    await DataService.bulkSave(records, model);
     log.info("Bulk Save successfully :: saveRecord()");
-    result.savedRecords = result.saveRecords.map((record) => {
+    result.savedRecords = records.map((record) => {
       return record.dataResource ? record.dataResource : record;
     });
     return result;
