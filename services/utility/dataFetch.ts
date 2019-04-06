@@ -16,18 +16,17 @@ export class DataFetch {
    */
   public static async fetchUserProfileInformationFromAuthorizer(profile: string): Promise<any> {
     log.info("Entering DataFetch :: fetchUserProfileInformationFromAuthorizer()");
-    const profileId: string = profile;
     const userAccessObj = {
-      loggedinId: profileId,
+      loggedinId: profile,
       profileStatus: "",
       profileType: "",
       displayName: ""
     };
-    if (!profileId) {
+    if (!profile) {
       log.error("Error in DataFetch: ProfileId is missing in authorizer");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const result = await DataService.fetchRowByPk(profileId, UserProfile);
+    const result = await DataService.fetchRowByPk(profile, UserProfile);
     if (result.status !== Constants.CONNECTION_ACTIVE) {
       log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);

@@ -7,11 +7,11 @@ import { DataFetch } from "./dataFetch";
 
 describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
   it("Throw error if profile is missing in authorizer data", async (done) => {
-    const authorizerData = {};
+    const profile = null;
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(authorizerData);
+      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
     } catch (err) {
       result = err;
     }
@@ -22,11 +22,11 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
     spyOn(DataService, "fetchRowByPk").and.callFake(() => {
       return { status: "inactive" };
     });
-    const authorizerData = { profile: "123" };
+    const profile = "123";
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(authorizerData);
+      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
     } catch (err) {
       result = err;
     }
@@ -37,7 +37,7 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
     spyOn(DataService, "fetchRowByPk").and.callFake(() => {
       return { status: Constants.CONNECTION_ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
-    const authorizerData = { profile: "123" };
+    const profile = "123";
     let result;
     const expected = {
       profileStatus: Constants.CONNECTION_ACTIVE,
@@ -46,7 +46,7 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
       displayName: "Jackson, Sam"
     };
     try {
-      result = await DataFetch.fetchUserProfileInformationFromAuthorizer(authorizerData);
+      result = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
     } catch (err) {
       result = err;
     }

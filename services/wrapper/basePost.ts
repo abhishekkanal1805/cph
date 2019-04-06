@@ -4,28 +4,25 @@ import { Constants } from "../../common/constants/constants";
 import { DataHelperService } from "../common/dataHelperService";
 import { DataService } from "../common/dataService";
 import { AuthService } from "../security/authService";
-import { DataFetch } from "../utility/dataFetch";
 import { DataTransform } from "../utility/dataTransform";
 import { JsonParser } from "../utility/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
-
   /**
-   *
+   *  Wrapper function to perform save for CPH users 
    *
    * @static
-   * @param {*} records
-   * @param {string} userReferenceKey
-   * @param {string} patientReferenceKey
-   * @param {*} authorizerData
-   * @param {*} model
-   * @param {*} modelDataResource
+   * @param {*} records Records array in JSON format
+   * @param {string} patientReferenceKey patient reference key like subject.reference
+   * @param {*} profile profile Id of logged in user
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
    * @returns
    * @memberof BasePost
    */
-  public static async saveRecord(records, patientReferenceKey: string, profile : string, model, modelDataResource) {
-    // remove model data resource as it has to be mandatory.
+  public static async saveRecord(records, patientReferenceKey: string, profile: string, model, modelDataResource) {
+    // We need modelDataResource to be passed for mapping request to dataresource columns.
     if (!Array.isArray(records.entry)) {
       records = [records];
     } else {
@@ -47,22 +44,14 @@ export class BasePost {
     const patientIds: any = [...new Set(response.get(patientReferenceKey))];
     // userids
     const userIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
-    // authorizerData to context.profile only 
-    // merge line 37-44 :: peformAuthorization()
-    const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
-    log.info("UserProfile information retrieved successfully :: saveRecord()");
-    if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      RequestValidator.validateNumberOfUniqueUserReference(userIds);
-      RequestValidator.validateUniquePatientReference(patientIds);
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userIds[0]);
-    }
-    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientIds[0]);
+    // perform authentication
+    await AuthService.performAuthentication(profile, userIds, patientIds);
+    log.info("User Authentication successfully :: saveRecord()");
     const result: any = { saveRecords: [], errorRecords: [] };
     result.saveRecords = records;
     // TODO above 2 lines need to be update once response builder is fixed.
-    log.info("User Authentication and record filtering successfully :: saveRecord()");
     result.saveRecords.forEach((record) => {
-      record.meta = DataTransform.getRecordMetaData(record, loggedInUserInfo.loggedinId, loggedInUserInfo.loggedinId);
+      record.meta = DataTransform.getRecordMetaData(record, profile, profile);
       record.id = uuid();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
     });
@@ -73,6 +62,4 @@ export class BasePost {
     });
     return result;
   }
-
-  // fhir :: remove information source checks ... another save 
 }

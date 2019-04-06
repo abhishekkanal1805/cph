@@ -4,8 +4,22 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
 import { DataService } from "../dao/dataService";
+import { DataFetch } from "../utility/dataFetch";
+import { RequestValidator } from "../validators/requestValidator";
 
 export class AuthService {
+  public static async performAuthentication(profile: string, userIds: string[], patientIds: string[]) {
+    log.info("Entering AuthService :: performMultiUserValidation()");
+    const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+    log.info("UserProfile information retrieved successfully :: saveRecord()");
+    if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
+      RequestValidator.validateNumberOfUniqueUserReference(userIds);
+      RequestValidator.validateUniquePatientReference(patientIds);
+      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userIds[0]);
+    }
+    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientIds[0]);
+  }
+
   /**
    * Checks logged in user type and filter records based on his access type.
    *
