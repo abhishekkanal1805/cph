@@ -39,7 +39,7 @@ export class GatewayUtility {
    * @param {ApiEvent} apiEvent
    * @returns {object}
    */
-  public static getAuthorizerData(apiEvent: ApiEvent): object {
+  public static getAuthorizerData(apiEvent: ApiEvent) {
     let authorizerObj: any = {};
     // In case of id token apiEvent.requestContext.authorizer.claims contains profile info
     // In case of access token apiEvent.requestContext.authorizer contains profile info
