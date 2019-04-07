@@ -3,6 +3,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../dao/dataService";
+import { Constants } from '../../common/constants/constants';
 
 export class RequestValidator {
   /**
@@ -54,7 +55,7 @@ export class RequestValidator {
       const count = await DataService.recordsCount(query, Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + Constants.DEVICE_REFERENCE_KEY);
       }
     }
   }
