@@ -280,11 +280,25 @@ export class Utility {
           if (eachEntry[displayAttribute].display) {
             delete eachEntry[displayAttribute].display;
           }
+          // removing type field from json to prevent it from being saved
+          if (eachEntry[displayAttribute].type) {
+            delete eachEntry[displayAttribute].type;
+          }
         }
       }
       for (const nonUserDisplayAttribute of config.data.nonUserDisplayFields) {
         if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].display) {
           eachEntry[nonUserDisplayAttribute].display = "";
+        }
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].type) {
+          delete eachEntry[nonUserDisplayAttribute].type;
+        }
+      }
+      for (const typeAttribute of config.data.typeAttributeAdditionalFields) {
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[typeAttribute] && eachEntry[typeAttribute].reference && eachEntry[typeAttribute].type) {
+          delete eachEntry[typeAttribute].type;
         }
       }
       if (insertRecordtoResource) {
@@ -595,13 +609,13 @@ export class Utility {
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
       if (lodash.isNaN(limit) || !lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + "limit");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "limit");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
       if (lodash.isNaN(offset) || offset < 0 || !lodash.isInteger(offset)) {
-        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + "offset");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "offset");
       }
     }
     return {

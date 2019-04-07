@@ -104,6 +104,9 @@ class DataHelperService {
         if (thisRecord.meta.isDeleted) {
           existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
         }
+        if (thisRecord.meta.source) {
+          existingRecord.meta.source = thisRecord.meta.source;
+        }
         // if no error then update metadata
         log.debug("Updating metadata information");
         thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
@@ -196,7 +199,7 @@ class DataHelperService {
       } else if (isYear) {
         DataHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else {
-        throw new BadRequestResult(errorCodeMap.InvalidQuery.value, errorCodeMap.InvalidQuery.description + mappedAttribute.map);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + mappedAttribute.map);
       }
     }
     log.info("Exiting DataHelperService :: createDateSearchConditions()");

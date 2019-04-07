@@ -91,7 +91,7 @@ class DataService {
     const recordArr: any = Utility.getResourceFromRequest(record, limitNoOfRecordsToSave);
     if (recordArr.length < 1) {
       log.error("getResourceFromRequest() failed :: Exiting DataService :: saveRecord()");
-      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
     const deviceIds = Utility.findIds(recordArr, "meta.deviceId").filter(Boolean);
     if (deviceIds.length > 1) {
@@ -102,7 +102,7 @@ class DataService {
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
       }
     }
     const resource = { savedRecords: [], errorRecords: [] };
@@ -196,7 +196,7 @@ class DataService {
       const count = await this.recordsCount(deviceIds[0], Device);
       if (count == 0) {
         log.error("Fetching device record failed :: Exiting DataService :: updateRecord()");
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "meta.deviceId");
       }
     }
     // Checking whether the bundle is having duplicate record ids or not
@@ -307,7 +307,7 @@ class DataService {
       result.meta.isDeleted = true;
       await this.softDeleteDatabaseRow(recordId, result, serviceModel, serviceDataResource);
     } else {
-      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "permanent");
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
@@ -360,7 +360,7 @@ class DataService {
       log.info("Soft deleting the item");
       await this.softDeleteDatabaseRows(parameters, result, serviceModel, serviceDataResource, endpoint);
     } else {
-      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "permanent");
     }
     responseObj = "Resource was successfully deleted";
     log.info("Exiting DataService: deleteRecord()");
@@ -402,11 +402,8 @@ class DataService {
       log.debug("Mandatory attribute is added from Cognito");
       queryParams[mandatoryAttribute] = [authorizerData.profile];
     }
-    const isParamValid = DataValidatorUtility.validateQueryParams(queryParams, searchAttributes);
-    if (!isParamValid) {
-      log.error("Query Parameters are not valid");
-      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description);
-    }
+    DataValidatorUtility.validateQueryParams(queryParams, searchAttributes);
+
     if (performUserValidation) {
       // check if user has permission to access endpoint or not
       const permissionObj = await UserService.performUserAccessValidation(serviceModel, authorizerData, httpMethod);
@@ -493,7 +490,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       });
   }
 
@@ -514,7 +511,7 @@ class DataService {
       })
       .catch((err) => {
         log.error("Error in fetching the record :: " + err.stack);
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       });
   }
 

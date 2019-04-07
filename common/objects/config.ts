@@ -31,6 +31,7 @@ const data = {
   ],
   displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty"],
   nonUserDisplayFields: ["device", "medicationPlan"],
+  typeAttributeAdditionalFields: ["derivedFrom", "basedOn", "assigner"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },
@@ -511,6 +512,7 @@ const settings = {
       { map: "email", to: "email", type: "string" },
       { map: "userCode", to: "userCode", type: "string" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
         map: "clientRequestId",
         to: "meta.clientRequestId",

@@ -32,9 +32,9 @@ class UserService {
     log.info("Entering UserService :: performMultiUserValidation()");
     // Check user present in cognito or not and get profile Id
     let newRecords = [];
+    const callerUserProfileId = accessObj.loggedinId;
+    const calleruserProfileType = accessObj.profileType;
     for (const patientId of patientIds) {
-      const callerUserProfileId = accessObj.loggedinId;
-      const calleruserProfileType = accessObj.profileType;
       let userPermissions: string[] = [];
       let isPermissionValid: boolean = false;
       try {
@@ -59,7 +59,7 @@ class UserService {
         );
       }
     }
-    if (userValidationId) {
+    if (userValidationId && calleruserProfileType != "system") {
       let validRecords = [];
       for (const userId of userIds) {
         let filteredRecords: any;
@@ -174,6 +174,10 @@ class UserService {
         const displayName = userAccessObj.displayName ? userAccessObj.displayName || [] : [];
         ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
       }
+      // Add reference Type
+      if (!ResponseBuilderService.typeMap[profileId]) {
+        ResponseBuilderService.typeMap[profileId] = ["UserProfile", userAccessObj.profileType].join(".");
+      }
       log.info("performUserAcessValidation() success :: Exiting UserService: performUserAcessValidation()");
       return userAccessObj;
     } catch (err) {
@@ -205,7 +209,7 @@ class UserService {
     DataSource.addModel(UserProfile);
     const savedProfile = await DataService.fetchDatabaseRowStandard(userProfileId, UserProfile);
     if (!savedProfile || savedProfile.status !== "active") {
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new BadRequestResult(errorCodeMap.UserProfileNotFound.value, errorCodeMap.UserProfileNotFound.description + profileReference);
     }
   }
 }
