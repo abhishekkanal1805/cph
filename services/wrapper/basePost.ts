@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { DataHelperService } from "../common/dataHelperService";
-import { DataService } from "../common/dataService";
+import { DataService } from "../dao/dataService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utility/dataTransform";
 import { JsonParser } from "../utility/jsonParser";

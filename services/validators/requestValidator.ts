@@ -77,6 +77,13 @@ export class RequestValidator {
     }
   }
 
+  /**
+   * Validates that number of patient references should be unique
+   *
+   * @static
+   * @param {string[]} patientReferenceId
+   * @memberof RequestValidator
+   */
   public static validateUniquePatientReference(patientReferenceId: string[]): void {
     log.info("In RequestValidator: validateUniquePatientReference()");
     if (patientReferenceId.length != 1) {

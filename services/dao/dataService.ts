@@ -42,4 +42,24 @@ export class DataService {
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }
+
+  /**
+   *  Bulk create records for given Model
+   *
+   * @static
+   * @param {*} records
+   * @param {*} serviceModel
+   * @returns {Promise<any>}
+   * @memberof DataService
+   */
+  public static async bulkSave(records, serviceModel: any): Promise<any> {
+    log.info("Entering DataService :: fetchDatabaseRowStandard()");
+    try {
+      await serviceModel.bulkCreate(records);
+      log.debug("Resource saved ");
+    } catch (err) {
+      log.error("Error while saving Record: " + err.stack);
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+    }
+  }
 }

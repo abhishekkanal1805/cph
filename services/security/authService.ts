@@ -41,20 +41,20 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async performUserAccessValidation(loggedInUserId: string, loggedInUserType: string, patientId: string) {
+  public static async performUserAccessValidation(profileId: string, profileType: string, patientId: string) {
     log.info("Entering AuthService :: performMultiUserValidation()");
-    loggedInUserType = loggedInUserType.toLowerCase();
-    if (loggedInUserType === Constants.SYSTEM_USER) {
+    profileType = profileType.toLowerCase();
+    if (profileType === Constants.SYSTEM_USER) {
       return;
-    } else if (loggedInUserType === Constants.PATIENT_USER) {
-      if (patientId != loggedInUserId) {
+    } else if (profileType === Constants.PATIENT_USER) {
+      if (patientId != profileId) {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-    } else if (loggedInUserType === Constants.PRACTITIONER_USER || loggedInUserType === Constants.CAREPARTNER_USER) {
+    } else if (profileType === Constants.PRACTITIONER_USER || profileType === Constants.CAREPARTNER_USER) {
       const queryOptions = {
         where: {
           from: patientId,
-          to: loggedInUserId,
+          to: profileId,
           status: [Constants.CONNECTION_ACTIVE]
         }
       };
