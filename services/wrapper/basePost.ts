@@ -49,14 +49,16 @@ export class BasePost {
     log.info("User Authentication successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
+    const recordsToSave = [];
     records.forEach((record) => {
       record.meta = DataTransform.getRecordMetaData(record, profile, profile);
       record.id = uuid();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      recordsToSave.push(record);
     });
-    await DataService.bulkSave(records, model);
+    await DataService.bulkSave(recordsToSave, model);
     log.info("Bulk Save successfully :: saveRecord()");
-    result.savedRecords = records.map((record) => {
+    result.savedRecords = recordsToSave.map((record) => {
       return record.dataResource ? record.dataResource : record;
     });
     return result;
