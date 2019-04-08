@@ -1,7 +1,7 @@
 import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataService } from "../dao/dataService";
 import { RequestValidator } from "./requestValidator";
 
@@ -94,7 +94,7 @@ describe("Test validateDeviceIds() - ", () => {
     });
     const deviceIds = ["123"];
     let result;
-    const expected = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    const expected = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + Constants.DEVICE_REFERENCE_KEY);
     try {
       await RequestValidator.validateDeviceIds(deviceIds);
     } catch (err) {

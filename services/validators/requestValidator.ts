@@ -1,9 +1,9 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
 import { DataService } from "../dao/dataService";
-import { Constants } from '../../common/constants/constants';
 
 export class RequestValidator {
   /**
