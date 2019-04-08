@@ -1,5 +1,6 @@
 import * as log from "lambda-log";
 import * as lodash from "lodash";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
@@ -143,7 +144,7 @@ export class ConnectionService {
     }
     if (uniqueCode) {
       const connectionIdentifier: any = lodash.map(userProfileObj.identifier, (item) => {
-        if (item.use === "connection") {
+        if (item.use === Constants.IDENTIFIER_USE) {
           return item;
         }
       });
