@@ -10,6 +10,13 @@ export { UserService } from "./services/common/userService";
 export { AggregationUtils } from "./services/common/aggregationUtils";
 
 export * from "./services/security/userAuthService";
+export * from "./services/dao/dataService";
+export * from "./services/validators/requestValidator";
+export * from "./services/utility/jsonParser";
+export * from "./services/utility/dataFetch";
+export * from "./services/utility/dataTransform";
+export * from "./services/security/authService";
+export * from "./services/wrapper/basePost";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
