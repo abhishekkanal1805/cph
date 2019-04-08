@@ -77,6 +77,20 @@ class ResponseBuilderService {
   }
 
   /**
+   * Function to convert response from lambda service to appropriate API response based for delete endpoint.
+   * @param result Incoming response from service
+   *
+   * @return Updated response w.r.t Delete endpoint.
+   */
+  public static generateDeleteResponse(result) {
+    log.info("Entering ResponseBuilderService :: generateDeleteResponse()");
+    response.responseType = Constants.RESPONSE_TYPE_NO_CONTENT;
+    response.responseObject = result;
+    log.info("Exiting ResponseBuilderService :: generateDeleteResponse()");
+    return response;
+  }
+
+  /**
    * Function to convert response from lambda service to appropriate API error response based on incoming response type.
    * @param err Error object
    * @param errorLogRef error log reference
