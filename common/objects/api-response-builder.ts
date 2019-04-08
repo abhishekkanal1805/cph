@@ -54,6 +54,10 @@ export class APIResponseBuilder {
     APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback);
   }
 
+  public static nocontent<T>(result: T, callback: ApiCallback): void {
+    APIResponseBuilder._returnAs(result, HttpStatusCode.NO_CONTENT, callback);
+  }
+
   public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback): void {
     APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback);
   }

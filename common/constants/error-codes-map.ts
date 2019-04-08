@@ -16,7 +16,7 @@ export const errorCodeMap = {
   InvalidParameterValue: { value: "InvalidParameterValue", description: "The request contains an invalid value of parameter " },
   InvalidResourceVersion: { value: "InvalidResourceVersion", description: "" },
   InvalidInvite: { value: "InvalidInvite", description: "Invite is invalid because it is in state :" },
-  InvalidHeader: { value: "InvalidHeader", description: "The request has failed because Content-Type of request is invalid" },
+  InvalidHeader: { value: "InvalidHeader", description: "The Content-Type of request is invalid" },
   MalformedData: { value: "MalformedData", description: "The request data is malformed" },
   ResourceNotEditable: {
     value: "ResourceNotEditable",
