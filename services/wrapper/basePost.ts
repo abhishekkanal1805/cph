@@ -4,8 +4,8 @@ import { Constants } from "../../common/constants/constants";
 import { DataHelperService } from "../common/dataHelperService";
 import { DataService } from "../dao/dataService";
 import { AuthService } from "../security/authService";
-import { DataTransform } from "../utility/dataTransform";
-import { JsonParser } from "../utility/jsonParser";
+import { DataTransform } from "../utilities/dataTransform";
+import { JsonParser } from "../utilities/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
@@ -44,9 +44,9 @@ export class BasePost {
     const patientIds: any = [...new Set(response.get(patientReferenceKey))];
     // userids
     const userIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
-    // perform authentication
-    await AuthService.performAuthentication(profile, userIds, patientIds);
-    log.info("User Authentication successfully :: saveRecord()");
+    // perform Authorization
+    await AuthService.performAutorization(profile, userIds, patientIds);
+    log.info("User Authorization successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     records.forEach((record, index) => {

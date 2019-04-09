@@ -4,7 +4,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
 import { DataService } from "../dao/dataService";
-import { DataFetch } from "../utility/dataFetch";
+import { DataFetch } from "../utilities/dataFetch";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class AuthService {
@@ -17,7 +17,7 @@ export class AuthService {
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthentication(profile: string, userIds: string[], patientIds: string[]) {
+  public static async performAutorization(profile: string, userIds: string[], patientIds: string[]) {
     log.info("Entering AuthService :: performMultiUserValidation()");
     const loggedInUserInfo = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
