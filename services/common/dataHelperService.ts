@@ -1042,13 +1042,37 @@ class DataHelperService {
             nestedAttributes = [nestedAttributes];
           }
           if (!searchObject[parentAttribute]) {
-            searchObject[parentAttribute] = {
-              [Op.or]: []
-            };
+            searchObject[parentAttribute] = {};
           }
-          searchObject[parentAttribute][Op.or].push({
-            [Op.contains]: nestedAttributes
-          });
+          if (mappedAttribute.arrayOperator) {
+            if (searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]]) {
+              searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op[mappedAttribute.arrayOperator]]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          } else {
+            if (searchObject[parentAttribute][Op.or]) {
+              searchObject[parentAttribute][Op.or].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op.or]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          }
         }
       } else {
         // comes here if mapped type is array but we match on attribute itself as nested properties are not present (like string)

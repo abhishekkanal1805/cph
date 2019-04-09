@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
@@ -140,8 +141,15 @@ export class ConnectionService {
     if (requiredActivationCheck && userProfileObj.status != "active") {
       throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
-    if (uniqueCode && userProfileObj.userCode != uniqueCode) {
-      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+    if (uniqueCode) {
+      const connectionIdentifier: any = userProfileObj.identifier.map((item) => {
+        if (item.use === Constants.CONNECTION) {
+          return item;
+        }
+      });
+      if (!connectionIdentifier[0].value || connectionIdentifier[0].value != uniqueCode) {
+        throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+      }
     }
     const referenceId = userProfileObj.id;
     if (!profileDisplay.hasOwnProperty(referenceId)) {

@@ -31,6 +31,7 @@ class Constants {
 
   public static readonly CONNECTION_ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
+  public static readonly CONNECTION = "connection";
 }
 
 export { Constants };
