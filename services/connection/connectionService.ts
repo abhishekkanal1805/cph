@@ -143,7 +143,7 @@ export class ConnectionService {
     }
     if (uniqueCode) {
       const connectionIdentifier: any = userProfileObj.identifier.map((item) => {
-        if (item.use === Constants.IDENTIFIER_USE) {
+        if (item.use === Constants.CONNECTION) {
           return item;
         }
       });
