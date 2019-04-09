@@ -14,8 +14,8 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async fetchUserProfileInformationFromAuthorizer(profile: string): Promise<any> {
-    log.info("Entering DataFetch :: fetchUserProfileInformationFromAuthorizer()");
+  public static async fetchUserProfileInformation(profile: string): Promise<any> {
+    log.info("Entering DataFetch :: fetchUserProfileInformation()");
     const userAccessObj = {
       loggedinId: profile,
       profileStatus: "",

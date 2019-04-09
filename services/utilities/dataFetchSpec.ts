@@ -5,13 +5,13 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataService } from "../dao/dataService";
 import { DataFetch } from "./dataFetch";
 
-describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
+describe("Test fetchUserProfileInformation() - ", () => {
   it("Throw error if profile is missing in authorizer data", async (done) => {
     const profile = null;
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      await DataFetch.fetchUserProfileInformation(profile);
     } catch (err) {
       result = err;
     }
@@ -26,7 +26,7 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      await DataFetch.fetchUserProfileInformation(profile);
     } catch (err) {
       result = err;
     }
@@ -46,7 +46,7 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
       displayName: "Jackson, Sam"
     };
     try {
-      result = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      result = await DataFetch.fetchUserProfileInformation(profile);
     } catch (err) {
       result = err;
     }

@@ -45,7 +45,7 @@ export class BasePost {
     // userids
     const userIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
-    await AuthService.performAutorization(profile, userIds, patientIds);
+    await AuthService.performAuthorization(profile, userIds, patientIds);
     log.info("User Authorization successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
