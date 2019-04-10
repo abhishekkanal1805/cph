@@ -5,13 +5,13 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataService } from "../dao/dataService";
 import { DataFetch } from "./dataFetch";
 
-describe("Test fetchUserProfileInformation() - ", () => {
+describe("Test getUserProfile() - ", () => {
   it("Throw error if profile is missing in authorizer data", async (done) => {
     const profile = null;
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformation(profile);
+      await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }
@@ -26,7 +26,7 @@ describe("Test fetchUserProfileInformation() - ", () => {
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformation(profile);
+      await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }
@@ -35,18 +35,18 @@ describe("Test fetchUserProfileInformation() - ", () => {
   });
   it("Return user attributes if user is active", async (done) => {
     spyOn(DataService, "fetchRowByPk").and.callFake(() => {
-      return { status: Constants.CONNECTION_ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
+      return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
     const profile = "123";
     let result;
     const expected = {
-      profileStatus: Constants.CONNECTION_ACTIVE,
+      profileStatus: Constants.ACTIVE,
       profileType: "patient",
       loggedinId: "123",
       displayName: "Jackson, Sam"
     };
     try {
-      result = await DataFetch.fetchUserProfileInformation(profile);
+      result = await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }

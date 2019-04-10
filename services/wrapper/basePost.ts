@@ -13,51 +13,51 @@ export class BasePost {
    *  Wrapper function to perform save for CPH users
    *
    * @static
-   * @param {*} records Records array in JSON format
-   * @param {string} patientReferenceKey patient reference key like subject.reference
-   * @param {*} profile profile Id of logged in user
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {string} patientElement patient reference key like subject.reference
+   * @param {*} requestorProfileId requestorProfileId Id of logged in user
    * @param {*} model Model which need to be saved
    * @param {*} modelDataResource Data resource model which can be used for object mapping.
    * @returns
    * @memberof BasePost
    */
-  public static async saveRecord(records, patientReferenceKey: string, profile: string, model, modelDataResource) {
+  public static async saveRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
-    if (!Array.isArray(records.entry)) {
-      records = [records];
+    if (!Array.isArray(requestPayload.entry)) {
+      requestPayload = [requestPayload];
     } else {
-      const total = records.total;
-      records = records.entry.map((entry) => entry.resource);
-      RequestValidator.validateBundleTotal(records, total);
-      RequestValidator.validateBundlePostLimit(records, Constants.POST_LIMIT);
+      const total = requestPayload.total;
+      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      RequestValidator.validateBundleTotal(requestPayload, total);
+      RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: saveRecord()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientReferenceKey, []);
+    keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
-    const response = JsonParser.findValuesForKeyMap(records, keysToFetch);
+    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Reference Keys retrieved successfully :: saveRecord()");
     const uniqueDeviceId = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceId);
     // patientvalidationid
-    const patientIds: any = [...new Set(response.get(patientReferenceKey))];
+    const patientIds: any = [...new Set(response.get(patientElement))];
     // userids
-    const userIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
+    const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
-    await AuthService.performAuthorization(profile, userIds, patientIds);
+    await AuthService.performAuthorization(requestorProfileId, informationSourceIds, patientIds);
     log.info("User Authorization successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
-    records.forEach((record, index) => {
-      record.meta = DataTransform.getRecordMetaData(record, profile, profile);
+    requestPayload.forEach((record, index) => {
+      record.meta = DataTransform.getRecordMetaData(record, requestorProfileId, requestorProfileId);
       record.id = uuid();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
-      records[index] = record;
+      requestPayload[index] = record;
     });
-    await DataService.bulkSave(records, model);
+    await DataService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
-    result.savedRecords = records.map((record) => {
+    result.savedRecords = requestPayload.map((record) => {
       return record.dataResource ? record.dataResource : record;
     });
     return result;

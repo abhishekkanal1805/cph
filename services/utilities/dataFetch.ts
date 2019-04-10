@@ -14,8 +14,8 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async fetchUserProfileInformation(profile: string): Promise<any> {
-    log.info("Entering DataFetch :: fetchUserProfileInformation()");
+  public static async getUserProfile(profile: string): Promise<any> {
+    log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {
       loggedinId: profile,
       profileStatus: "",
@@ -27,7 +27,7 @@ export class DataFetch {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     const result = await DataService.fetchRowByPk(profile, UserProfile);
-    if (result.status !== Constants.CONNECTION_ACTIVE) {
+    if (result.status !== Constants.ACTIVE) {
       log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }

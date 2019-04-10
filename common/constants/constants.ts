@@ -29,7 +29,7 @@ class Constants {
   public static readonly SPACE_VALUE = " ";
   public static readonly COMMA_SPACE_VALUE = ", ";
 
-  public static readonly CONNECTION_ACTIVE = "active";
+  public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
 }

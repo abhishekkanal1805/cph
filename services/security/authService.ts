@@ -19,7 +19,7 @@ export class AuthService {
    */
   public static async performAuthorization(profile: string, userIds: string[], patientIds: string[]) {
     log.info("Entering AuthService :: performAuthorization()");
-    const loggedInUserInfo = await DataFetch.fetchUserProfileInformation(profile);
+    const loggedInUserInfo = await DataFetch.getUserProfile(profile);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
     if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
       RequestValidator.validateNumberOfUniqueUserReference(userIds);
@@ -57,7 +57,7 @@ export class AuthService {
         where: {
           from: patientId,
           to: profileId,
-          status: [Constants.CONNECTION_ACTIVE]
+          status: [Constants.ACTIVE]
         }
       };
       const count = await DataService.recordsCount(queryOptions, Connection);
@@ -95,7 +95,7 @@ export class AuthService {
         where: {
           from: patientId,
           to: profileId,
-          status: [Constants.CONNECTION_ACTIVE]
+          status: [Constants.ACTIVE]
         }
       };
       const count = await DataService.recordsCount(queryOptions, Connection);
