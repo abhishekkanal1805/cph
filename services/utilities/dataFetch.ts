@@ -4,7 +4,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 
 export class DataFetch {
   /**
@@ -27,7 +27,7 @@ export class DataFetch {
       log.error("Error in DataFetch: ProfileId is missing in authorizer");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const result = await DataService.fetchRowByPk(profile, UserProfile);
+    const result = await DAOService.fetchRowByPk(profile, UserProfile);
     if (result.status !== Constants.ACTIVE) {
       log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -60,7 +60,7 @@ export class DataFetch {
       },
       attributes: ["id", "meta"]
     };
-    const result = await DataService.search(model, query);
+    const result = await DAOService.search(model, query);
     return result;
   }
 }

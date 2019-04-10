@@ -2,7 +2,7 @@ import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { RequestValidator } from "./requestValidator";
 
 describe("Test validateBundleTotal() - ", () => {
@@ -89,7 +89,7 @@ describe("Test validateDeviceIds() - ", () => {
     done();
   });
   it("Throw error if device id not present in database", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 0;
     });
     const deviceIds = ["123"];
@@ -104,7 +104,7 @@ describe("Test validateDeviceIds() - ", () => {
     done();
   });
   it("No error is returned if unique device id is passed which is present in db", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 1;
     });
     const deviceIds = ["123"];

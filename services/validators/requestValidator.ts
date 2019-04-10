@@ -3,7 +3,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 
 export class RequestValidator {
   /**
@@ -48,13 +48,13 @@ export class RequestValidator {
   public static async validateDeviceIds(deviceIds: string[]): Promise<void> {
     log.info("In RequestValidator: validateDeviceIds()");
     if (deviceIds.length > 1) {
-      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      log.error("Number of device Ids is more than 1");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     } else if (deviceIds.length == 1) {
       const query = { where: { id: deviceIds[0] } };
-      const count = await DataService.recordsCount(query, Device);
+      const count = await DAOService.recordsCount(query, Device);
       if (count == 0) {
-        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        log.error("No device ID found in database for given id");
         throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + Constants.DEVICE_REFERENCE_KEY);
       }
     }

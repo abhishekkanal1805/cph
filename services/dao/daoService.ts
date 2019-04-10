@@ -5,7 +5,7 @@ import { DataHelperService } from "../common/dataHelperService";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 
-export class DataService {
+export class DAOService {
   /**
    * Fetch database record by its primary key
    *
@@ -13,10 +13,10 @@ export class DataService {
    * @param {string} id : primary key id
    * @param {*} serviceModel : sequelize model
    * @returns {Promise<any>}
-   * @memberof DataService
+   * @memberof DAOService
    */
   public static async fetchRowByPk(id: string, serviceModel: any): Promise<any> {
-    log.info("Entering DataService :: fetchRowByPk()");
+    log.info("Entering DAOService :: fetchRowByPk()");
     try {
       const results = await serviceModel.findByPk(id);
       return results.dataValues;
@@ -26,8 +26,18 @@ export class DataService {
     }
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {string} id
+   * @param {*} serviceModel
+   * @param {*} options
+   * @returns {Promise<any>}
+   * @memberof DAOService
+   */
   public static async fetchRowByPkQuery(id: string, serviceModel: any, options: any): Promise<any> {
-    log.info("Entering DataService :: fetchRowByPkQuery()");
+    log.info("Entering DAOService :: fetchRowByPkQuery()");
     try {
       const results = await serviceModel.findByPk(id, options);
       return results.dataValues;
@@ -44,10 +54,10 @@ export class DataService {
    * @param {string} id : id column of database. Can be used for other columns too but consuming application should be careful with count.
    * @param {*} serviceModel
    * @returns {Promise<any>}
-   * @memberof DataService
+   * @memberof DAOService
    */
   public static async recordsCount(query, serviceModel: any): Promise<any> {
-    log.info("Entering DataService :: recordsCount()");
+    log.info("Entering DAOService :: recordsCount()");
     try {
       const count = await serviceModel.count(query);
       return count;
@@ -64,10 +74,10 @@ export class DataService {
    * @param {*} records
    * @param {*} serviceModel
    * @returns {Promise<any>}
-   * @memberof DataService
+   * @memberof DAOService
    */
   public static async bulkSave(records, serviceModel: any): Promise<any> {
-    log.info("Entering DataService :: bulkSave()");
+    log.info("Entering DAOService :: bulkSave()");
     try {
       await serviceModel.bulkCreate(records);
       log.debug("Resource saved ");
@@ -84,10 +94,10 @@ export class DataService {
    * @param {*} query
    * @param {*} model
    * @returns {Promise<any>}
-   * @memberof DataService
+   * @memberof DAOService
    */
   public static async search(model, query): Promise<any> {
-    log.info("Entering DataService :: search()");
+    log.info("Entering DAOService :: search()");
     try {
       const result = model.findAll(query);
       return result;
@@ -95,6 +105,29 @@ export class DataService {
       log.error("Error while saving Record: " + err.stack);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {string} id
+   * @param {*} serviceModel
+   * @returns {Promise<object>}
+   * @memberof DAOService
+   */
+  public static delete(id: string, serviceModel: any): Promise<object> {
+    log.info("Entering DAOService :: delete");
+    return serviceModel
+      .destroy({ where: { id } })
+      .then((rowsDeleted: any) => {
+        log.info("Exiting DAOService: delete() :: Record deleted successfully");
+        return rowsDeleted;
+      })
+      .catch((err) => {
+        log.error("Error in delete the record :: " + err.stack);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      });
   }
 
   /**
@@ -107,10 +140,10 @@ export class DataService {
    * @param {*} model
    * @param {*} modelDataResource
    * @returns
-   * @memberof DataService
+   * @memberof DAOService
    */
   public static async bulkUpdate(requestPayload, requestorProfileId: string, requestPrimaryIds: string[], model, modelDataResource) {
-    log.info("In bulkUpdate() :: DAO :: DataService Class");
+    log.info("In bulkUpdate() :: DAO :: DAOService Class");
     const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
@@ -156,5 +189,25 @@ export class DataService {
     await Promise.all(allPromise);
     log.info("Bulk create successfull :: bulkUpdate()");
     return result;
+  }
+
+  public static softDelete(id: string, recordObject: any, serviceModel: any, serviceDataResource: any): Promise<any> {
+    log.info("Entering DAOService :: softDelete");
+    // Default value remove. this works if onMissing is null and undefined both.
+    recordObject.id = id;
+    const serviceObj: any = Object.assign(new serviceModel(), recordObject);
+    if (serviceDataResource) {
+      serviceObj.dataResource = Object.assign(new serviceDataResource(), recordObject);
+    }
+    return serviceModel
+      .update(serviceObj.dataValues, { where: { id } })
+      .then(() => {
+        log.info("Exiting DAOService :: softDelete");
+        return "Resource was successfully deleted";
+      })
+      .catch((err) => {
+        log.debug("Error while updating resource: " + err.stack);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      });
   }
 }

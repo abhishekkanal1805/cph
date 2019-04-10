@@ -2,7 +2,7 @@ import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { DataFetch } from "./dataFetch";
 
 describe("Test getUserProfile() - ", () => {
@@ -19,7 +19,7 @@ describe("Test getUserProfile() - ", () => {
     done();
   });
   it("Throw error if user profile of logged in user is not active", async (done) => {
-    spyOn(DataService, "fetchRowByPk").and.callFake(() => {
+    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: "inactive" };
     });
     const profile = "123";
@@ -34,7 +34,7 @@ describe("Test getUserProfile() - ", () => {
     done();
   });
   it("Return user attributes if user is active", async (done) => {
-    spyOn(DataService, "fetchRowByPk").and.callFake(() => {
+    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
     const profile = "123";

@@ -1,6 +1,6 @@
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
@@ -53,7 +53,7 @@ export class BasePut {
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
     log.info("User Authorization successfully :: saveRecord()");
-    const result = await DataService.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
+    const result = await DAOService.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
     log.info("Update successfull :: updateRecord()");
     return result;
   }

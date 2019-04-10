@@ -3,7 +3,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 import { RequestValidator } from "../validators/requestValidator";
 
@@ -58,7 +58,7 @@ export class AuthService {
           status: [Constants.ACTIVE]
         }
       };
-      const count = await DataService.recordsCount(queryOptions, Connection);
+      const count = await DAOService.recordsCount(queryOptions, Connection);
       if (count != 1) {
         log.info("No connection found between from and to");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -120,7 +120,7 @@ export class AuthService {
           status: [Constants.ACTIVE]
         }
       };
-      const count = await DataService.recordsCount(queryOptions, Connection);
+      const count = await DAOService.recordsCount(queryOptions, Connection);
       if (count != 1) {
         log.info("No connection found between user Id and patient Id");
         return false;
