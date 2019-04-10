@@ -17,14 +17,14 @@ export class AuthService {
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthorization(requestor: string, userId: string, patient: string) {
+  public static async performAuthorization(requestor: string, userId: string, patientId: string) {
     log.info("Entering AuthService :: performAuthorization()");
     const loggedInUserInfo = await DataFetch.getUserProfile(requestor);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
     if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
       RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userId);
     }
-    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patient);
+    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId);
   }
 
   /**
