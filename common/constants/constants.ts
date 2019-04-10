@@ -19,6 +19,7 @@ class Constants {
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
+  public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
