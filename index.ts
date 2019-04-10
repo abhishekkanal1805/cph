@@ -61,7 +61,6 @@ export * from "./common/constants/error-codes-map";
 export * from "./common/objects/api-interfaces";
 export * from "./common/objects/api-response-builder";
 export * from "./common/objects/config";
-export * from "./common/constants/error-codes";
 export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
 export * from "./models/common/patient";

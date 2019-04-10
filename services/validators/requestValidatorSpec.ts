@@ -123,7 +123,7 @@ describe("Test validateDeviceIds() - ", () => {
 describe("Test validateUserReferenceAgainstLoggedInUser() - ", () => {
   it("Throw error if loggedin Id is not same as user reference", (done) => {
     const loggedInId = "12",
-      userReferenceId = "UserProfile/123";
+      userReferenceId = "123";
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
@@ -136,7 +136,7 @@ describe("Test validateUserReferenceAgainstLoggedInUser() - ", () => {
   });
   it("return void if logged in Id is same as user reference id", (done) => {
     const loggedInId = "123",
-      userReferenceId = "UserProfile/123";
+      userReferenceId = "123";
     let result = null;
     const expected = null;
     try {

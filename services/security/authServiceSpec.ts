@@ -4,11 +4,11 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataService } from "../dao/dataService";
 import { AuthService } from "./authService";
 
-describe("Test performUserAccessValidation() - ", () => {
+describe("Test checkUserTypeBasedAccess() - ", () => {
   it("Do nothing if loggedin user type is system", async (done) => {
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "system", "123");
+      result = await AuthService.checkUserTypeBasedAccess("123", "system", "123");
     } catch (err) {
       result = err;
     }
@@ -19,7 +19,7 @@ describe("Test performUserAccessValidation() - ", () => {
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "patient", "1234");
+      result = await AuthService.checkUserTypeBasedAccess("123", "patient", "1234");
     } catch (err) {
       result = err;
     }
@@ -29,7 +29,7 @@ describe("Test performUserAccessValidation() - ", () => {
   it("Works fine if patient is trying to post records for his own", async (done) => {
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "patient", "123");
+      result = await AuthService.checkUserTypeBasedAccess("123", "patient", "123");
     } catch (err) {
       result = err;
     }
@@ -43,7 +43,7 @@ describe("Test performUserAccessValidation() - ", () => {
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "practitioner", "123");
+      result = await AuthService.checkUserTypeBasedAccess("123", "practitioner", "123");
     } catch (err) {
       result = err;
     }
@@ -56,7 +56,7 @@ describe("Test performUserAccessValidation() - ", () => {
     });
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "practitioner", "123");
+      result = await AuthService.checkUserTypeBasedAccess("123", "practitioner", "123");
     } catch (err) {
       result = err;
     }

@@ -17,17 +17,14 @@ export class AuthService {
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthorization(profile: string, userIds: string[], patientIds: string[]) {
+  public static async performAuthorization(requestor: string, userId: string, patient: string) {
     log.info("Entering AuthService :: performAuthorization()");
-    const loggedInUserInfo = await DataFetch.getUserProfile(profile);
+    const loggedInUserInfo = await DataFetch.getUserProfile(requestor);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
     if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      RequestValidator.validateNumberOfUniqueUserReference(userIds);
-      RequestValidator.validateUniquePatientReference(patientIds);
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userIds[0]);
+      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userId);
     }
-    const patientId = patientIds[0].split("/")[1];
-    await AuthService.performUserAccessValidation(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId);
+    await AuthService.checkUserTypeBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patient);
   }
 
   /**
@@ -40,8 +37,8 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async performUserAccessValidation(profileId: string, profileType: string, patientId: string) {
-    log.info("Entering AuthService :: performUserAccessValidation()");
+  public static async checkUserTypeBasedAccess(profileId: string, profileType: string, patientId: string) {
+    log.info("Entering AuthService :: checkUserTypeBasedAccess()");
     profileType = profileType.toLowerCase();
     if (profileType === Constants.SYSTEM_USER) {
       log.info("Logged in user type is System.");
@@ -53,19 +50,36 @@ export class AuthService {
       }
     } else if (profileType === Constants.PRACTITIONER_USER || profileType === Constants.CAREPARTNER_USER) {
       log.info("Logged In ID is either Practitioner or CarePartner.");
-      const queryOptions = {
-        where: {
-          from: patientId,
-          to: profileId,
-          status: [Constants.ACTIVE]
-        }
-      };
-      const count = await DataService.recordsCount(queryOptions, Connection);
-      if (count != 1) {
-        log.info("No connection found between user Id and patient Id");
+      if (!(await AuthService.hasConnectionBasedAccess(patientId, profileId))) {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
+  }
+
+  /**
+   * Find connection between from and to by going to connection Table
+   *
+   * @static
+   * @param {string} from
+   * @param {string} to
+   * @returns
+   * @memberof AuthService
+   */
+  public static async hasConnectionBasedAccess(from: string, to: string): Promise<boolean> {
+    log.info("In hasConnectionBasedAccess().");
+    const queryOptions = {
+      where: {
+        from,
+        to,
+        status: [Constants.ACTIVE]
+      }
+    };
+    const count = await DataService.recordsCount(queryOptions, Connection);
+    if (count != 1) {
+      log.info("No connection found between from and to");
+      return false;
+    }
+    return true;
   }
 
   /**

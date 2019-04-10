@@ -71,7 +71,6 @@ export class RequestValidator {
    */
   public static validateUserReferenceAgainstLoggedInUser(loggedInId: string, userReferenceId: string): void {
     log.info("In RequestValidator: validateUserReferenceAgainstLoggedInUser()");
-    userReferenceId = userReferenceId.split("/")[1];
     if (loggedInId != userReferenceId) {
       log.error("Error: Logged In Id is different from user Reference Id");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -107,5 +106,20 @@ export class RequestValidator {
       log.error("Error: Multiple user Id's found in request");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {string[]} deviceIds device IDs array that need to be validated
+   * @param {string[]} userIds userIds like information source reference array
+   * @param {string[]} patientIds patientIds like subject reference array
+   * @memberof RequestValidator
+   */
+  public static async validateDeviceAndProfile(deviceIds: string[], userIds: string[], patientIds: string[]) {
+    RequestValidator.validateNumberOfUniqueUserReference(userIds);
+    RequestValidator.validateUniquePatientReference(patientIds);
+    await RequestValidator.validateDeviceIds(deviceIds);
   }
 }

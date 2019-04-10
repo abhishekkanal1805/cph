@@ -38,14 +38,16 @@ export class BasePost {
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
     const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Reference Keys retrieved successfully :: saveRecord()");
-    const uniqueDeviceId = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    await RequestValidator.validateDeviceIds(uniqueDeviceId);
+    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
     const patientIds: any = [...new Set(response.get(patientElement))];
     // userids
     const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
-    await AuthService.performAuthorization(requestorProfileId, informationSourceIds, patientIds);
+    await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
+    const patientId = patientIds[0].split("/")[1];
+    const informationSourceId = informationSourceIds[0].split("/")[1];
+    await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
     log.info("User Authorization successfully :: saveRecord()");
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
