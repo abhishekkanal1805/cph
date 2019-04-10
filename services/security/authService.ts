@@ -24,82 +24,90 @@ export class AuthService {
     if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
       RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userId);
     }
-    await AuthService.checkUserTypeBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patient);
+    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patient);
   }
 
   /**
    *
    *
    * @static
-   * @param {string} profileId logged in profile ID
+   * @param {string} to logged in profile ID
    * @param {string} profileType logged in profile Type
-   * @param {string} patientId patient ID coming from request bundle
+   * @param {string} from patient ID coming from request bundle
    * @returns
    * @memberof AuthService
    */
-  public static async checkUserTypeBasedAccess(profileId: string, profileType: string, patientId: string) {
-    log.info("Entering AuthService :: checkUserTypeBasedAccess()");
+  public static async hasConnectionBasedAccess(to: string, profileType: string, from: string) {
+    log.info("Entering AuthService :: hasConnectionBasedAccess()");
     profileType = profileType.toLowerCase();
     if (profileType === Constants.SYSTEM_USER) {
       log.info("Logged in user type is System.");
       return;
     } else if (profileType === Constants.PATIENT_USER) {
-      if (patientId != profileId) {
+      if (from != to) {
         log.info("Logged In ID is different from user reference ID in bundle.");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     } else if (profileType === Constants.PRACTITIONER_USER || profileType === Constants.CAREPARTNER_USER) {
       log.info("Logged In ID is either Practitioner or CarePartner.");
-      if (!(await AuthService.hasConnectionBasedAccess(patientId, profileId))) {
+      log.info("In hasConnectionBasedAccess().");
+      const queryOptions = {
+        where: {
+          from,
+          to,
+          status: [Constants.ACTIVE]
+        }
+      };
+      const count = await DataService.recordsCount(queryOptions, Connection);
+      if (count != 1) {
+        log.info("No connection found between from and to");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
   }
 
   /**
-   * Find connection between from and to by going to connection Table
+   * Validates access between to and from without making a connection check
    *
    * @static
-   * @param {string} from
-   * @param {string} to
+   * @param {string} to logged in profile ID
+   * @param {string} profileType logged in profile Type
+   * @param {string} from patient ID coming from request bundle
    * @returns
    * @memberof AuthService
    */
-  public static async hasConnectionBasedAccess(from: string, to: string): Promise<boolean> {
-    log.info("In hasConnectionBasedAccess().");
-    const queryOptions = {
-      where: {
-        from,
-        to,
-        status: [Constants.ACTIVE]
+  public static async hasConnectionIndependentAccess(to: string, profileType: string, from: string) {
+    log.info("Entering AuthService :: hasConnectionIndependentAccess()");
+    profileType = profileType.toLowerCase();
+    if (profileType === Constants.SYSTEM_USER) {
+      log.info("Logged in user type is System.");
+      return;
+    } else if (profileType === Constants.PATIENT_USER) {
+      if (from != to) {
+        log.info("Logged In ID is different from user reference ID in bundle.");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-    };
-    const count = await DataService.recordsCount(queryOptions, Connection);
-    if (count != 1) {
-      log.info("No connection found between from and to");
-      return false;
     }
-    return true;
   }
 
   /**
    * Return true if user has access to make the request.
    *
    * @static
-   * @param {string} profileId logged in profile ID
+   * @param {string} to logged in profile ID
    * @param {string} profileType logged in profile Type
-   * @param {string} patientId patient ID coming from request bundle
+   * @param {string} from patient ID coming from request bundle
    * @returns {Promise<boolean>}
    * @memberof AuthService
    */
-  public static async isUserAllowedAccess(profileId: string, profileType: string, patientId: string): Promise<boolean> {
+  public static async isUserAllowedAccess(to: string, profileType: string, from: string): Promise<boolean> {
     log.info("Entering AuthService :: isUserAllowedAccess()");
     profileType = profileType.toLowerCase();
     if (profileType === Constants.SYSTEM_USER) {
       log.info("Logged in user type is System.");
       return true;
     } else if (profileType === Constants.PATIENT_USER) {
-      if (patientId != profileId) {
+      if (from != to) {
         log.info("Logged In ID is different from user reference ID in bundle.");
         return false;
       }
@@ -107,8 +115,8 @@ export class AuthService {
       log.info("Logged In ID is either Practitioner or CarePartner.");
       const queryOptions = {
         where: {
-          from: patientId,
-          to: profileId,
+          from,
+          to,
           status: [Constants.ACTIVE]
         }
       };

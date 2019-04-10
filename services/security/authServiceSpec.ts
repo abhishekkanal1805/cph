@@ -4,11 +4,11 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataService } from "../dao/dataService";
 import { AuthService } from "./authService";
 
-describe("Test checkUserTypeBasedAccess() - ", () => {
+describe("Test hasConnectionBasedAccess() - ", () => {
   it("Do nothing if loggedin user type is system", async (done) => {
     let result;
     try {
-      result = await AuthService.checkUserTypeBasedAccess("123", "system", "123");
+      result = await AuthService.hasConnectionBasedAccess("123", "system", "123");
     } catch (err) {
       result = err;
     }
@@ -19,7 +19,7 @@ describe("Test checkUserTypeBasedAccess() - ", () => {
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.checkUserTypeBasedAccess("123", "patient", "1234");
+      result = await AuthService.hasConnectionBasedAccess("123", "patient", "1234");
     } catch (err) {
       result = err;
     }
@@ -29,7 +29,7 @@ describe("Test checkUserTypeBasedAccess() - ", () => {
   it("Works fine if patient is trying to post records for his own", async (done) => {
     let result;
     try {
-      result = await AuthService.checkUserTypeBasedAccess("123", "patient", "123");
+      result = await AuthService.hasConnectionBasedAccess("123", "patient", "123");
     } catch (err) {
       result = err;
     }
@@ -43,7 +43,7 @@ describe("Test checkUserTypeBasedAccess() - ", () => {
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.checkUserTypeBasedAccess("123", "practitioner", "123");
+      result = await AuthService.hasConnectionBasedAccess("123", "practitioner", "123");
     } catch (err) {
       result = err;
     }
@@ -56,7 +56,7 @@ describe("Test checkUserTypeBasedAccess() - ", () => {
     });
     let result;
     try {
-      result = await AuthService.checkUserTypeBasedAccess("123", "practitioner", "123");
+      result = await AuthService.hasConnectionBasedAccess("123", "practitioner", "123");
     } catch (err) {
       result = err;
     }
