@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
@@ -38,5 +39,28 @@ export class DataFetch {
     userAccessObj.profileType = result.type;
     userAccessObj.displayName = [familyName, givenName.join(Constants.SPACE_VALUE)].join(Constants.COMMA_SPACE_VALUE);
     return userAccessObj;
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} model
+   * @param {string[]} recordIds
+   * @returns {Promise<any>}
+   * @memberof DataFetch
+   */
+  public static async getValidIds(model, recordIds: string[]): Promise<any[]> {
+    const query = {
+      where: {
+        "id": {
+          [Op.or]: recordIds
+        },
+        "meta.isDeleted": false
+      },
+      attributes: ["id", "meta"]
+    };
+    const result = await DataService.search(model, query);
+    return result;
   }
 }

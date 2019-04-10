@@ -122,4 +122,12 @@ export class RequestValidator {
     RequestValidator.validateUniquePatientReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
+
+  public static async validateUniqueIDForPUT(primaryIds: string[], length: number) {
+    log.info("In RequestValidator: validateUniqueIDForPUT()");
+    if (primaryIds.length != length) {
+      log.error("Error: Duplicate primary Id's found in request");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
+    }
+  }
 }
