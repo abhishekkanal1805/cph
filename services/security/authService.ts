@@ -13,18 +13,18 @@ export class AuthService {
    *
    * @static
    * @param {string} profile profileId of logged in User
-   * @param {string[]} userIds User Id references
+   * @param {string[]} informationSourceIds User Id references
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthorization(requestor: string, userId: string, patientId: string) {
+  public static async performAuthorization(requestor: string, informationSourceId: string, patientId: string) {
     log.info("Entering AuthService :: performAuthorization()");
-    const loggedInUserInfo = await DataFetch.getUserProfile(requestor);
-    log.info("UserProfile information retrieved successfully :: saveRecord()");
-    if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userId);
+    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
+    if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
+      RequestValidator.validateUserReferenceAgainstLoggedInUser(requestorUserProfile.profileId, informationSourceId);
     }
-    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId);
+    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
   }
 
   /**

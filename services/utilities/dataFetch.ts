@@ -18,7 +18,7 @@ export class DataFetch {
   public static async getUserProfile(profile: string): Promise<any> {
     log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {
-      loggedinId: profile,
+      profileId: profile,
       profileStatus: "",
       profileType: "",
       displayName: ""

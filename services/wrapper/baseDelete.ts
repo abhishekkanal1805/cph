@@ -15,9 +15,9 @@ export class BaseDelete {
    * @returns
    * @memberof BaseGet
    */
-  public static async deleteRecord(id, model, modelDataResource, requestorProfileId: string, userElement, patientElement, permanent: boolean) {
-    log.info("In BaseGet :: getRecord()");
-    const record = await BaseGet.getRecord(id, model, requestorProfileId, userElement, patientElement);
+  public static async deleteRecord(id, model, modelDataResource, requestorProfileId: string, patientElement, permanent: boolean) {
+    log.info("In BaseGet :: deleteRecord()");
+    const record = await BaseGet.getRecord(id, model, requestorProfileId, patientElement);
     if (permanent) {
       log.info("Deleting item Permanently");
       await DAOService.delete(id, model);

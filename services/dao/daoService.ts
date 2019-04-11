@@ -191,6 +191,17 @@ export class DAOService {
     return result;
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {string} id
+   * @param {*} recordObject
+   * @param {*} serviceModel
+   * @param {*} serviceDataResource
+   * @returns {Promise<any>}
+   * @memberof DAOService
+   */
   public static softDelete(id: string, recordObject: any, serviceModel: any, serviceDataResource: any): Promise<any> {
     log.info("Entering DAOService :: softDelete");
     // Default value remove. this works if onMissing is null and undefined both.

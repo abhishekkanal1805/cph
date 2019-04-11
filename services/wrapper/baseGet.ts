@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
+import { DataFetch } from "../utilities/dataFetch";
 import { JsonParser } from "../utilities/jsonParser";
 
 export class BaseGet {
@@ -16,15 +17,16 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getRecord(id: string, model, requestorProfileId: string, userElement, patientElement) {
+  public static async getRecord(id: string, model, requestorProfileId: string, patientElement) {
     log.info("In BaseGet :: getRecord()");
     const options = { "meta.isDeleted": false };
     let record = await DAOService.fetchRowByPkQuery(id, model, options);
     record = record.dataResource;
-    const userId = JsonParser.findValuesForKey([record], userElement);
-    const patientId = JsonParser.findValuesForKey([record], patientElement);
+    const patientId = JsonParser.findValuesForKey([record], patientElement, false);
     log.info("getRecord() :: Authorization started");
-    await AuthService.performAuthorization(requestorProfileId, userId[0], patientId[0]);
+    const loggedInUserInfo = await DataFetch.getUserProfile(requestorProfileId);
+    log.info("UserProfile information retrieved successfully :: saveRecord()");
+    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId[0]);
     log.info("getRecord() :: Record retrieved successfully");
     return record;
   }

@@ -42,7 +42,7 @@ describe("Test getUserProfile() - ", () => {
     const expected = {
       profileStatus: Constants.ACTIVE,
       profileType: "patient",
-      loggedinId: "123",
+      profileId: "123",
       displayName: "Jackson, Sam"
     };
     try {
@@ -53,7 +53,7 @@ describe("Test getUserProfile() - ", () => {
     expect(result.profileStatus).toEqual(expected.profileStatus);
     expect(result.profileType).toEqual(expected.profileType);
     expect(result.displayName).toEqual(expected.displayName);
-    expect(result.loggedinId).toEqual(expected.loggedinId);
+    expect(result.profileId).toEqual(expected.profileId);
     done();
   });
 });
