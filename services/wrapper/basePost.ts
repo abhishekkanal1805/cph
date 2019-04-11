@@ -65,4 +65,60 @@ export class BasePost {
     });
     return result;
   }
+
+  /**
+   *  Wrapper function to perform save for FHIR services users
+   *
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {string} patientElement patient reference key like subject.reference
+   * @param {*} requestorProfileId requestorProfileId Id of logged in user
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @returns
+   * @memberof BasePost
+   */
+  public static async saveFHIRRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+    // We need modelDataResource to be passed for mapping request to dataresource columns.
+    if (!Array.isArray(requestPayload.entry)) {
+      requestPayload = [requestPayload];
+    } else {
+      const total = requestPayload.total;
+      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      RequestValidator.validateBundleTotal(requestPayload, total);
+      RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
+    }
+    log.info("Record Array created succesfully in :: saveRecord()");
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(patientElement, []);
+    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Reference Keys retrieved successfully :: saveRecord()");
+    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    // patientvalidationid
+    const patientIds: any = [...new Set(response.get(patientElement))];
+    // perform patient reference validation
+    RequestValidator.validateUniquePatientReference(patientIds);
+    //  perform deviceId validation
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
+    const patientId = patientIds[0].split("/")[1];
+    // FHIR services don't have informationSource validation so created new function for authorization
+    await AuthService.performAuthorizationforFHIR(requestorProfileId, patientId);
+    log.info("User Authorization successfully :: saveRecord()");
+    const result: any = { savedRecords: [], errorRecords: [] };
+    // TODO above 2 lines need to be update once response builder is fixed.
+    requestPayload.forEach((record, index) => {
+      record.meta = DataTransform.getRecordMetaData(record, requestorProfileId, requestorProfileId);
+      record.id = uuid();
+      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      requestPayload[index] = record;
+    });
+    await DAOService.bulkSave(requestPayload, model);
+    log.info("Bulk Save successfully :: saveRecord()");
+    result.savedRecords = requestPayload.map((record) => {
+      return record.dataResource ? record.dataResource : record;
+    });
+    return result;
+  }
 }

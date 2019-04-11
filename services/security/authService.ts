@@ -28,6 +28,22 @@ export class AuthService {
   }
 
   /**
+   *  Wrapper class to perform FHIR User access authentication
+   *
+   * @static
+   * @param {string} profile profileId of logged in User
+   * @param {string[]} informationSourceIds User Id references
+   * @param {string[]} patientIds patientId references
+   * @memberof AuthService
+   */
+  public static async performAuthorizationforFHIR(requestor: string, patientId: string) {
+    log.info("Entering AuthService :: performAuthorization()");
+    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
+    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+  }
+
+  /**
    *
    *
    * @static
