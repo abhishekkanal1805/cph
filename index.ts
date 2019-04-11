@@ -15,6 +15,7 @@ export * from "./services/validators/requestValidator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";
 export * from "./services/utilities/dataTransform";
+export * from "./services/utilities/s3Operations";
 export * from "./services/security/authService";
 export * from "./services/wrapper/basePost";
 export * from "./services/wrapper/basePut";
