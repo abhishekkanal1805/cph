@@ -3,7 +3,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 
 export class RequestValidator {
   /**
@@ -48,13 +48,13 @@ export class RequestValidator {
   public static async validateDeviceIds(deviceIds: string[]): Promise<void> {
     log.info("In RequestValidator: validateDeviceIds()");
     if (deviceIds.length > 1) {
-      log.error("findIds() failed :: Exiting DataService :: saveRecord()");
+      log.error("Number of device Ids is more than 1");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     } else if (deviceIds.length == 1) {
       const query = { where: { id: deviceIds[0] } };
-      const count = await DataService.recordsCount(query, Device);
+      const count = await DAOService.recordsCount(query, Device);
       if (count == 0) {
-        log.error("Fetching device record failed :: Exiting DataService :: saveRecord()");
+        log.error("No device ID found in database for given id");
         throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + Constants.DEVICE_REFERENCE_KEY);
       }
     }
@@ -96,13 +96,13 @@ export class RequestValidator {
    * Validates that number of user reference in bundle should be 1
    *
    * @static
-   * @param {string[]} userIds
+   * @param {string[]} informationSourceIds
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static validateNumberOfUniqueUserReference(userIds: string[]): void {
+  public static validateNumberOfUniqueUserReference(informationSourceIds: string[]): void {
     log.info("In RequestValidator: validateNumberOfUniqueUserReference()");
-    if (userIds.length != 1) {
+    if (informationSourceIds.length != 1) {
       log.error("Error: Multiple user Id's found in request");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
@@ -113,12 +113,12 @@ export class RequestValidator {
    *
    * @static
    * @param {string[]} deviceIds device IDs array that need to be validated
-   * @param {string[]} userIds userIds like information source reference array
+   * @param {string[]} informationSourceIds informationSourceIds like information source reference array
    * @param {string[]} patientIds patientIds like subject reference array
    * @memberof RequestValidator
    */
-  public static async validateDeviceAndProfile(deviceIds: string[], userIds: string[], patientIds: string[]) {
-    RequestValidator.validateNumberOfUniqueUserReference(userIds);
+  public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
+    RequestValidator.validateNumberOfUniqueUserReference(informationSourceIds);
     RequestValidator.validateUniquePatientReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }

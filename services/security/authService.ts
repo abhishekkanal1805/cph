@@ -3,7 +3,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 import { RequestValidator } from "../validators/requestValidator";
 
@@ -13,18 +13,18 @@ export class AuthService {
    *
    * @static
    * @param {string} profile profileId of logged in User
-   * @param {string[]} userIds User Id references
+   * @param {string[]} informationSourceIds User Id references
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthorization(requestor: string, userId: string, patient: string) {
+  public static async performAuthorization(requestor: string, informationSourceId: string, patientId: string) {
     log.info("Entering AuthService :: performAuthorization()");
-    const loggedInUserInfo = await DataFetch.getUserProfile(requestor);
-    log.info("UserProfile information retrieved successfully :: saveRecord()");
-    if (loggedInUserInfo.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInUserInfo.loggedinId, userId);
+    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
+    if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
+      RequestValidator.validateUserReferenceAgainstLoggedInUser(requestorUserProfile.profileId, informationSourceId);
     }
-    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patient);
+    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
   }
 
   /**
@@ -58,7 +58,7 @@ export class AuthService {
           status: [Constants.ACTIVE]
         }
       };
-      const count = await DataService.recordsCount(queryOptions, Connection);
+      const count = await DAOService.recordsCount(queryOptions, Connection);
       if (count != 1) {
         log.info("No connection found between from and to");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -120,7 +120,7 @@ export class AuthService {
           status: [Constants.ACTIVE]
         }
       };
-      const count = await DataService.recordsCount(queryOptions, Connection);
+      const count = await DAOService.recordsCount(queryOptions, Connection);
       if (count != 1) {
         log.info("No connection found between user Id and patient Id");
         return false;

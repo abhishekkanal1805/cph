@@ -10,8 +10,7 @@ export { UserService } from "./services/common/userService";
 export { AggregationUtils } from "./services/common/aggregationUtils";
 
 export * from "./services/security/userAuthService";
-import * as DAOService from "./services/dao/dataService";
-export { DAOService };
+export * from "./services/dao/daoService";
 export * from "./services/validators/requestValidator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";

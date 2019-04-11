@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { DataHelperService } from "../common/dataHelperService";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
@@ -58,7 +58,7 @@ export class BasePost {
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
       requestPayload[index] = record;
     });
-    await DataService.bulkSave(requestPayload, model);
+    await DAOService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
     result.savedRecords = requestPayload.map((record) => {
       return record.dataResource ? record.dataResource : record;

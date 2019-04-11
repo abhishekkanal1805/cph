@@ -1,7 +1,7 @@
 import "jasmine";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { AuthService } from "./authService";
 
 describe("Test hasConnectionBasedAccess() - ", () => {
@@ -37,7 +37,7 @@ describe("Test hasConnectionBasedAccess() - ", () => {
     done();
   });
   it("Throw error if connection doesnt exists for practitioner and patient", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 0;
     });
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -51,7 +51,7 @@ describe("Test hasConnectionBasedAccess() - ", () => {
     done();
   });
   it("Work fine if connection exists for practitioner and patient", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 1;
     });
     let result;
