@@ -75,9 +75,9 @@ export class AuthService {
       log.info("In hasConnectionBasedAccess().");
       const queryOptions = {
         where: {
-          "from.reference" : from,
+          "from.reference": from,
           "to.reference": to,
-          "status" : [Constants.ACTIVE]
+          "status": [Constants.ACTIVE]
         }
       };
       const count = await DAOService.recordsCount(queryOptions, Connection);

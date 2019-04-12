@@ -1,12 +1,12 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
-import {Constants} from "../../common/constants/constants";
-import {DataHelperService} from "../common/dataHelperService";
-import {DAOService} from "../dao/daoService";
-import {AuthService} from "../security/authService";
-import {DataTransform} from "../utilities/dataTransform";
-import {JsonParser} from "../utilities/jsonParser";
-import {RequestValidator} from "../validators/requestValidator";
+import { Constants } from "../../common/constants/constants";
+import { DataHelperService } from "../common/dataHelperService";
+import { DAOService } from "../dao/daoService";
+import { AuthService } from "../security/authService";
+import { DataTransform } from "../utilities/dataTransform";
+import { JsonParser } from "../utilities/jsonParser";
+import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
   /**
