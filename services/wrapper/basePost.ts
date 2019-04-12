@@ -1,12 +1,12 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
-import { Constants } from "../../common/constants/constants";
-import { DataHelperService } from "../common/dataHelperService";
-import { DAOService } from "../dao/daoService";
-import { AuthService } from "../security/authService";
-import { DataTransform } from "../utilities/dataTransform";
-import { JsonParser } from "../utilities/jsonParser";
-import { RequestValidator } from "../validators/requestValidator";
+import {Constants} from "../../common/constants/constants";
+import {DataHelperService} from "../common/dataHelperService";
+import {DAOService} from "../dao/daoService";
+import {AuthService} from "../security/authService";
+import {DataTransform} from "../utilities/dataTransform";
+import {JsonParser} from "../utilities/jsonParser";
+import {RequestValidator} from "../validators/requestValidator";
 
 export class BasePost {
   /**
@@ -107,8 +107,8 @@ export class BasePost {
    * @param updatedBy
    * @returns {Promise<any>}
    */
-  public static async prepareAndSaveModel(requestPayload: any[], model: any, modelDataResource: any, createdBy: any, updatedBy: any) {
-    const result: any = { savedRecords: [], errorRecords: [] };
+  public static async prepareAndSaveModel(requestPayload: any[], model: any, modelDataResource: any, createdBy: string, updatedBy: string) {
+    const result = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
