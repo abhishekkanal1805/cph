@@ -44,7 +44,7 @@ export class BasePut {
     log.info("Reference Keys retrieved successfully :: saveRecord()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds: any = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(response.get(patientElement))];
     // userids
     const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // primary key Ids
@@ -78,7 +78,7 @@ export class BasePut {
     log.info("In bulkUpdate() :: DAO :: BasePut Class");
     const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
-    const result: any = { savedRecords: [], errorRecords: [] };
+    const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
     const allPromise = [];
     // looping over all records to filter good vs bad records
