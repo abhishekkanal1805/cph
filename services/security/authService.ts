@@ -5,7 +5,6 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
-import { RequestValidator } from "../validators/requestValidator";
 
 export class AuthService {
   /**
@@ -22,10 +21,13 @@ export class AuthService {
     const requestorUserProfile = await DataFetch.getUserProfile(requestor);
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(requestorUserProfile.profileId, informationSourceId);
+      if (requestorUserProfile.profileId != informationSourceId) {
+        log.error("Error: Logged In Id is different from user Reference Id");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
+      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
     }
-    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
-    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
   }
 
   /**
@@ -41,8 +43,10 @@ export class AuthService {
     log.info("Entering AuthService :: performAuthorization()");
     const requestorUserProfile = await DataFetch.getUserProfile(requestor);
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
-    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
-    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+    if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
+      requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
+      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+    }
   }
 
   /**

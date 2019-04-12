@@ -40,7 +40,7 @@ export class BasePost {
     log.info("Reference Keys retrieved successfully :: saveRecord()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds: any = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(response.get(patientElement))];
     // userids
     const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
@@ -50,8 +50,8 @@ export class BasePost {
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
     log.info("User Authorization is successful ");
-    log.info("Calling prepareModelSave method ");
-    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
+    log.info("Calling prepareAndSaveModel method ");
+    return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
   }
 
   /**
@@ -94,12 +94,12 @@ export class BasePost {
     // FHIR services don't have informationSource validation so created new function for authorization
     await AuthService.performAuthorizationforFHIR(requestorProfileId, patientId);
     log.info("User Authorization successfully :: saveRecord()");
-    log.info("Calling prepareModelSave method ");
-    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
+    log.info("Calling prepareAndSaveModel method ");
+    return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
   }
 
   /***
-   *
+   * Wrapper function to prepare model and save model
    * @param {any[]} requestPayload
    * @param model
    * @param modelDataResource
@@ -107,7 +107,7 @@ export class BasePost {
    * @param updatedBy
    * @returns {Promise<any>}
    */
-  public static async prepareModelAndSave(requestPayload: any[], model: any, modelDataResource: any, createdBy: any, updatedBy: any) {
+  public static async prepareAndSaveModel(requestPayload: any[], model: any, modelDataResource: any, createdBy: any, updatedBy: any) {
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     requestPayload.forEach((record, index) => {
@@ -119,7 +119,7 @@ export class BasePost {
     await DAOService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
     result.savedRecords = requestPayload.map((record) => {
-      return record.dataResource ? record.dataResource : record;
+      return record.dataResource;
     });
     return result;
   }

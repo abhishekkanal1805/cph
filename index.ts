@@ -3,7 +3,7 @@ export { DataHelperService } from "./services/common/dataHelperService";
 export { DataService } from "./services/common/dataService";
 export { DataValidatorUtility } from "./services/common/dataValidatorUtility";
 export { FieldVisitor } from "./services/common/fieldVisitor";
-export { GatewayUtility } from "./services/common/gatewayUtility";
+export { APIRequestUtility } from "./services/common/apiRequestUtility";
 export { LogUtility } from "./services/common/logUtility";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
 export { UserService } from "./services/common/userService";
@@ -18,6 +18,8 @@ export * from "./services/utilities/dataTransform";
 export * from "./services/security/authService";
 export * from "./services/wrapper/basePost";
 export * from "./services/wrapper/basePut";
+export * from "./services/wrapper/baseDelete";
+export * from "./services/wrapper/baseGet";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";
