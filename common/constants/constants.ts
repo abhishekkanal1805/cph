@@ -33,6 +33,7 @@ class Constants {
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
+  public static readonly USERPROFILE = "UserProfile";
 }
 
 export { Constants };

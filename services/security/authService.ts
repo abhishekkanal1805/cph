@@ -24,6 +24,7 @@ export class AuthService {
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
       RequestValidator.validateUserReferenceAgainstLoggedInUser(requestorUserProfile.profileId, informationSourceId);
     }
+    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
     await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
   }
 
@@ -40,6 +41,7 @@ export class AuthService {
     log.info("Entering AuthService :: performAuthorization()");
     const requestorUserProfile = await DataFetch.getUserProfile(requestor);
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
+    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
     await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
   }
 
@@ -69,9 +71,9 @@ export class AuthService {
       log.info("In hasConnectionBasedAccess().");
       const queryOptions = {
         where: {
-          from,
-          to,
-          status: [Constants.ACTIVE]
+          "from.reference" : from,
+          "to.reference": to,
+          "status" : [Constants.ACTIVE]
         }
       };
       const count = await DAOService.recordsCount(queryOptions, Connection);

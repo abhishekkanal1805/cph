@@ -21,7 +21,7 @@ export class BasePost {
    * @returns
    * @memberof BasePost
    */
-  public static async saveRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+  public static async saveCPHRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
     if (!Array.isArray(requestPayload.entry)) {
       requestPayload = [requestPayload];
@@ -46,24 +46,12 @@ export class BasePost {
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientId = patientIds[0].split("/")[1];
+    const patientId = patientIds[0];
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
-    log.info("User Authorization successfully :: saveRecord()");
-    const result: any = { savedRecords: [], errorRecords: [] };
-    // TODO above 2 lines need to be update once response builder is fixed.
-    requestPayload.forEach((record, index) => {
-      record.meta = DataTransform.getRecordMetaData(record, requestorProfileId, requestorProfileId);
-      record.id = uuid();
-      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
-      requestPayload[index] = record;
-    });
-    await DAOService.bulkSave(requestPayload, model);
-    log.info("Bulk Save successfully :: saveRecord()");
-    result.savedRecords = requestPayload.map((record) => {
-      return record.dataResource ? record.dataResource : record;
-    });
-    return result;
+    log.info("User Authorization is successful ");
+    log.info("Calling prepareModelSave method ");
+    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
   }
 
   /**
@@ -102,14 +90,28 @@ export class BasePost {
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientId = patientIds[0].split("/")[1];
+    const patientId = patientIds[0];
     // FHIR services don't have informationSource validation so created new function for authorization
     await AuthService.performAuthorizationforFHIR(requestorProfileId, patientId);
     log.info("User Authorization successfully :: saveRecord()");
+    log.info("Calling prepareModelSave method ");
+    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
+  }
+
+  /***
+   *
+   * @param {any[]} requestPayload
+   * @param model
+   * @param modelDataResource
+   * @param createdBy
+   * @param updatedBy
+   * @returns {Promise<any>}
+   */
+  public static async prepareModelAndSave(requestPayload: any[], model: any, modelDataResource: any, createdBy: any, updatedBy: any) {
     const result: any = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     requestPayload.forEach((record, index) => {
-      record.meta = DataTransform.getRecordMetaData(record, requestorProfileId, requestorProfileId);
+      record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
       record.id = uuid();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
       requestPayload[index] = record;
