@@ -14,14 +14,14 @@ export class S3Service {
    */
   public static async uploadObject(bucket: string, key: string, file: any, contentType: string) {
     log.info("Entering s3Operations :: uploadObject()");
-    const paramsToPutObject = {
+    const paramsToUploadObject = {
       Bucket: bucket,
       Key: key,
       Body: file,
       ContentType: contentType
     };
     return s3
-      .upload(paramsToPutObject)
+      .upload(paramsToUploadObject)
       .promise()
       .then((data) => {
         log.info("Object uploaded to S3 successfully");
