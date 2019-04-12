@@ -33,6 +33,8 @@ class Constants {
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
+  public static readonly CONTENT_TYPE_DEFAULT = "application/json";
+  public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
 }
 
 export { Constants };
