@@ -4,7 +4,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 const s3 = new AWS.S3();
 
-export class S3Operations {
+export class S3Service {
   /**
    * Saves objects to AWS S3
    * @param {string} bucket
@@ -12,8 +12,8 @@ export class S3Operations {
    * @param {*} file
    * @param {string} contentType
    */
-  public static async putObject(bucket: string, key: string, file: any, contentType: string) {
-    log.info("Entering s3Operations :: putObject()");
+  public static async uploadObject(bucket: string, key: string, file: any, contentType: string) {
+    log.info("Entering s3Operations :: uploadObject()");
     const paramsToPutObject = {
       Bucket: bucket,
       Key: key,
@@ -24,11 +24,11 @@ export class S3Operations {
       .upload(paramsToPutObject)
       .promise()
       .then((data) => {
-        log.info("putObject executed  successfully");
+        log.info("Object uploaded to S3 successfully");
         return data;
       })
       .catch((err) => {
-        log.error("Error occoured in putObject", err);
+        log.error("Error in uploading object to S3 bucket", err);
         throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       });
   }
