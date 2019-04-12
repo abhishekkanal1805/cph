@@ -13,7 +13,7 @@ export class S3Service {
    * @param {string} contentType
    */
   public static async upload(bucket: string, key: string, file: any, contentType: string) {
-    log.info("Entering s3Operations :: uploadObject()");
+    log.info("Entering s3Service :: upload()");
     const paramsToUploadObject = {
       Bucket: bucket,
       Key: key,
