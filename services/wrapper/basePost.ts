@@ -61,7 +61,7 @@ export class BasePost {
     await DAOService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
     result.savedRecords = requestPayload.map((record) => {
-      return record.dataResource ? record.dataResource : record;
+      return record.dataResource;
     });
     return result;
   }
