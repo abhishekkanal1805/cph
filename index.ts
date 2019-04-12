@@ -18,6 +18,8 @@ export * from "./services/utilities/dataTransform";
 export * from "./services/security/authService";
 export * from "./services/wrapper/basePost";
 export * from "./services/wrapper/basePut";
+export * from "./services/wrapper/baseDelete";
+export * from "./services/wrapper/baseGet";
 
 export * from "./models/common/address";
 export * from "./models/common/attachment";

@@ -24,9 +24,9 @@ export class BaseGet {
     record = record.dataResource;
     const patientId = JsonParser.findValuesForKey([record], patientElement, false);
     log.info("getRecord() :: Authorization started");
-    const loggedInUserInfo = await DataFetch.getUserProfile(requestorProfileId);
+    const requestorUserProfile = await DataFetch.getUserProfile(requestorProfileId);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
-    await AuthService.hasConnectionBasedAccess(loggedInUserInfo.loggedinId, loggedInUserInfo.profileType, patientId[0]);
+    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId[0]);
     log.info("getRecord() :: Record retrieved successfully");
     return record;
   }
