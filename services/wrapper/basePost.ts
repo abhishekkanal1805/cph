@@ -40,7 +40,7 @@ export class BasePost {
     log.info("Reference Keys retrieved successfully :: saveRecord()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds: any = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(response.get(patientElement))];
     // userids
     const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
@@ -50,7 +50,7 @@ export class BasePost {
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
     log.info("User Authorization successfully :: saveRecord()");
-    const result: any = { savedRecords: [], errorRecords: [] };
+    const result = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, requestorProfileId, requestorProfileId);
@@ -61,7 +61,7 @@ export class BasePost {
     await DAOService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
     result.savedRecords = requestPayload.map((record) => {
-      return record.dataResource ? record.dataResource : record;
+      return record.dataResource;
     });
     return result;
   }

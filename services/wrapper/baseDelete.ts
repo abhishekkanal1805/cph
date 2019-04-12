@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import { DataHelperService } from "../common/dataHelperService";
 import { DAOService } from "../dao/daoService";
 import { BaseGet } from "./baseGet";
 
@@ -17,14 +18,15 @@ export class BaseDelete {
    */
   public static async deleteRecord(id, model, modelDataResource, requestorProfileId: string, patientElement, permanent: boolean) {
     log.info("In BaseGet :: deleteRecord()");
-    const record = await BaseGet.getRecord(id, model, requestorProfileId, patientElement);
+    let record = await BaseGet.getRecord(id, model, requestorProfileId, patientElement);
     if (permanent) {
       log.info("Deleting item Permanently");
       await DAOService.delete(id, model);
     } else {
       log.info("Soft deleting the item" + id);
       record.meta.isDeleted = true;
-      await DAOService.softDelete(id, record, model, modelDataResource);
+      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      await DAOService.softDelete(id, record, model);
     }
   }
 }

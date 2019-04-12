@@ -61,23 +61,6 @@ export class RequestValidator {
   }
 
   /**
-   * Validates that ID of logged in ID should be same as user reference id coming from request
-   *
-   * @static
-   * @param {string} loggedInId
-   * @param {string} userReferenceId
-   * @returns {Promise<void>}
-   * @memberof RequestValidator
-   */
-  public static validateUserReferenceAgainstLoggedInUser(loggedInId: string, userReferenceId: string): void {
-    log.info("In RequestValidator: validateUserReferenceAgainstLoggedInUser()");
-    if (loggedInId != userReferenceId) {
-      log.error("Error: Logged In Id is different from user Reference Id");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
-  }
-
-  /**
    * Validates that number of patient references should be unique
    *
    * @static
