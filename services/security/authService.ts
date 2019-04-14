@@ -22,30 +22,11 @@ export class AuthService {
     requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      if (requestorUserProfile.profileId != informationSourceReferenceValue) {
+      if (informationSourceReferenceValue && (requestorUserProfile.profileId != informationSourceReferenceValue)) {
         log.error("Error: Logged In Id is different from user Reference Id");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
       await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientReferenceValue);
-    }
-  }
-
-  /**
-   *  Wrapper class to perform FHIR User access authorization
-   *
-   * @static
-   * @param {string} profile profileId of logged in User
-   * @param {string[]} informationSourceIds User Id references
-   * @param {string[]} patientIds patientId references
-   * @memberof AuthService
-   */
-  public static async performAuthorizationforFHIR(requestor: string, patientId: string) {
-    log.info("Entering AuthService :: performAuthorization()");
-    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
-    log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
-    if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
-      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
     }
   }
 
