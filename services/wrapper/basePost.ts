@@ -21,7 +21,7 @@ export class BasePost {
    * @returns
    * @memberof BasePost
    */
-  public static async saveCPHRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+  public static async saveResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
     if (!Array.isArray(requestPayload.entry)) {
       requestPayload = [requestPayload];
@@ -46,9 +46,9 @@ export class BasePost {
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientId = patientIds[0];
-    const informationSourceId = informationSourceIds[0].split("/")[1];
-    await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
+    const patientReferenceValue = patientIds[0];
+    const informationSourceReferenceValue = informationSourceIds[0];
+    await AuthService.performAuthorization(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization is successful ");
     log.info("Calling prepareAndSaveModel method ");
     return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
@@ -66,7 +66,7 @@ export class BasePost {
    * @returns
    * @memberof BasePost
    */
-  public static async saveFHIRRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+  public static async saveFHIRResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
     if (!Array.isArray(requestPayload.entry)) {
       requestPayload = [requestPayload];
@@ -90,9 +90,9 @@ export class BasePost {
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientId = patientIds[0];
+    const patientReferenceValue = patientIds[0];
     // FHIR services don't have informationSource validation so created new function for authorization
-    await AuthService.performAuthorizationforFHIR(requestorProfileId, patientId);
+    await AuthService.performAuthorizationforFHIR(requestorProfileId, patientReferenceValue );
     log.info("User Authorization successfully :: saveRecord()");
     log.info("Calling prepareAndSaveModel method ");
     return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);

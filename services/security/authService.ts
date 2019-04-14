@@ -16,22 +16,22 @@ export class AuthService {
    * @param {string[]} patientIds patientId references
    * @memberof AuthService
    */
-  public static async performAuthorization(requestor: string, informationSourceId: string, patientId: string) {
+  public static async performAuthorization(requestor: string, informationSourceReferenceValue: string, patientReferenceValue: string) {
     log.info("Entering AuthService :: performAuthorization()");
     const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      if (requestorUserProfile.profileId != informationSourceId) {
+      if (requestorUserProfile.profileId != informationSourceReferenceValue) {
         log.error("Error: Logged In Id is different from user Reference Id");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-      requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
-      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientReferenceValue);
     }
   }
 
   /**
-   *  Wrapper class to perform FHIR User access authentication
+   *  Wrapper class to perform FHIR User access authorization
    *
    * @static
    * @param {string} profile profileId of logged in User
