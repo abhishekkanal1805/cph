@@ -17,17 +17,18 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getRecord(id: string, model, requestorProfileId: string, patientElement) {
-    log.info("In BaseGet :: getRecord()");
+  public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
+    log.info("In BaseGet :: getResource()");
     const options = { "meta.isDeleted": false };
     let record = await DAOService.fetchRowByPkQuery(id, model, options);
     record = record.dataResource;
-    const patientId = JsonParser.findValuesForKey([record], patientElement, false);
-    log.info("getRecord() :: Authorization started");
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const patientId = patientIds[0].split("/")[1];
+    log.info("getResource() :: Authorization started");
     const requestorUserProfile = await DataFetch.getUserProfile(requestorProfileId);
     log.info("UserProfile information retrieved successfully :: saveRecord()");
-    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId[0]);
-    log.info("getRecord() :: Record retrieved successfully");
+    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+    log.info("getResource() :: Record retrieved successfully");
     return record;
   }
 }

@@ -21,7 +21,7 @@ export class BasePost {
    * @returns
    * @memberof BasePost
    */
-  public static async saveRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+  public static async saveResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
     if (!Array.isArray(requestPayload.entry)) {
       requestPayload = [requestPayload];
@@ -31,13 +31,13 @@ export class BasePost {
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
-    log.info("Record Array created succesfully in :: saveRecord()");
+    log.info("Record Array created succesfully in :: saveResource()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
     const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveRecord()");
+    log.info("Reference Keys retrieved successfully :: saveResource()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
     const patientIds = [...new Set(response.get(patientElement))];
@@ -49,7 +49,7 @@ export class BasePost {
     const patientId = patientIds[0].split("/")[1];
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
-    log.info("User Authorization successfully :: saveRecord()");
+    log.info("User Authorization successfully :: saveResource()");
     const result = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
     requestPayload.forEach((record, index) => {
@@ -59,7 +59,7 @@ export class BasePost {
       requestPayload[index] = record;
     });
     await DAOService.bulkSave(requestPayload, model);
-    log.info("Bulk Save successfully :: saveRecord()");
+    log.info("Bulk Save successfully :: saveResource()");
     result.savedRecords = requestPayload.map((record) => {
       return record.dataResource;
     });

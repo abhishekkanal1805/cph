@@ -22,7 +22,7 @@ export class BasePut {
    * @returns
    * @memberof BasePut
    */
-  public static async updateRecord(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+  public static async updateResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
     // We need modelDataResource to be passed for mapping request to dataresource columns.
     let total;
     if (!Array.isArray(requestPayload.entry)) {
@@ -34,14 +34,14 @@ export class BasePut {
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
-    log.info("Record Array created succesfully in :: saveRecord()");
+    log.info("Record Array created succesfully in :: updateResource()");
     const keysToFetch = new Map();
     keysToFetch.set("id", []);
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
     const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveRecord()");
+    log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
     const patientIds = [...new Set(response.get(patientElement))];
@@ -56,9 +56,9 @@ export class BasePut {
     const patientId = patientIds[0].split("/")[1];
     const informationSourceId = informationSourceIds[0].split("/")[1];
     await AuthService.performAuthorization(requestorProfileId, informationSourceId, patientId);
-    log.info("User Authorization successfully :: saveRecord()");
+    log.info("User Authorization successfully :: updateResource()");
     const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
-    log.info("Update successfull :: updateRecord()");
+    log.info("Update successfull :: updateResource()");
     return result;
   }
 
@@ -75,7 +75,7 @@ export class BasePut {
    * @memberof BasePut
    */
   public static async bulkUpdate(requestPayload, requestorProfileId: string, requestPrimaryIds: string[], model, modelDataResource) {
-    log.info("In bulkUpdate() :: DAO :: BasePut Class");
+    log.info("In bulkUpdate() :: BasePut Class");
     const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
