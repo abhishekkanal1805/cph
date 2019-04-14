@@ -92,7 +92,7 @@ export class BasePost {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     // FHIR services don't have informationSource validation so created new function for authorization
-    await AuthService.performAuthorization(requestorProfileId, null, patientReferenceValue );
+    await AuthService.performAuthorization(requestorProfileId, null, patientReferenceValue);
     log.info("User Authorization successfully :: saveRecord()");
     log.info("Calling prepareAndSaveModel method ");
     return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
