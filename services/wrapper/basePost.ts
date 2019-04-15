@@ -65,4 +65,31 @@ export class BasePost {
     });
     return result;
   }
+
+  /**
+   * Function to Update resources with MetaData and ID and calls DAO service to save the resources.
+   *
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} createdBy Id of logged in user
+   * @param {*} updatedBy Id of logged in user
+   * @return {Promise<any>}
+   */
+  public static async prepareModelAndSave(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
+    const result: any = { savedRecords: [], errorRecords: [] };
+    requestPayload.forEach((record, index) => {
+      record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
+      record.id = uuid();
+      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      requestPayload[index] = record;
+    });
+    await DAOService.bulkSave(requestPayload, model);
+    log.info("Bulk Save successfully :: saveRecord()");
+    result.savedRecords = requestPayload.map((record) => {
+      return record.dataResource;
+    });
+    return result;
+  }
 }
