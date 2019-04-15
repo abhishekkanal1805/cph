@@ -29,13 +29,18 @@ class Constants {
   public static readonly DOT_VALUE = ".";
   public static readonly SPACE_VALUE = " ";
   public static readonly COMMA_SPACE_VALUE = ", ";
+  public static readonly UNDERSCORE_VALUE = "_";
+  public static readonly BACKSLASH_VALUE = "/";
 
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
+  public static readonly CONTENT_TYPE_PDF = "application/pdf";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+  public static readonly PDF_EXTENSION = ".pdf";
+  public static readonly ATTACHMENT = "attachment";
 }
 
 export { Constants };
