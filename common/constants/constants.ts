@@ -35,6 +35,7 @@ class Constants {
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
+  public static readonly USERPROFILE_REFERENCE = "UserProfile/";
 }
 
 export { Constants };
