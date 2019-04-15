@@ -12,17 +12,17 @@ export class AuthService {
    *
    * @static
    * @param {string} profile profileId of logged in User
-   * @param {string[]} informationSourceIds User Id references
-   * @param {string[]} patientIds patientId references
+   * @param {string[]} informationSourceIds User Id references in format UserProfile/123
+   * @param {string[]} patientIds patientId references in format UserProfile/123
    * @memberof AuthService
    */
   public static async performAuthorization(requestor: string, informationSourceReferenceValue: string, patientReferenceValue: string) {
     log.info("Entering AuthService :: performAuthorization()");
     const requestorUserProfile = await DataFetch.getUserProfile(requestor);
-    requestorUserProfile.profileId = [Constants.USERPROFILE, requestorUserProfile.profileId].join("/");
+    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      if (informationSourceReferenceValue && (requestorUserProfile.profileId != informationSourceReferenceValue)) {
+      if (informationSourceReferenceValue && requestorUserProfile.profileId != informationSourceReferenceValue) {
         log.error("Error: Logged In Id is different from user Reference Id");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
@@ -34,9 +34,9 @@ export class AuthService {
    *
    *
    * @static
-   * @param {string} to logged in profile ID
+   * @param {string} to logged in profile ID in format UserProfile/123
    * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle
+   * @param {string} from patient ID coming from request bundle in format UserProfile/123
    * @returns
    * @memberof AuthService
    */
@@ -97,9 +97,9 @@ export class AuthService {
    * Return true if user has access to make the request.
    *
    * @static
-   * @param {string} to logged in profile ID
+   * @param {string} to logged in profile ID in format UserProfile/123
    * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle
+   * @param {string} from patient ID coming from request bundle in format UserProfile/123
    * @returns {Promise<boolean>}
    * @memberof AuthService
    */
@@ -118,9 +118,9 @@ export class AuthService {
       log.info("Logged In ID is either Practitioner or CarePartner.");
       const queryOptions = {
         where: {
-          from,
-          to,
-          status: [Constants.ACTIVE]
+          "from.reference": from,
+          "to.reference": to,
+          "status": [Constants.ACTIVE]
         }
       };
       const count = await DAOService.recordsCount(queryOptions, Connection);

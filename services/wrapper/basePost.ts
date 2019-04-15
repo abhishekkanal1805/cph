@@ -50,8 +50,8 @@ export class BasePost {
     const informationSourceReferenceValue = informationSourceIds[0];
     await AuthService.performAuthorization(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization is successful ");
-    log.info("Calling prepareAndSaveModel method ");
-    return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
+    log.info("Calling prepareModelAndSave method ");
+    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
   }
 
   /**
@@ -94,34 +94,8 @@ export class BasePost {
     // FHIR services don't have informationSource validation so created new function for authorization
     await AuthService.performAuthorization(requestorProfileId, null, patientReferenceValue);
     log.info("User Authorization successfully :: saveRecord()");
-    log.info("Calling prepareAndSaveModel method ");
-    return await this.prepareAndSaveModel(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
-  }
-
-  /***
-   * Wrapper function to prepare model and save model
-   * @param {any[]} requestPayload
-   * @param model
-   * @param modelDataResource
-   * @param createdBy
-   * @param updatedBy
-   * @returns {Promise<any>}
-   */
-  public static async prepareAndSaveModel(requestPayload: any[], model: any, modelDataResource: any, createdBy: string, updatedBy: string) {
-    const result = { savedRecords: [], errorRecords: [] };
-    // TODO above 2 lines need to be update once response builder is fixed.
-    requestPayload.forEach((record, index) => {
-      record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
-      record.id = uuid();
-      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
-      requestPayload[index] = record;
-    });
-    await DAOService.bulkSave(requestPayload, model);
-    log.info("Bulk Save successfully :: saveResource()");
-    result.savedRecords = requestPayload.map((record) => {
-      return record.dataResource;
-    });
-    return result;
+    log.info("Calling prepareModelAndSave method ");
+    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
   }
 
   /**
