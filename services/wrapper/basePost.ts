@@ -31,13 +31,13 @@ export class BasePost {
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
-    log.info("Record Array created succesfully in :: saveRecord()");
+    log.info("Record Array created succesfully in :: saveResource()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
     const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveRecord()");
+    log.info("Reference Keys retrieved successfully :: saveResource()");
     const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
     const patientIds = [...new Set(response.get(patientElement))];
@@ -110,6 +110,33 @@ export class BasePost {
   public static async prepareAndSaveModel(requestPayload: any[], model: any, modelDataResource: any, createdBy: string, updatedBy: string) {
     const result = { savedRecords: [], errorRecords: [] };
     // TODO above 2 lines need to be update once response builder is fixed.
+    requestPayload.forEach((record, index) => {
+      record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
+      record.id = uuid();
+      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      requestPayload[index] = record;
+    });
+    await DAOService.bulkSave(requestPayload, model);
+    log.info("Bulk Save successfully :: saveResource()");
+    result.savedRecords = requestPayload.map((record) => {
+      return record.dataResource;
+    });
+    return result;
+  }
+
+  /**
+   * Function to Update resources with MetaData and ID and calls DAO service to save the resources.
+   *
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} createdBy Id of logged in user
+   * @param {*} updatedBy Id of logged in user
+   * @return {Promise<any>}
+   */
+  public static async prepareModelAndSave(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
+    const result = { savedRecords: [], errorRecords: [] };
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
       record.id = uuid();
