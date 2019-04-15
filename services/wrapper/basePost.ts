@@ -78,7 +78,7 @@ export class BasePost {
    * @return {Promise<any>}
    */
   public static async prepareModelAndSave(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
-    const result: any = { savedRecords: [], errorRecords: [] };
+    const result = { savedRecords: [], errorRecords: [] };
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
       record.id = uuid();
