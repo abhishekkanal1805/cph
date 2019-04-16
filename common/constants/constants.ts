@@ -49,6 +49,8 @@ class Constants {
   public static readonly OPERATIONAL_CREATE = "OPERATIONAL-CREATE";
   public static readonly OPERATIONAL_UPDATE = "OPERATIONAL-UPDATE";
   public static readonly OPERATIONAL_DELETE = "OPERATIONAL-DELETE";
+
+  public static readonly ID = "id";
 }
 
 export { Constants };

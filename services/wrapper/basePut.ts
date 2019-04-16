@@ -48,7 +48,7 @@ export class BasePut {
     // userids
     const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // primary key Ids
-    const primaryIds = [...new Set(response.get("id"))];
+    const primaryIds = [...new Set(response.get(Constants.ID))];
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
