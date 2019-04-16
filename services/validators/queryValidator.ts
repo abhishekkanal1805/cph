@@ -165,7 +165,7 @@ export class QueryValidator {
       const paramValue = queryParams[key];
       const isMultivalue = paramValue.length > 1;
       for (const eachValue of paramValue) {
-        if (eachValue.trim().length === 0) {
+        if (eachValue.length === 0) {
           log.error("parameter value is empty for key: " + key);
           throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
         }

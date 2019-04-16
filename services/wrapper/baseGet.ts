@@ -90,11 +90,16 @@ export class BaseGet {
     // fetch data from db with all conditions
     const searchQuery = {
       where: queryObject,
-      attributes: Constants.DEFAULT_SEARCH_ATTRIBUTES,
+      attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES],
       limit: limit + 1,
       offset,
       order: Constants.DEFAULT_ORDER_BY
     };
-    return await DAOService.search(model, searchQuery);
+    let result: any = await DAOService.search(model, searchQuery);
+    result = _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+    // Add offset and limit to generate next url
+    queryParams.limit = limit;
+    queryParams.offset = offset;
+    return result;
   }
 }

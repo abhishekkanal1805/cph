@@ -406,11 +406,11 @@ export class Utility {
     const searchValue = [];
     for (const item in queryParams) {
       // in case date attribute we will get 2 items in array for others it will be 1
-      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&" + item + "=") : queryParams[item].toString();
-      if (config.data.displayFields.indexOf(item) > -1) {
-        // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
-        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
-      }
+      const itemValue = queryParams[item].length > 1 ? queryParams[item].join("&" + item + "=") : queryParams[item].toString();
+      // if (config.data.displayFields.indexOf(item) > -1) {
+      //   // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
+      //   itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
+      // }
       searchValue.push([item, itemValue].join("="));
     }
     url += searchValue.join("&");

@@ -222,7 +222,7 @@ class ResponseBuilderService {
    */
   public static createResponseObject(objectArray: any, fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
-    const entryArray = [];
+    let entryArray = [];
     const links = [];
     let responseObject: any;
     if (fullUrl) {
@@ -239,12 +239,12 @@ class ResponseBuilderService {
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
-      if (objectArray.length == objectArray.limit) {
-        entryArray.splice(-1, 1);
+      if (objectArray.length == queryParams.limit + 1) {
+        entryArray = entryArray.slice(0, entryArray.length - 1);
         const nextLinkObj: Link = new Link();
         nextLinkObj.relation = "next";
-        queryParams.limit = objectArray.limit - 1;
-        queryParams.offset = objectArray.offset + objectArray.limit - 1;
+        queryParams.limit = queryParams.limit;
+        queryParams.offset += queryParams.limit;
         nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);
         links.push(nextLinkObj);
       }

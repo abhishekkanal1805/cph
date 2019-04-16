@@ -21,6 +21,9 @@ class Constants {
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
+  public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly SUBJECT_ATTRIBUTE = "subject";
+  public static readonly PATIENT_ATTRIBUTE = "patient";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
@@ -78,7 +81,7 @@ class Constants {
   public static readonly PERIOD_MONTHS = "months";
   public static readonly PERIOD_YEARS = "years";
 
-  public static readonly DEFAULT_SEARCH_ATTRIBUTES = ["dataResource"];
+  public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 }
 
