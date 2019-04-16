@@ -3,7 +3,9 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { Device } from "../../models/CPH/device/device";
+import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
+import { DataFetch } from "../utilities/dataFetch";
 
 export class RequestValidator {
   /**
@@ -112,5 +114,59 @@ export class RequestValidator {
       log.error("Error: Duplicate primary Id's found in request");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
+  }
+
+  /**
+   * Validates and filters resource references.
+   * @param requestPayload
+   * @param uniqueReferenceIds
+   * @param referenceModel
+   * @return {Promise<{validResources: any[]; errorResults: any[]}>}
+   */
+  public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel) {
+    log.info("In RequestValidator: filterValidReferences()");
+    const response = { validResources: [], errorResults: [] };
+    const recordArr = [];
+    const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
+    const validMedicationPlanIds: string[] = Utility.findIds(results, "id").map((eachId) => eachId);
+    if (uniqueReferenceIds.length !== validMedicationPlanIds.length) {
+      for (const medicationActivity of requestPayload) {
+        if (
+          medicationActivity.hasOwnProperty("medicationPlan") &&
+          !validMedicationPlanIds.includes(medicationActivity.medicationPlan.reference.split("/")[1])
+        ) {
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "MedicationPlan");
+          if (medicationActivity.meta && medicationActivity.meta.clientRequestId) {
+            badRequest.clientRequestId = medicationActivity.meta.clientRequestId;
+          }
+          response.errorResults.push(badRequest);
+        } else {
+          recordArr.push(medicationActivity);
+        }
+      }
+      response.validResources = recordArr;
+    } else {
+      response.validResources = requestPayload;
+      response.errorResults = [];
+    }
+    log.info("In RequestValidator: filterValidReferences()");
+    return response;
+  }
+
+  /**
+   * Processes and validates the request payload.
+   * @param requestPayload
+   * @return {requestPayload}
+   */
+  public static processAndValidateRequestPayload(requestPayload) {
+    if (!Array.isArray(requestPayload.entry)) {
+      requestPayload = [requestPayload];
+    } else {
+      const total = requestPayload.total;
+      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      RequestValidator.validateBundleTotal(requestPayload, total);
+      RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
+    }
+    return requestPayload;
   }
 }

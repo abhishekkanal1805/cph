@@ -20,6 +20,10 @@ class Constants {
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
+  public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
+  public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
+  public static readonly MEDICATION_PLAN_SERVICE = "MedicationPlan";
+  public static readonly MEDICATION_ACTIVITY_SERVICE = "MedicationActivity";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
@@ -36,6 +40,15 @@ class Constants {
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+
+  public static readonly POST_ENDPOINT = "POST";
+  public static readonly GET_ENDPOINT = "GET";
+  public static readonly SEARCH_ENDPOINT = "SEARCH";
+  public static readonly UPDATE_ENDPOINT = "UPDATE";
+  public static readonly DELETE_ENDPOINT = "DELETE";
+  public static readonly OPERATIONAL_CREATE = "OPERATIONAL-CREATE";
+  public static readonly OPERATIONAL_UPDATE = "OPERATIONAL-UPDATE";
+  public static readonly OPERATIONAL_DELETE = "OPERATIONAL-DELETE";
 }
 
 export { Constants };
