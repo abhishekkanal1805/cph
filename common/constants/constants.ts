@@ -36,6 +36,8 @@ class Constants {
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+
+  public static readonly ID = "id";
 }
 
 export { Constants };
