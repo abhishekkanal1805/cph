@@ -128,14 +128,15 @@ export class RequestValidator {
     const response = { validResources: [], errorResults: [] };
     const recordArr = [];
     const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
-    const validReferenceIds: string[] = Utility.findIds(results, "id").map((eachId) => eachId);
+    const validReferenceIds: string[] = Utility.findIds(results, Constants.ID).map((eachId) => eachId);
     if (uniqueReferenceIds.length !== validReferenceIds.length) {
       for (const resource of requestPayload) {
         if (
-          resource.hasOwnProperty(referenceValidationAttribute.split(".")[0]) &&
-          !validReferenceIds.includes(resource[referenceValidationAttribute].split("/")[1])
+          resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
+          !validReferenceIds.includes(resource[referenceValidationAttribute].split(Constants.SLASH_VALUE)[1])
         ) {
-          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(".")[0]);
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value,
+            errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]);
           if (resource.meta && resource.meta.clientRequestId) {
             badRequest.clientRequestId = resource.meta.clientRequestId;
           }

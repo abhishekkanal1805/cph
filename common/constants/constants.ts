@@ -33,6 +33,7 @@ class Constants {
   public static readonly DOT_VALUE = ".";
   public static readonly SPACE_VALUE = " ";
   public static readonly COMMA_SPACE_VALUE = ", ";
+  public static readonly SLASH_VALUE = "/";
 
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
