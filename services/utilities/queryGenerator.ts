@@ -361,11 +361,11 @@ class QueryGenerator {
   public static getNestedAttributes(attributes: string[], value: string, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
-      nestedAttributes[attributes[0].replace("[*]", "")] = attributes[0].indexOf("[*]") > -1 ? [value] : value;
+      nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "")] = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1 ? [value] : value;
       return;
     }
-    arrFlag = attributes[0].indexOf("[*]") > -1;
-    const attributeName = arrFlag ? attributes[0].replace("[*]", "") : attributes[0];
+    arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+    const attributeName = arrFlag ? attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "") : attributes[0];
     nestedAttributes[attributeName] = arrFlag ? [{}] : {};
     const objectMap = arrFlag ? nestedAttributes[attributeName][0] : nestedAttributes[attributeName];
     this.getNestedAttributes(attributes.slice(1), value, objectMap, arrFlag);
@@ -391,12 +391,12 @@ class QueryGenerator {
     for (const element of attributes) {
       // if no filter condition present or type is an object then continue
       // example: dataResource.identifier[{filterKey:use, filterValue:connection}].value
-      if (!element.endsWith("]") || element.indexOf("[*]") > -1) {
+      if (!element.endsWith("]") || element.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
         newColumnHierarchy.push(element);
         continue;
       }
       // user can provide multiple filter condition per level
-      const parentKey = [element.split("[")[0], "[*]"].join("");
+      const parentKey = [element.split("[")[0], Constants.ARRAY_SEARCH_SYMBOL].join("");
       newColumnHierarchy.push(parentKey);
       const filterConditions = this.getParsedCondtions(element);
       for (const eachCondition of filterConditions) {
@@ -436,7 +436,7 @@ class QueryGenerator {
     const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
     const isMultilevelNesting = attributes.length > 1;
     // Like will work for searching inside 1-level array, example: Chanels
-    const parentAttribute = attributes[0].replace("[*]", "");
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
     if (!isMultilevelNesting) {
       queryObject[Op.or].push({
         [Op.like]: {
@@ -456,13 +456,13 @@ class QueryGenerator {
       component[*].code.coding[*].code
     */
     let idx = 1;
-    let isParrentArray = attributes[0].indexOf("[*]") > -1;
+    let isParrentArray = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
     let parentIdx = 0;
     const expression = [[parentAttribute]];
     let multilevelObject = [];
     while (idx < attributes.length) {
-      let childValue = attributes[idx].replace("[*]", "");
-      if (attributes[idx + 1] && attributes[idx].indexOf("[*]") == -1) {
+      let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
+      if (attributes[idx + 1] && attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) == -1) {
         multilevelObject.push(childValue);
         idx++;
         continue;
@@ -471,14 +471,14 @@ class QueryGenerator {
         parentIdx++;
         expression.push([]);
       }
-      if (!attributes[idx + 1] && attributes[idx].indexOf("[*]") > -1) {
+      if (!attributes[idx + 1] && attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
         expression.push([]);
         // added for scenario like address[*].line[*]
       }
       childValue = multilevelObject.concat(childValue).join(",");
       expression[parentIdx] = expression[parentIdx].concat(["#>", `'{${childValue}}'`]);
       multilevelObject = [];
-      isParrentArray = attributes[idx].indexOf("[*]") > -1;
+      isParrentArray = attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       idx++;
     }
     let index = 1;
@@ -542,7 +542,7 @@ class QueryGenerator {
     // array will perform only contains operation
     // Perform search for array type structure
     const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
-    const parentAttribute = attributes[0].replace("[*]", "");
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
     const isMultilevelNesting = attributes.length > 1;
     if (!isMultilevelNesting) {
       queryObject[Op.or] = queryObject[Op.or].concat(
@@ -555,7 +555,7 @@ class QueryGenerator {
         })
       );
     } else {
-      const arrFlag = attributes[0].indexOf("[*]") > -1;
+      const arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       // it will create filter condition for sitecode and usercode
       _.each(values, (eachValue: any) => {
         let nestedAttributes = {};

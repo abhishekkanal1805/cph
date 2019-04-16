@@ -39,6 +39,7 @@ class Constants {
   public static readonly SINGLE_QUOTE = "'";
   public static readonly SQUARE_BRACKETS_OPEN = "[";
   public static readonly SQUARE_BRACKETS_CLOSE = "]";
+  public static readonly ARRAY_SEARCH_SYMBOL = "]";
 
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
