@@ -93,14 +93,14 @@ export class BasePost {
     const filteredResources = await RequestValidator.filterValidReferences(requestPayload, uniquesReferenceIds, referenceValidationModel, referenceValidationAttribute);
     if (filteredResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
-      const savedMedicationActivities = await BasePost.prepareModelAndSave(
+      const savedResources = await BasePost.prepareModelAndSave(
         filteredResources.validResources,
         model,
         modelDataResource,
         requestorProfileId,
         requestorProfileId
       );
-      result.savedRecords = savedMedicationActivities.savedRecords;
+      result.savedRecords = savedResources.savedRecords;
     }
     if (filteredResources.errorResults) {
       result.errorRecords = filteredResources.errorResults;

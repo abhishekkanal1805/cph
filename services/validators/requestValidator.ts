@@ -133,7 +133,7 @@ export class RequestValidator {
       for (const resource of requestPayload) {
         if (
           resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
-          !validReferenceIds.includes(resource[referenceValidationAttribute].split(Constants.SLASH_VALUE)[1])
+          !validReferenceIds.includes(resource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.SLASH_VALUE)[1])
         ) {
           const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value,
             errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]);
