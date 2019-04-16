@@ -1,9 +1,10 @@
 import * as log from "lambda-log";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 
 export class DataFetch {
   /**
@@ -14,10 +15,10 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async fetchUserProfileInformationFromAuthorizer(profile: string): Promise<any> {
-    log.info("Entering DataFetch :: fetchUserProfileInformationFromAuthorizer()");
+  public static async getUserProfile(profile: string): Promise<any> {
+    log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {
-      loggedinId: profile,
+      profileId: profile,
       profileStatus: "",
       profileType: "",
       displayName: ""
@@ -26,8 +27,8 @@ export class DataFetch {
       log.error("Error in DataFetch: ProfileId is missing in authorizer");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const result = await DataService.fetchRowByPk(profile, UserProfile);
-    if (result.status !== Constants.CONNECTION_ACTIVE) {
+    const result = await DAOService.fetchRowByPk(profile, UserProfile);
+    if (result.status !== Constants.ACTIVE) {
       log.error("Error in DataFetch: UserProfile status is inactive");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -38,5 +39,28 @@ export class DataFetch {
     userAccessObj.profileType = result.type;
     userAccessObj.displayName = [familyName, givenName.join(Constants.SPACE_VALUE)].join(Constants.COMMA_SPACE_VALUE);
     return userAccessObj;
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} model
+   * @param {string[]} recordIds
+   * @returns {Promise<any>}
+   * @memberof DataFetch
+   */
+  public static async getValidIds(model, recordIds: string[]): Promise<any[]> {
+    const query = {
+      where: {
+        "id": {
+          [Op.or]: recordIds
+        },
+        "meta.isDeleted": false
+      },
+      attributes: ["id", "meta"]
+    };
+    const result = await DAOService.search(model, query);
+    return result;
   }
 }

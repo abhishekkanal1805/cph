@@ -19,6 +19,7 @@ class Constants {
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
+  public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
@@ -29,8 +30,14 @@ class Constants {
   public static readonly SPACE_VALUE = " ";
   public static readonly COMMA_SPACE_VALUE = ", ";
 
-  public static readonly CONNECTION_ACTIVE = "active";
+  public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
+  public static readonly CONNECTION = "connection";
+  public static readonly CONTENT_TYPE_DEFAULT = "application/json";
+  public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
+  public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+
+  public static readonly ID = "id";
 }
 
 export { Constants };

@@ -2,16 +2,16 @@ import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { DataFetch } from "./dataFetch";
 
-describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
+describe("Test getUserProfile() - ", () => {
   it("Throw error if profile is missing in authorizer data", async (done) => {
     const profile = null;
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }
@@ -19,14 +19,14 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
     done();
   });
   it("Throw error if user profile of logged in user is not active", async (done) => {
-    spyOn(DataService, "fetchRowByPk").and.callFake(() => {
+    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: "inactive" };
     });
     const profile = "123";
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }
@@ -34,26 +34,26 @@ describe("Test fetchUserProfileInformationFromAuthorizer() - ", () => {
     done();
   });
   it("Return user attributes if user is active", async (done) => {
-    spyOn(DataService, "fetchRowByPk").and.callFake(() => {
-      return { status: Constants.CONNECTION_ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
+    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
+      return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
     const profile = "123";
     let result;
     const expected = {
-      profileStatus: Constants.CONNECTION_ACTIVE,
+      profileStatus: Constants.ACTIVE,
       profileType: "patient",
-      loggedinId: "123",
+      profileId: "123",
       displayName: "Jackson, Sam"
     };
     try {
-      result = await DataFetch.fetchUserProfileInformationFromAuthorizer(profile);
+      result = await DataFetch.getUserProfile(profile);
     } catch (err) {
       result = err;
     }
     expect(result.profileStatus).toEqual(expected.profileStatus);
     expect(result.profileType).toEqual(expected.profileType);
     expect(result.displayName).toEqual(expected.displayName);
-    expect(result.loggedinId).toEqual(expected.loggedinId);
+    expect(result.profileId).toEqual(expected.profileId);
     done();
   });
 });

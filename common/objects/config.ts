@@ -510,7 +510,8 @@ const settings = {
     searchAttributes: [
       { map: "id", to: "id", type: "string", isMultiple: true },
       { map: "email", to: "email", type: "string" },
-      { map: "userCode", to: "userCode", type: "string" },
+      { map: "userCode", to: "identifier[*].value", type: "array", arrayOperator: "and" },
+      { map: "use", to: "identifier[*].use", type: "array", arrayOperator: "and" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {

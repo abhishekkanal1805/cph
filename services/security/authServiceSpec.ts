@@ -1,14 +1,14 @@
 import "jasmine";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { DAOService } from "../dao/daoService";
 import { AuthService } from "./authService";
 
-describe("Test performUserAccessValidation() - ", () => {
+describe("Test hasConnectionBasedAccess() - ", () => {
   it("Do nothing if loggedin user type is system", async (done) => {
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "system", "123");
+      result = await AuthService.hasConnectionBasedAccess("UserProfile/123", "system", "UserProfile/123");
     } catch (err) {
       result = err;
     }
@@ -19,7 +19,7 @@ describe("Test performUserAccessValidation() - ", () => {
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "patient", "1234");
+      result = await AuthService.hasConnectionBasedAccess("UserProfile/123", "patient", "UserProfile/1234");
     } catch (err) {
       result = err;
     }
@@ -29,7 +29,7 @@ describe("Test performUserAccessValidation() - ", () => {
   it("Works fine if patient is trying to post records for his own", async (done) => {
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "patient", "123");
+      result = await AuthService.hasConnectionBasedAccess("UserProfile/123", "patient", "UserProfile/123");
     } catch (err) {
       result = err;
     }
@@ -37,13 +37,13 @@ describe("Test performUserAccessValidation() - ", () => {
     done();
   });
   it("Throw error if connection doesnt exists for practitioner and patient", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 0;
     });
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "practitioner", "123");
+      result = await AuthService.hasConnectionBasedAccess("UserProfile/123", "practitioner", "UserProfile/123");
     } catch (err) {
       result = err;
     }
@@ -51,12 +51,12 @@ describe("Test performUserAccessValidation() - ", () => {
     done();
   });
   it("Work fine if connection exists for practitioner and patient", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 1;
     });
     let result;
     try {
-      result = await AuthService.performUserAccessValidation("123", "practitioner", "123");
+      result = await AuthService.hasConnectionBasedAccess("123", "practitioner", "123");
     } catch (err) {
       result = err;
     }
