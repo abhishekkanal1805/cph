@@ -6,11 +6,11 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
-import { cast, col, fn, json, literal, Op } from "sequelize";
+import {cast, col, fn, json, literal, Op} from "sequelize";
 import * as uuid from "uuid";
-import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { Utility } from "./Utility";
+import {errorCodeMap} from "../../common/constants/error-codes-map";
+import {BadRequestResult, NotFoundResult} from "../../common/objects/custom-errors";
+import {Utility} from "./Utility";
 
 class DataHelperService {
   /**
@@ -1033,11 +1033,6 @@ class DataHelperService {
       if (attributes.length > 1) {
         const values: string[] = mappedAttribute.isMultiple ? value.split(",") : [value];
         for (const item of values) {
-          // generating raw query to fetch partially matched records in appointment
-          if (mappedAttribute.likeQuery) {
-            this.generateRawQueryForPartialMatch(mappedAttribute.likeQuery, item, searchObject);
-            continue;
-          }
           let nestedAttributes = {};
           this.getNestedAttributes(attributes.slice(1), item, nestedAttributes, false);
           const arrFlag = attributes[0].indexOf("[*]") > -1;
@@ -1330,21 +1325,6 @@ class DataHelperService {
     });
 
     return results;
-  }
-
-  /**
-   * This function is used to create raw query for implementaion of like operator on array type attribute
-   * @param {string} rawQuery - Query which has like operation
-   * @param {string} item - nested attribute on which like opration needs to be performed
-   * @param searchObject - returns searchObject with created raw query after adding it with existing sequelize queries
-   */
-  public static generateRawQueryForPartialMatch(rawQuery: string, item: string, searchObject: any) {
-    rawQuery = rawQuery.replace(/{searchValue}/g, item);
-    const operator = Op.or;
-    if (!searchObject[operator]) {
-      searchObject[operator] = [];
-    }
-    searchObject[operator].push(literal(rawQuery));
   }
 }
 
