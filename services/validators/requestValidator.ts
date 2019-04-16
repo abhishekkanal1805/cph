@@ -123,25 +123,25 @@ export class RequestValidator {
    * @param referenceModel
    * @return {Promise<{validResources: any[]; errorResults: any[]}>}
    */
-  public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel) {
+  public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel, referenceValidationAttribute: string) {
     log.info("In RequestValidator: filterValidReferences()");
     const response = { validResources: [], errorResults: [] };
     const recordArr = [];
     const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
-    const validMedicationPlanIds: string[] = Utility.findIds(results, "id").map((eachId) => eachId);
-    if (uniqueReferenceIds.length !== validMedicationPlanIds.length) {
-      for (const medicationActivity of requestPayload) {
+    const validReferenceIds: string[] = Utility.findIds(results, "id").map((eachId) => eachId);
+    if (uniqueReferenceIds.length !== validReferenceIds.length) {
+      for (const resource of requestPayload) {
         if (
-          medicationActivity.hasOwnProperty("medicationPlan") &&
-          !validMedicationPlanIds.includes(medicationActivity.medicationPlan.reference.split("/")[1])
+          resource.hasOwnProperty(referenceValidationAttribute.split(".")[0]) &&
+          !validReferenceIds.includes(resource[referenceValidationAttribute].split("/")[1])
         ) {
-          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "MedicationPlan");
-          if (medicationActivity.meta && medicationActivity.meta.clientRequestId) {
-            badRequest.clientRequestId = medicationActivity.meta.clientRequestId;
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(".")[0]);
+          if (resource.meta && resource.meta.clientRequestId) {
+            badRequest.clientRequestId = resource.meta.clientRequestId;
           }
           response.errorResults.push(badRequest);
         } else {
-          recordArr.push(medicationActivity);
+          recordArr.push(resource);
         }
       }
       response.validResources = recordArr;
