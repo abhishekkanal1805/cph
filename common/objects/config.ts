@@ -753,10 +753,6 @@ const settings = {
         map: "indication",
         to: "indication[*].reference",
         type: "array",
-        partialMatch: true,
-        likeQuery:
-          "exists (select true from unnest(array(select jsonb_array_elements(indication) -> 'reference')) as indication  " +
-          "where indication::text like '%/{searchValue}\"')"
       },
       { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
       { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
@@ -768,11 +764,4 @@ const settings = {
     ]
   }
 };
-
-const connectionTypePermissions = {
-  partner: ["GET"],
-  deligate: ["GET"],
-  friend: ["GET"]
-};
-
-export { data, settings, connectionTypePermissions };
+export { data, settings };
