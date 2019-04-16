@@ -45,7 +45,7 @@ class Constants {
   public static readonly POST_ENDPOINT = "POST";
   public static readonly GET_ENDPOINT = "GET";
   public static readonly SEARCH_ENDPOINT = "SEARCH";
-  public static readonly UPDATE_ENDPOINT = "UPDATE";
+  public static readonly PUT_ENDPOINT = "PUT";
   public static readonly DELETE_ENDPOINT = "DELETE";
   public static readonly OPERATIONAL_CREATE = "OPERATIONAL-CREATE";
   public static readonly OPERATIONAL_UPDATE = "OPERATIONAL-UPDATE";
