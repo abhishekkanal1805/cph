@@ -1,8 +1,7 @@
 import * as log from "lambda-log";
-import * as config from "../../common/objects/config";
-import { DataSource } from "../../dataSource";
-import { Connection } from "../../models/CPH/connection/connection";
-import { ConnectionService } from "../connection/connectionService";
+import {DataSource} from "../../dataSource";
+import {Connection} from "../../models/CPH/connection/connection";
+import {ConnectionService} from "../connection/connectionService";
 
 export class UserAuthService {
   /**
@@ -13,9 +12,16 @@ export class UserAuthService {
   public static validatePermissions(permissions: any[], methodType: string): boolean {
     log.info("Entering userAuthService :: validatePermissions()");
     log.debug("Requested method ::", methodType, "Permissions allowed :: ", permissions);
-    methodType = methodType.toUpperCase();
-    if ((permissions && permissions[0] === "*") || permissions.indexOf(methodType) > -1) {
-      return true;
+    const methodMap: any = {
+      POST: "WRITE",
+      PUT: "WRITE",
+      GET: "READ",
+      DELETE: "WRITE"
+    };
+    if (methodMap.hasOwnProperty(methodType.toUpperCase())) {
+      if (permissions.indexOf(methodMap[methodType]) > -1) {
+        return true;
+      }
     }
     log.info("Exiting userAuthService :: validatePermissions()");
     return false;
@@ -43,7 +49,7 @@ export class UserAuthService {
       throw new Error("Either callerUserProfileId/calleruserProfileType/calledUserProfileId is null or undefined");
     }
     if (callerUserProfileId == calledUserProfileId) {
-      permissions = ["*"];
+      permissions = ["READ", "WRITE"];
       log.info("Read Write permission :: Exiting UserAuthService :: getPermissions()");
       return permissions;
     }
@@ -76,8 +82,6 @@ export class UserAuthService {
       const result: any = await ConnectionService.searchConnection(Connection, query, callerUserProfileId, authorizerData, httpMethod);
       if (result.length) {
         log.info("searchConnection() success in BaseService :: getPermissions()");
-        // if profile type doesn't exists in config then return no permission
-        permissions = config.connectionTypePermissions[result[0].type] || [];
       } else {
         throw new Error("Validation failed :: Connection doesn't have permission to perform this operation");
       }
