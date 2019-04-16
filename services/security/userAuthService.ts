@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
-import {DataSource} from "../../dataSource";
-import {Connection} from "../../models/CPH/connection/connection";
-import {ConnectionService} from "../connection/connectionService";
+import { DataSource } from "../../dataSource";
+import { Connection } from "../../models/CPH/connection/connection";
+import { ConnectionService } from "../connection/connectionService";
 
 export class UserAuthService {
   /**

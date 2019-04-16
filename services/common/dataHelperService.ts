@@ -6,11 +6,11 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
-import {cast, col, fn, json, literal, Op} from "sequelize";
+import { cast, col, fn, json, literal, Op } from "sequelize";
 import * as uuid from "uuid";
-import {errorCodeMap} from "../../common/constants/error-codes-map";
-import {BadRequestResult, NotFoundResult} from "../../common/objects/custom-errors";
-import {Utility} from "./Utility";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { Utility } from "./Utility";
 
 class DataHelperService {
   /**

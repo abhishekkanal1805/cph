@@ -753,7 +753,7 @@ const settings = {
       {
         map: "indication",
         to: "indication[*].reference",
-        type: "array",
+        type: "array"
       },
       { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
       { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
