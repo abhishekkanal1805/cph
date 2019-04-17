@@ -71,7 +71,11 @@ export class AuthService {
       log.error("requestee is not valid and active userprofile");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    if (requestor === requestee) {
+      log.info("Exiting AuthService :: hasConnectionBasedAccess");
+      return;
+    }
+    const requestorUserProfile = await DataFetch.getUserProfile([requestor]);
     requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
     log.info("requestorUserProfile information retrieved successfully ");
     if (requestorUserProfile.profileType.toLowerCase() !== Constants.SYSTEM_USER) {
