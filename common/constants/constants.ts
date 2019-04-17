@@ -40,6 +40,11 @@ class Constants {
   public static readonly SQUARE_BRACKETS_OPEN = "[";
   public static readonly SQUARE_BRACKETS_CLOSE = "]";
   public static readonly ARRAY_SEARCH_SYMBOL = "[*]";
+  public static readonly POSIX_START = "\\m";
+  public static readonly POSIX_END = "\\M";
+  public static readonly POSIX_ILIKE_OPERATOR = "~*";
+  public static readonly ILIKE_OPERATOR = "ilike";
+
 
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";

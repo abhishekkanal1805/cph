@@ -54,7 +54,7 @@ class QueryGenerator {
         value = Constants.PERCENTAGE_VALUE + value + quoteValue;
         break;
       case Constants.OPERATION_WORD_MATCH:
-        value = Constants.PERCENTAGE_VALUE + Constants.SPACE_VALUE + value + Constants.SPACE_VALUE + Constants.PERCENTAGE_VALUE;
+        value = (isRawQuery) ? Constants.POSIX_START +  value + Constants.POSIX_END : value;
         break;
     }
     return value;
@@ -439,6 +439,7 @@ class QueryGenerator {
     const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
     const isMultilevelNesting = attributes.length > 1;
     // Like will work for searching inside 1-level array, example: Chanels
+    // TODO: test word match scenarios
     const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
     if (!isMultilevelNesting) {
       queryObject[Op.or].push({
@@ -448,21 +449,6 @@ class QueryGenerator {
           }
         }
       });
-      // If it is wordmatch we have to do startswith and endswith
-      // Example: ["a b c"] or ["a b"] or ["b c"]
-      if (column.operation === Constants.OPERATION_WORD_MATCH) {
-        _.each(values, (eachValue: any) => {
-          const startsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_STARTS_WITH});
-          const endsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_ENDS_WITH});
-          queryObject[Op.or].push({
-            [Op.like]: {
-              [parentAttribute]: {
-                [Op.any]: [startsWithValue, endsWithValue]
-              }
-            }
-          });
-        });
-      }
       return;
     }
     /*
@@ -499,7 +485,6 @@ class QueryGenerator {
       isParrentArray = attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       idx++;
     }
-    log.info(expression)
     let index = 1;
     let expression1 = expression[0].join(Constants.SPACE_VALUE);
     let expression2 = "";
@@ -511,22 +496,13 @@ class QueryGenerator {
       expression1 = unnestSql;
       rawSql = unnestSql;
     }
+    // If it is wordmatch we have to do startswith and endswith, in posix we will set boundries
+    const operator = (column.operation === Constants.OPERATION_WORD_MATCH) ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
     const searchQuery = [];
     _.each(values, (eachValue: any) => {
       eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-      searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${eachValue}')`);
+      searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
     });
-    // If it is wordmatch we have to do startswith and endswith
-    // Example: ["a b c"] or ["a b"] or ["b c"]
-    if (column.operation === Constants.OPERATION_WORD_MATCH) {
-      _.each(values, (eachValue: any) => {
-        const startsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_STARTS_WITH}, true);
-        const endsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_ENDS_WITH}, true);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${startsWithValue}')`);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${endsWithValue}')`);
-      });
-    }
-
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));
   }
 
