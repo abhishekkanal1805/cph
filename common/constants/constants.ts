@@ -34,6 +34,7 @@ class Constants {
   public static readonly BACKSLASH_VALUE = "/";
 
   public static readonly ACTIVE = "active";
+  public static readonly INACTIVE = "inactive";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
