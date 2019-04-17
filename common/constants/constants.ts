@@ -43,6 +43,8 @@ class Constants {
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly PDF_EXTENSION = ".pdf";
   public static readonly ATTACHMENT = "attachment";
+
+  public static readonly ID = "id";
 }
 
 export { Constants };

@@ -81,8 +81,8 @@ export class UserAuthService {
       DataSource.addModel(Connection);
       const result: any = await ConnectionService.searchConnection(Connection, query, callerUserProfileId, authorizerData, httpMethod);
       if (result.length) {
-        log.info("searchConnection() success in BaseService :: getPermissions()");
         permissions = ["READ", "WRITE"];
+        log.info("searchConnection() success in BaseService :: getPermissions()");
       } else {
         throw new Error("Validation failed :: Connection doesn't have permission to perform this operation");
       }

@@ -1,7 +1,9 @@
 import * as log from "lambda-log";
+import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
 import { DAOService } from "../dao/daoService";
 
@@ -111,6 +113,30 @@ export class RequestValidator {
     if (primaryIds.length != length) {
       log.error("Error: Duplicate primary Id's found in request");
       throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
+    }
+  }
+
+  /**
+   * This function is used to validate relative reference irrespective of the model.
+   * @param {string} modelName which table needs to be queried
+   * @param {string} referenceId which id needs to be validated
+   * @returns {Promise<boolean>} returns true if validated else false
+   */
+  public static async validateReference(modelName: string, referenceId: string) {
+    log.info("In RequestValidator: validateReference()");
+    try {
+      await DataSource.getDataSource()
+        .query('SELECT count(*) FROM "' + modelName + '" WHERE id = :id and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';", {
+          replacements: { id: referenceId },
+          type: sequelize.QueryTypes.SELECT
+        })
+        .then((results) => {
+          if (results[0].count != 1) {
+            throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "indication");
+          }
+        });
+    } catch (err) {
+      throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "indication");
     }
   }
 }

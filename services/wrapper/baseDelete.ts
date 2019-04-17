@@ -14,10 +14,10 @@ export class BaseDelete {
    * @param {*} model Model which need to be saved
    * @param {*} modelDataResource Data resource model which can be used for object mapping.
    * @returns
-   * @memberof BaseGet
+   * @memberof BaseDelete
    */
   public static async deleteResource(id, model, modelDataResource, requestorProfileId: string, patientElement, permanent: boolean) {
-    log.info("In BaseGet :: deleteResource()");
+    log.info("In BaseDelete :: deleteResource()");
     let record = await BaseGet.getResource(id, model, requestorProfileId, patientElement);
     if (permanent) {
       log.info("Deleting item Permanently");
@@ -25,6 +25,7 @@ export class BaseDelete {
     } else {
       log.info("Soft deleting the item" + id);
       record.meta.isDeleted = true;
+      record.meta.lastUpdated = new Date().toISOString();
       record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
       await DAOService.softDelete(id, record, model);
     }
