@@ -31,24 +31,24 @@ export class AuthService {
       } else {
         await AuthService.hasConnectionBasedAccess(informationSourceReferenceValue, patientReferenceValue);
       }
-    } else if (requestorUserProfile.profileType.toLowerCase() === Constants.SYSTEM_USER ) {
+    } else if (requestorUserProfile.profileType.toLowerCase() === Constants.SYSTEM_USER) {
       if (informationSourceReferenceValue && requestor === patientReferenceValue) {
-      log.error("requestor is valid system user but system user can not be information source or patient");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    } else if (requestor === informationSourceReferenceValue) {
-      log.error("requestor is valid system user but information source can not be same as system user");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    } else if (requestor !== informationSourceReferenceValue && requestor !== patientReferenceValue) {
-      log.info("requestor is valid system user and not same as information source and not same as patient");
-      const userprofilesToCheck: string[] = [];
-      userprofilesToCheck.push(informationSourceReferenceValue);
-      userprofilesToCheck.push(patientReferenceValue);
-      const isUserProfileValid = await this.isUserValid(userprofilesToCheck);
-      if (!isUserProfileValid) {
-        log.error("requestor is System user but either informationSource user profile or patient user profile is not valid and active");
+        log.error("requestor is valid system user but system user can not be information source or patient");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      } else if (requestor === informationSourceReferenceValue) {
+        log.error("requestor is valid system user but information source can not be same as system user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      } else if (requestor !== informationSourceReferenceValue && requestor !== patientReferenceValue) {
+        log.info("requestor is valid system user and not same as information source and not same as patient");
+        const userprofilesToCheck: string[] = [];
+        userprofilesToCheck.push(informationSourceReferenceValue);
+        userprofilesToCheck.push(patientReferenceValue);
+        const isUserProfileValid = await this.isUserValid(userprofilesToCheck);
+        if (!isUserProfileValid) {
+          log.error("requestor is System user but either informationSource user profile or patient user profile is not valid and active");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
       }
-    }
     }
   }
 
@@ -75,7 +75,8 @@ export class AuthService {
       log.info("Exiting AuthService :: hasConnectionBasedAccess");
       return;
     }
-    const requestorUserProfile = await DataFetch.getUserProfile([requestor]);
+    const requestorProfile = await DataFetch.getUserProfile([requestor]);
+    const requestorUserProfile = requestorProfile[requestor];
     requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
     log.info("requestorUserProfile information retrieved successfully ");
     if (requestorUserProfile.profileType.toLowerCase() !== Constants.SYSTEM_USER) {
@@ -108,4 +109,4 @@ export class AuthService {
     log.info("Exiting AuthService :: isUserValid()");
     return result;
   }
-  }
+}
