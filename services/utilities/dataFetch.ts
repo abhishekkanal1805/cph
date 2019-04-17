@@ -1,4 +1,5 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
@@ -15,7 +16,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getUserProfile(profiles: string[]): Promise<any> {
+  public static async getUserProfile(profiles: any): Promise<any> {
     log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {};
     if (profiles.length < 1) {
@@ -23,11 +24,18 @@ export class DataFetch {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // Take uniq values and get records and validate count
+    profiles = _.uniq(profiles);
     const queryObject = {
-      id: profiles,
-      status: Constants.ACTIVE
+      where: {
+        id: profiles,
+        status: Constants.ACTIVE
+      }
+    };
+    const result = await DAOService.search(UserProfile, queryObject);
+    if (profiles.length != result.length) {
+      log.error("Error in DataFetch: Record doesn't exists for all requested profile ids");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const result = await DAOService.search(queryObject, UserProfile);
     for (const profile of result) {
       if (profile.status !== Constants.ACTIVE) {
         log.error("Error in DataFetch: UserProfile status is inactive for id : " + profile.id);
