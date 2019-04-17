@@ -56,4 +56,15 @@ describe("Test getUserProfile() - ", () => {
     expect(result.profileId).toEqual(expected.profileId);
     done();
   });
+  it("Throw error if profile is missing in authorizer data", async (done) => {
+    let result;
+    const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    try {
+      const data = await DataFetch.getUserProfile(["80e86ff5-3527-44b0-b2d2-743bfe770b29", "137cbafa-3ac0-48a9-a390-e0d5982a0d05"]);
+    } catch (err) {
+      result = err;
+    }
+    expect(result).toEqual(expected);
+    done();
+  });
 });
