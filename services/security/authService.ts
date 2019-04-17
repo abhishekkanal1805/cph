@@ -9,7 +9,9 @@ import { DataFetch } from "../utilities/dataFetch";
 export class AuthService {
   /**
    *  Wrapper class to perform all User access authentication
-   *
+   * handles multiple scenarios, if requestor is same as informationSource and patient, all access allowed except system user can't be information source
+   * if requestor is system user it can post data if it is not informationSource
+   * if requestor is not system user, a valid connection is expected between informationSource and patient
    * @static
    * @param {string} profile profileId of logged in User
    * @param {string[]} informationSourceIds User Id references in format UserProfile/123
@@ -18,15 +20,35 @@ export class AuthService {
    */
   public static async performAuthorization(requestor: string, informationSourceReferenceValue: string, patientReferenceValue: string) {
     log.info("Entering AuthService :: performAuthorization()");
-    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
-    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
+    const requestorUser = await DataFetch.getUserProfile([requestor]);
+    const requestorUserProfile = requestorUser[requestor];
+    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestor;
     log.info("requestorUserProfile information retrieved successfully :: saveRecord()");
     if (requestorUserProfile.profileType.toLowerCase() != Constants.SYSTEM_USER) {
-      if (informationSourceReferenceValue && requestorUserProfile.profileId != informationSourceReferenceValue) {
-        log.error("Error: Logged In Id is different from user Reference Id");
+      if (requestor === informationSourceReferenceValue && requestor === patientReferenceValue) {
+        log.info("request is for requestor's own resource");
+        return;
+      } else {
+        await AuthService.hasConnectionBasedAccess(informationSourceReferenceValue, patientReferenceValue);
+      }
+    } else if (requestorUserProfile.profileType.toLowerCase() === Constants.SYSTEM_USER ) {
+      if (informationSourceReferenceValue && requestor === patientReferenceValue) {
+      log.error("requestor is valid system user but system user can not be information source or patient");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    } else if (requestor === informationSourceReferenceValue) {
+      log.error("requestor is valid system user but information source can not be same as system user");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    } else if (requestor !== informationSourceReferenceValue && requestor !== patientReferenceValue) {
+      log.info("requestor is valid system user and not same as information source and not same as patient");
+      const userprofilesToCheck: string[] = [];
+      userprofilesToCheck.push(informationSourceReferenceValue);
+      userprofilesToCheck.push(patientReferenceValue);
+      const isUserProfileValid = await this.isUserValid(userprofilesToCheck);
+      if (!isUserProfileValid) {
+        log.error("requestor is System user but either informationSource user profile or patient user profile is not valid and active");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-      await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientReferenceValue);
+    }
     }
   }
 
@@ -40,96 +62,46 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async hasConnectionBasedAccess(to: string, profileType: string, from: string) {
-    log.info("Entering AuthService :: hasConnectionBasedAccess()");
-    profileType = profileType.toLowerCase();
-    if (profileType === Constants.SYSTEM_USER) {
-      log.info("Logged in user type is System.");
-      return;
-    } else if (profileType === Constants.PATIENT_USER) {
-      if (from != to) {
-        log.info("Logged In ID is different from user reference ID in bundle.");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
-    } else if (profileType === Constants.PRACTITIONER_USER || profileType === Constants.CAREPARTNER_USER) {
-      log.info("Logged In ID is either Practitioner or CarePartner.");
-      log.info("In hasConnectionBasedAccess().");
+  public static async hasConnectionBasedAccess(requestor: string, requestee: string) {
+    log.info("Inside AuthService :: hasConnectionBasedAccess()");
+    const userprofilesToCheck: string[] = [];
+    userprofilesToCheck.push(requestee);
+    const isUserProfilesValid = await this.isUserValid(userprofilesToCheck);
+    if (!isUserProfilesValid) {
+      log.error("requestee is not valid and active userprofile");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    const requestorUserProfile = await DataFetch.getUserProfile(requestor);
+    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
+    log.info("requestorUserProfile information retrieved successfully ");
+    if (requestorUserProfile.profileType.toLowerCase() !== Constants.SYSTEM_USER) {
       const queryOptions = {
         where: {
-          "from.reference": from,
-          "to.reference": to,
+          "from.reference": requestor,
+          "to.reference": requestee,
           "status": [Constants.ACTIVE]
         }
       };
       const count = await DAOService.recordsCount(queryOptions, Connection);
       if (count != 1) {
-        log.info("No connection found between from and to");
+        log.error("No connection found between " + requestor + "and " + requestee);
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
+    log.info("Exiting AuthService :: hasConnectionBasedAccess");
   }
 
   /**
-   * Validates access between to and from without making a connection check
-   *
-   * @static
-   * @param {string} to logged in profile ID
-   * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle
-   * @returns
-   * @memberof AuthService
+   * @param {string[]} userProfileIds
    */
-  public static async hasConnectionIndependentAccess(to: string, profileType: string, from: string) {
-    log.info("Entering AuthService :: hasConnectionIndependentAccess()");
-    profileType = profileType.toLowerCase();
-    if (profileType === Constants.SYSTEM_USER) {
-      log.info("Logged in user type is System.");
-      return;
-    } else if (profileType === Constants.PATIENT_USER) {
-      if (from != to) {
-        log.info("Logged In ID is different from user reference ID in bundle.");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
+  public static async isUserValid(userProfileIds: string[]) {
+    log.info("Entering AuthService :: isUserValid()");
+    let result: boolean = true;
+    const validUserProfileIds = await DataFetch.getValidUserProfileIds(userProfileIds);
+    if (validUserProfileIds.length !== userProfileIds.length) {
+      result = false;
     }
+    log.info("Exiting AuthService :: isUserValid()");
+    return result;
   }
-
-  /**
-   * Return true if user has access to make the request.
-   *
-   * @static
-   * @param {string} to logged in profile ID in format UserProfile/123
-   * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle in format UserProfile/123
-   * @returns {Promise<boolean>}
-   * @memberof AuthService
-   */
-  public static async isUserAllowedAccess(to: string, profileType: string, from: string): Promise<boolean> {
-    log.info("Entering AuthService :: isUserAllowedAccess()");
-    profileType = profileType.toLowerCase();
-    if (profileType === Constants.SYSTEM_USER) {
-      log.info("Logged in user type is System.");
-      return true;
-    } else if (profileType === Constants.PATIENT_USER) {
-      if (from != to) {
-        log.info("Logged In ID is different from user reference ID in bundle.");
-        return false;
-      }
-    } else if (profileType === Constants.PRACTITIONER_USER || profileType === Constants.CAREPARTNER_USER) {
-      log.info("Logged In ID is either Practitioner or CarePartner.");
-      const queryOptions = {
-        where: {
-          "from.reference": from,
-          "to.reference": to,
-          "status": [Constants.ACTIVE]
-        }
-      };
-      const count = await DAOService.recordsCount(queryOptions, Connection);
-      if (count != 1) {
-        log.info("No connection found between user Id and patient Id");
-        return false;
-      }
-    }
-    log.info("Entering AuthService :: isUserAllowedAccess()");
-    return true;
   }
-}

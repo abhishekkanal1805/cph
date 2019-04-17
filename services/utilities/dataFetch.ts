@@ -6,7 +6,6 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
-
 export class DataFetch {
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
@@ -16,7 +15,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getUserProfile(profiles: any): Promise<any> {
+  public static async getUserProfile(profiles: string[]): Promise<any> {
     log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {};
     if (profiles.length < 1) {
@@ -54,7 +53,6 @@ export class DataFetch {
     }
     return userAccessObj;
   }
-
   /**
    *
    *
@@ -75,6 +73,25 @@ export class DataFetch {
       attributes: ["id", "meta"]
     };
     const result = await DAOService.search(model, query);
+    return result;
+  }
+  /**
+   * @param model
+   * @param {string[]} recordIds
+   * @return {Promise<any[]>}
+   */
+  public static async getValidUserProfileIds(recordIds: string[]): Promise<any[]> {
+    const query = {
+      where: {
+        "id": {
+          [Op.or]: recordIds
+        },
+        "meta.isDeleted": false,
+        "status": Constants.ACTIVE
+      },
+      attributes: ["id"]
+    };
+    const result = await DAOService.search(UserProfile, query);
     return result;
   }
 }
