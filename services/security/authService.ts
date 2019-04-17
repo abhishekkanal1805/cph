@@ -81,8 +81,8 @@ export class AuthService {
     if (requestorUserProfile.profileType.toLowerCase() !== Constants.SYSTEM_USER) {
       const queryOptions = {
         where: {
-          "from.reference": requestor,
-          "to.reference": requestee,
+          "from.reference": requestee,
+          "to.reference": requestor,
           "status": [Constants.ACTIVE]
         }
       };
