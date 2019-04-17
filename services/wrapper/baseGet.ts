@@ -55,7 +55,7 @@ export class BaseGet {
       log.debug("id is not present in queryParams");
       queryParams[patientElement] = [requestorProfileId];
     } else {
-      await AuthService.performAuthorization(requestorProfileId, null, queryParams[patientElement]);
+      await AuthService.hasConnectionBasedAccess(requestorProfileId, queryParams[patientElement]);
     }
 
     // if isDeleted attribute not present in query parameter then return active records
