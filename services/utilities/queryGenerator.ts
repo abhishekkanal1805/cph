@@ -53,6 +53,9 @@ class QueryGenerator {
       case Constants.OPERATION_ENDS_WITH:
         value = Constants.PERCENTAGE_VALUE + value + quoteValue;
         break;
+      case Constants.OPERATION_WORD_MATCH:
+        value = Constants.PERCENTAGE_VALUE + Constants.SPACE_VALUE + value + Constants.SPACE_VALUE + Constants.PERCENTAGE_VALUE;
+        break;
     }
     return value;
   }
@@ -445,6 +448,21 @@ class QueryGenerator {
           }
         }
       });
+      // If it is wordmatch we have to do startswith and endswith
+      // Example: ["a b c"] or ["a b"] or ["b c"]
+      if (column.operation === Constants.OPERATION_WORD_MATCH) {
+        _.each(values, (eachValue: any) => {
+          const startsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_STARTS_WITH});
+          const endsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_ENDS_WITH});
+          queryObject[Op.or].push({
+            [Op.like]: {
+              [parentAttribute]: {
+                [Op.any]: [startsWithValue, endsWithValue]
+              }
+            }
+          });
+        });
+      }
       return;
     }
     /*
@@ -475,18 +493,19 @@ class QueryGenerator {
         expression.push([]);
         // added for scenario like address[*].line[*]
       }
-      childValue = multilevelObject.concat(childValue).join(",");
+      childValue = multilevelObject.concat(childValue).join(Constants.COMMA_VALUE);
       expression[parentIdx] = expression[parentIdx].concat(["#>", `'{${childValue}}'`]);
       multilevelObject = [];
       isParrentArray = attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       idx++;
     }
+    log.info(expression)
     let index = 1;
-    let expression1 = expression[0].join(" ");
+    let expression1 = expression[0].join(Constants.SPACE_VALUE);
     let expression2 = "";
     let rawSql = "";
     while (index < expression.length) {
-      expression2 = expression[index] ? expression[index].join(" ") : " ";
+      expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
       const unnestSql = `unnest(array(select jsonb_array_elements(${expression1}) ${expression2}))`;
       index += 1;
       expression1 = unnestSql;
@@ -497,7 +516,18 @@ class QueryGenerator {
       eachValue = this.getUpdatedSearchValue(eachValue, column, true);
       searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${eachValue}')`);
     });
-    queryObject[Op.or].push(literal(searchQuery.join(" ")));
+    // If it is wordmatch we have to do startswith and endswith
+    // Example: ["a b c"] or ["a b"] or ["b c"]
+    if (column.operation === Constants.OPERATION_WORD_MATCH) {
+      _.each(values, (eachValue: any) => {
+        const startsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_STARTS_WITH}, true);
+        const endsWithValue = this.getUpdatedSearchValue(eachValue, {operation: Constants.OPERATION_ENDS_WITH}, true);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${startsWithValue}')`);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ilike '${endsWithValue}')`);
+      });
+    }
+
+    queryObject[Op.or].push(literal(searchQuery.join(" or ")));
   }
 
   /**
@@ -535,9 +565,13 @@ class QueryGenerator {
       return;
     }
     // To perform like/ilike operation with array of object, we need raw sql support
-    if ([Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH, Constants.OPERATION_ENDS_WITH].indexOf(column.operation) > -1) {
-      this.createParitalSearchConditions(column, values, queryObject);
-      return;
+    if (
+      [
+        Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH,
+        Constants.OPERATION_ENDS_WITH, Constants.OPERATION_WORD_MATCH
+      ].indexOf(column.operation) > -1) {
+        this.createParitalSearchConditions(column, values, queryObject);
+        return;
     }
     // array will perform only contains operation
     // Perform search for array type structure
