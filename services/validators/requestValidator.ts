@@ -5,9 +5,9 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
+import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
-import { Utility } from "../common/Utility";
 
 export class RequestValidator {
   /**
@@ -161,8 +161,10 @@ export class RequestValidator {
           resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
           !validReferenceIds.includes(resource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.SLASH_VALUE)[1])
         ) {
-          const badRequest = new BadRequestResult(errorCodeMap.InvalidReference.value,
-            errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]);
+          const badRequest = new BadRequestResult(
+            errorCodeMap.InvalidReference.value,
+            errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
+          );
           if (resource.meta && resource.meta.clientRequestId) {
             badRequest.clientRequestId = resource.meta.clientRequestId;
           }

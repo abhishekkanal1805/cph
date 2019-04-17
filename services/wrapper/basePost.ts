@@ -90,7 +90,12 @@ export class BasePost {
     uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
       return referenceId.split("/")[1];
     });
-    const filteredResources = await RequestValidator.filterValidReferences(requestPayload, uniquesReferenceIds, referenceValidationModel, referenceValidationAttribute);
+    const filteredResources = await RequestValidator.filterValidReferences(
+      requestPayload,
+      uniquesReferenceIds,
+      referenceValidationModel,
+      referenceValidationAttribute
+    );
     if (filteredResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(
