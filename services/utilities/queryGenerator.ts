@@ -436,29 +436,17 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static createParitalSearchConditions(column: any, values: string[], queryObject: any) {
-    const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
-    const isMultilevelNesting = attributes.length > 1;
-    // Like will work for searching inside 1-level array, example: Chanels
-    // TODO: test word match scenarios
-    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
-    if (!isMultilevelNesting) {
-      queryObject[Op.or].push({
-        [parentAttribute]: {
-          [Op.like]: {
-            [Op.any]: _.map(values, (eachValue: any) => this.getUpdatedSearchValue(eachValue, column))
-          }
-        }
-      });
-      return;
-    }
     /*
       it will generate like query for below scenarios
+      channels[*]
       name.given[*]
       address[*].line[*]
       code.coding[*].code
       category[*].coding[*].code
       component[*].code.coding[*].code
     */
+    const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
     let idx = 1;
     let isParrentArray = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
     let parentIdx = 0;
@@ -489,12 +477,16 @@ class QueryGenerator {
     let expression1 = expression[0].join(Constants.SPACE_VALUE);
     let expression2 = Constants.EMPTY_VALUE;
     let rawSql = Constants.EMPTY_VALUE;
-    while (index < expression.length) {
-      expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
-      const unnestSql = `unnest(array(select jsonb_array_elements(${expression1}) ${expression2}))`;
-      index += 1;
-      expression1 = unnestSql;
-      rawSql = unnestSql;
+    if (expression.length == 1) {
+      rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+    } else {
+      while (index < expression.length) {
+        expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
+        const unnestSql = `unnest(array(select jsonb_array_elements(${expression1}) ${expression2}))`;
+        index += 1;
+        expression1 = unnestSql;
+        rawSql = unnestSql;
+      }
     }
     // If it is wordmatch we have to do startswith and endswith, in posix we will set boundries
     const operator = (column.operation === Constants.OPERATION_WORD_MATCH) ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
