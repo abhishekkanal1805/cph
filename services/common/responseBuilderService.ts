@@ -229,20 +229,20 @@ class ResponseBuilderService {
       log.debug("fullUrl value: " + fullUrl);
       for (const eachObject of objectArray) {
         const entry: any = {};
-        entry.fullUrl = fullUrl + "/" + eachObject.id;
-        entry.search = { mode: "match" };
+        entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
+        entry.search = { mode: Constants.MATCH };
         entry.resource = eachObject;
         entryArray.push(Object.assign(new Entry(), entry));
       }
       const linkObj: Link = new Link();
-      linkObj.relation = "self";
+      linkObj.relation = Constants.SELF;
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
       if (objectArray.length == queryParams.limit + 1) {
         entryArray = entryArray.slice(0, entryArray.length - 1);
         const nextLinkObj: Link = new Link();
-        nextLinkObj.relation = "next";
+        nextLinkObj.relation = Constants.NEXT;
         queryParams.limit = queryParams.limit;
         queryParams.offset += queryParams.limit;
         nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);

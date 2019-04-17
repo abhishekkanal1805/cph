@@ -30,6 +30,8 @@ class Constants {
   public static readonly CAREPARTNER_USER = "carepartner";
   public static readonly PRACTITIONER_USER = "practitioner";
 
+  public static readonly EMPTY_VALUE = "";
+  public static readonly FORWARD_SLASH = "/";
   public static readonly DOT_VALUE = ".";
   public static readonly SPACE_VALUE = " ";
   public static readonly COMMA_SPACE_VALUE = ", ";
@@ -45,13 +47,14 @@ class Constants {
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
 
-
   public static readonly ACTIVE = "active";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
-  public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+  public static readonly SELF = "self";
+  public static readonly NEXT = "next";
+  public static readonly MATCH = "match";
 
   public static readonly ID = "id";
 
@@ -71,6 +74,7 @@ class Constants {
   public static readonly TYPE_NUMBER = "number";
   public static readonly TYPE_BOOLEAN = "boolean";
   public static readonly TYPE_STRING = "string";
+  public static readonly TYPE_ARRAY = "array";
 
   public static readonly PREFIX_GREATER_THAN = "gt";
   public static readonly PREFIX_GREATER_THAN_EQUAL = "ge";

@@ -39,10 +39,10 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static getUpdatedSearchValue(value: string, column: any, isRawQuery?: boolean) {
-    const prefixValue = column.prefix || "";
-    const suffixValue = column.suffix || "";
-    const quoteValue = isRawQuery ? Constants.DOUBLE_QUOTE : "";
-    value = [prefixValue, value, suffixValue].join("");
+    const prefixValue = column.prefix || Constants.EMPTY_VALUE;
+    const suffixValue = column.suffix || Constants.EMPTY_VALUE;
+    const quoteValue = isRawQuery ? Constants.DOUBLE_QUOTE : Constants.EMPTY_VALUE;
+    value = [prefixValue, value, suffixValue].join(Constants.EMPTY_VALUE);
     switch (column.operation) {
       case Constants.OPERATION_LIKE:
         value = Constants.PERCENTAGE_VALUE + value + Constants.PERCENTAGE_VALUE;
@@ -364,11 +364,11 @@ class QueryGenerator {
   public static getNestedAttributes(attributes: string[], value: string, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
-      nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "")] = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1 ? [value] : value;
+      nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1 ? [value] : value;
       return;
     }
     arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
-    const attributeName = arrFlag ? attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "") : attributes[0];
+    const attributeName = arrFlag ? attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE) : attributes[0];
     nestedAttributes[attributeName] = arrFlag ? [{}] : {};
     const objectMap = arrFlag ? nestedAttributes[attributeName][0] : nestedAttributes[attributeName];
     this.getNestedAttributes(attributes.slice(1), value, objectMap, arrFlag);
@@ -394,12 +394,12 @@ class QueryGenerator {
     for (const element of attributes) {
       // if no filter condition present or type is an object then continue
       // example: dataResource.identifier[{filterKey:use, filterValue:connection}].value
-      if (!element.endsWith("]") || element.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+      if (!element.endsWith(Constants.SQUARE_BRACKETS_CLOSE) || element.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
         newColumnHierarchy.push(element);
         continue;
       }
       // user can provide multiple filter condition per level
-      const parentKey = [element.split("[")[0], Constants.ARRAY_SEARCH_SYMBOL].join("");
+      const parentKey = [element.split(Constants.SQUARE_BRACKETS_OPEN)[0], Constants.ARRAY_SEARCH_SYMBOL].join(Constants.EMPTY_VALUE);
       newColumnHierarchy.push(parentKey);
       const filterConditions = this.getParsedCondtions(element);
       for (const eachCondition of filterConditions) {
@@ -440,11 +440,11 @@ class QueryGenerator {
     const isMultilevelNesting = attributes.length > 1;
     // Like will work for searching inside 1-level array, example: Chanels
     // TODO: test word match scenarios
-    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
     if (!isMultilevelNesting) {
       queryObject[Op.or].push({
-        [Op.like]: {
-          [parentAttribute]: {
+        [parentAttribute]: {
+          [Op.like]: {
             [Op.any]: _.map(values, (eachValue: any) => this.getUpdatedSearchValue(eachValue, column))
           }
         }
@@ -465,7 +465,7 @@ class QueryGenerator {
     const expression = [[parentAttribute]];
     let multilevelObject = [];
     while (idx < attributes.length) {
-      let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
+      let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
       if (attributes[idx + 1] && attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) == -1) {
         multilevelObject.push(childValue);
         idx++;
@@ -487,8 +487,8 @@ class QueryGenerator {
     }
     let index = 1;
     let expression1 = expression[0].join(Constants.SPACE_VALUE);
-    let expression2 = "";
-    let rawSql = "";
+    let expression2 = Constants.EMPTY_VALUE;
+    let rawSql = Constants.EMPTY_VALUE;
     while (index < expression.length) {
       expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
       const unnestSql = `unnest(array(select jsonb_array_elements(${expression1}) ${expression2}))`;
@@ -528,7 +528,7 @@ class QueryGenerator {
     // Generate Search Query for string type
     const values = value.split(Constants.COMMA_VALUE);
     const operator = this.getOperator(column.operation);
-    if (column.columnValueType != "array") {
+    if (column.columnValueType != Constants.TYPE_ARRAY) {
       queryObject[Op.or] = queryObject[Op.or].concat(
         _.map(values, (eachValue: any) => {
           return {
@@ -552,7 +552,7 @@ class QueryGenerator {
     // array will perform only contains operation
     // Perform search for array type structure
     const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
-    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, "");
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
     const isMultilevelNesting = attributes.length > 1;
     if (!isMultilevelNesting) {
       queryObject[Op.or] = queryObject[Op.or].concat(
