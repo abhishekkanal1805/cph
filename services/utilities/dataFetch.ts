@@ -15,29 +15,35 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getUserProfile(profile: string): Promise<any> {
+  public static async getUserProfile(profiles: string[]): Promise<any> {
     log.info("Entering DataFetch :: getUserProfile()");
-    const userAccessObj = {
-      profileId: profile,
-      profileStatus: "",
-      profileType: "",
-      displayName: ""
-    };
-    if (!profile) {
-      log.error("Error in DataFetch: ProfileId is missing in authorizer");
+    const userAccessObj = {};
+    if (profiles.length < 1) {
+      log.error("Error in DataFetch: profiles array is empty");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    const result = await DAOService.fetchRowByPk(profile, UserProfile);
-    if (result.status !== Constants.ACTIVE) {
-      log.error("Error in DataFetch: UserProfile status is inactive");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    // Take uniq values and get records and validate count
+    const queryObject = {
+      id: profiles,
+      status: Constants.ACTIVE
     }
-    // if user is valid then set display attribute and profile status
-    const givenName = result.name ? result.name.given || [] : [];
-    const familyName = result.name ? result.name.family || "" : "";
-    userAccessObj.profileStatus = result.status;
-    userAccessObj.profileType = result.type;
-    userAccessObj.displayName = [familyName, givenName.join(Constants.SPACE_VALUE)].join(Constants.COMMA_SPACE_VALUE);
+    const result = await DAOService.search(queryObject, UserProfile);
+    for (const profile of result) {
+      if (profile.status !== Constants.ACTIVE) {
+        log.error("Error in DataFetch: UserProfile status is inactive for id : " + profile.id);
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      // if user is valid then set display attribute and profile status
+      const givenName = profile.name ? profile.name.given || [] : [];
+      const familyName = profile.name ? profile.name.family || Constants.EMPTY_VALUE : Constants.EMPTY_VALUE;
+      const profileId = profile.id;
+      if (!userAccessObj[profileId]) {
+        userAccessObj[profileId] = {};
+      }
+      userAccessObj[profileId].profileStatus = profile.status;
+      userAccessObj[profileId].profileType = profile.type;
+      userAccessObj[profileId].displayName = [familyName, givenName.join(Constants.SPACE_VALUE)].join(Constants.COMMA_SPACE_VALUE);
+    }
     return userAccessObj;
   }
 
