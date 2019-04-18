@@ -19,6 +19,8 @@ class Constants {
   public static readonly BOUNDSPERIOD_LIMIT = 90;
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
+  public static readonly FROM_REFERENCE_KEY = "from.reference";
+  public static readonly TO_REFERENCE_KEY = "to.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
@@ -27,6 +29,13 @@ class Constants {
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TO = "to";
+  public static readonly CONNECTION_TYPE = "type";
+
+  public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
+  public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
+  public static readonly MEDICATION_PLAN_SERVICE = "MedicationPlan";
+  public static readonly MEDICATION_ACTIVITY_SERVICE = "MedicationActivity";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
@@ -54,6 +63,7 @@ class Constants {
 
   public static readonly ACTIVE = "active";
   public static readonly INACTIVE = "inactive";
+  public static readonly PENDING = "pending";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
@@ -69,6 +79,15 @@ class Constants {
   public static readonly SELF = "self";
   public static readonly NEXT = "next";
   public static readonly MATCH = "match";
+
+  public static readonly POST_ENDPOINT = "POST";
+  public static readonly GET_ENDPOINT = "GET";
+  public static readonly SEARCH_ENDPOINT = "SEARCH";
+  public static readonly PUT_ENDPOINT = "PUT";
+  public static readonly DELETE_ENDPOINT = "DELETE";
+  public static readonly OPERATIONAL_CREATE = "OPERATIONAL-CREATE";
+  public static readonly OPERATIONAL_UPDATE = "OPERATIONAL-UPDATE";
+  public static readonly OPERATIONAL_DELETE = "OPERATIONAL-DELETE";
 
   public static readonly ID = "id";
 

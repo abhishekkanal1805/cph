@@ -22,7 +22,7 @@ describe("Test getUserProfile() - ", () => {
     spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: "inactive" };
     });
-    const profile = "123";
+    const profile = ["123"];
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
@@ -37,7 +37,7 @@ describe("Test getUserProfile() - ", () => {
     spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
-    const profile = "123";
+    const profile = ["123"];
     let result;
     const expected = {
       profileStatus: Constants.ACTIVE,
@@ -60,7 +60,7 @@ describe("Test getUserProfile() - ", () => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      const data = await DataFetch.getUserProfile(["80e86ff5-3527-44b0-b2d2-743bfe770b29", "137cbafa-3ac0-48a9-a390-e0d5982a0d05"]);
+      await DataFetch.getUserProfile(["80e86ff5-3527-44b0-b2d2-743bfe770b29", "137cbafa-3ac0-48a9-a390-e0d5982a0d05"]);
     } catch (err) {
       result = err;
     }

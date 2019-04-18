@@ -27,7 +27,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. if patientReference is a valid profile of patient
-    if (fetchedProfiles[patientId].profileType != Constants.PATIENT_USER ) {
+    if (fetchedProfiles[patientId].profileType != Constants.PATIENT_USER) {
       log.error("Patient is not a valid active patient");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -38,8 +38,11 @@ export class AuthService {
     }
     // check 3. is Practitioner or Care Partner submitting request for patient
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
-    if ((fetchedProfiles[requester].profileType != Constants.SYSTEM_USER) && (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER
-        || fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER)) {
+    if (
+      fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
+      (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER ||
+        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER)
+    ) {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
@@ -48,10 +51,10 @@ export class AuthService {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-     } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+    } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid patient");
-      return ;
+      return;
     } else {
       log.error("Received a user of unknown profile type");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -70,18 +73,18 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeConnectionBased(requesterId: string, requesteeId: string) {
-    log.info("Inside AuthService :: hasConnectionBasedAccess()");
+    log.info("Inside AuthService :: authorizeConnectionBased()");
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. is requester and requestee same users
-    if (fetchedProfiles[requesterId].profileId == fetchedProfiles [requesteeId].profileId) {
+    if (fetchedProfiles[requesterId].profileId == fetchedProfiles[requesteeId].profileId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return;
     }
     // check 2. if requester and requestee are not same, a connection has to exist between them or requester should be system user
     if (fetchedProfiles[requesterId].profileType.toLowerCase() !== Constants.SYSTEM_USER) {
-      log.info ("requester is not a system user and now checking if there is a connection between requester and requestee");
+      log.info("requester is not a system user and now checking if there is a connection between requester and requestee");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
       const isConnectionExist = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
@@ -104,16 +107,18 @@ export class AuthService {
    */
   public static async hasConnection(from: string, to: string, type: string[], status: string[]) {
     log.info("Inside AuthService :: hasConnection()");
+    from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
+    to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
     const queryOptions = {
       where: {
         "from.reference": from,
         "to.reference": to,
-        "type" : type,
+        "type": type,
         "status": status
       }
     };
     const count = await DAOService.recordsCount(queryOptions, Connection);
     log.info("Exiting AuthService :: hasConnection");
-    return count < 1;
+    return count > 0;
   }
 }

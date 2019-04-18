@@ -128,6 +128,26 @@ export class DAOService {
   }
 
   /**
+   * Deletes resources as per the provided criteria.
+   * @param criteria
+   * @param model
+   * @return {Promise<object>}
+   */
+  public static deleteWithCriteria(criteria, model: any): Promise<object> {
+    log.info("Entering DAOService :: deleteWithCriteria");
+    return model
+      .destroy({ where: { criteria } })
+      .then((rowsDeleted: any) => {
+        log.info("Exiting DAOService: deleteWithCriteria() :: Record deleted successfully");
+        return rowsDeleted;
+      })
+      .catch((err) => {
+        log.error("Error in delete the record :: " + err.stack);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      });
+  }
+
+  /**
    *
    *
    * @static
