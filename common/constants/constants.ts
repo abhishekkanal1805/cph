@@ -24,6 +24,9 @@ class Constants {
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
+  public static readonly CONNECTION_TYPE_PARTNER = "partner";
+  public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
   public static readonly MEDICATION_PLAN_SERVICE = "MedicationPlan";

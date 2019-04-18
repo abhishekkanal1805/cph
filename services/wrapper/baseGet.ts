@@ -3,7 +3,6 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
-import { DataFetch } from "../utilities/dataFetch";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
 import { QueryValidator } from "../validators/queryValidator";
@@ -28,11 +27,8 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0];
-    log.info("getResource() :: Authorization started");
-    const requestorUserProfile = await DataFetch.getUserProfile(requestorProfileId);
-    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
     log.info("UserProfile information retrieved successfully :: saveRecord()");
-    await AuthService.hasConnectionBasedAccess(requestorUserProfile.profileId, requestorUserProfile.profileType, patientId);
+    await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }
@@ -55,7 +51,7 @@ export class BaseGet {
       log.debug("id is not present in queryParams");
       queryParams[patientElement] = [requestorProfileId];
     } else {
-      await AuthService.performAuthorization(requestorProfileId, null, queryParams[patientElement]);
+      await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[patientElement][0]);
     }
 
     // if isDeleted attribute not present in query parameter then return active records
