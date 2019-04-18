@@ -73,7 +73,7 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeConnectionBased(requesterId: string, requesteeId: string) {
-    log.info("Inside AuthService :: hasConnectionBasedAccess()");
+    log.info("Inside AuthService :: authorizeConnectionBased()");
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
@@ -107,8 +107,8 @@ export class AuthService {
    */
   public static async hasConnection(from: string, to: string, type: string[], status: string[]) {
     log.info("Inside AuthService :: hasConnection()");
-    from = (from.indexOf(Constants.USERPROFILE_REFERENCE) == -1) ? (Constants.USERPROFILE_REFERENCE + from) : from;
-    to = (to.indexOf(Constants.USERPROFILE_REFERENCE) == -1) ? (Constants.USERPROFILE_REFERENCE + to) : to;
+    from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
+    to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
     const queryOptions = {
       where: {
         "from.reference": from,
