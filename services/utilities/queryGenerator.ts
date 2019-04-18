@@ -54,7 +54,7 @@ class QueryGenerator {
         value = Constants.PERCENTAGE_VALUE + value + quoteValue;
         break;
       case Constants.OPERATION_WORD_MATCH:
-        value = (isRawQuery) ? Constants.POSIX_START +  value + Constants.POSIX_END : value;
+        value = isRawQuery ? Constants.POSIX_START + value + Constants.POSIX_END : value;
         break;
     }
     return value;
@@ -364,7 +364,8 @@ class QueryGenerator {
   public static getNestedAttributes(attributes: string[], value: string, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
-      nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1 ? [value] : value;
+      nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] =
+        attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1 ? [value] : value;
       return;
     }
     arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
@@ -489,7 +490,7 @@ class QueryGenerator {
       }
     }
     // If it is wordmatch we have to do startswith and endswith, in posix we will set boundries
-    const operator = (column.operation === Constants.OPERATION_WORD_MATCH) ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
+    const operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
     const searchQuery = [];
     _.each(values, (eachValue: any) => {
       eachValue = this.getUpdatedSearchValue(eachValue, column, true);
@@ -534,12 +535,10 @@ class QueryGenerator {
     }
     // To perform like/ilike operation with array of object, we need raw sql support
     if (
-      [
-        Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH,
-        Constants.OPERATION_ENDS_WITH, Constants.OPERATION_WORD_MATCH
-      ].indexOf(column.operation) > -1) {
-        this.createParitalSearchConditions(column, values, queryObject);
-        return;
+      [Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH, Constants.OPERATION_ENDS_WITH, Constants.OPERATION_WORD_MATCH].indexOf(column.operation) > -1
+    ) {
+      this.createParitalSearchConditions(column, values, queryObject);
+      return;
     }
     // array will perform only contains operation
     // Perform search for array type structure

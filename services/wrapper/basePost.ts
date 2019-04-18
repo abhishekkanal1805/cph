@@ -83,7 +83,7 @@ export class BasePost {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.performAuthorization(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization is successful ");
     // uniquesReferenceIds
     let uniquesReferenceIds = [...new Set(response.get(referenceValidationAttribute))].filter(Boolean);
