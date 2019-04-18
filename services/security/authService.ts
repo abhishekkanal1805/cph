@@ -47,7 +47,7 @@ export class AuthService {
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
       const isConnectionExist = await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
-      if (!isConnectionExist) {
+      if (isConnectionExist.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
@@ -88,7 +88,7 @@ export class AuthService {
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
       const isConnectionExist = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
-      if (!isConnectionExist) {
+      if (isConnectionExist.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
@@ -107,6 +107,7 @@ export class AuthService {
    */
   public static async hasConnection(from: string, to: string, type: string[], status: string[]) {
     log.info("Inside AuthService :: hasConnection()");
+    // In connection we store from and to attribute in UserProfile/uuid
     from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
     to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
     const queryOptions = {
@@ -117,8 +118,9 @@ export class AuthService {
         "status": status
       }
     };
-    const count = await DAOService.recordsCount(queryOptions, Connection);
+    let result = await DAOService.search(Connection, queryOptions);
+    result = result.map((eachRecord: any) => eachRecord[Constants.DEFAULT_SEARCH_ATTRIBUTES]);
     log.info("Exiting AuthService :: hasConnection");
-    return count > 0;
+    return result;
   }
 }
