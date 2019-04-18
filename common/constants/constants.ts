@@ -43,6 +43,10 @@ class Constants {
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly PDF_EXTENSION = ".pdf";
   public static readonly ATTACHMENT = "attachment";
+  public static readonly URL_SPLIT_OPERATOR = ".com/";
+  public static readonly BINARY = "binary";
+  public static readonly BASE64 = "base64";
+  public static readonly CUSTOM_GROUP = "custom:group";
 
   public static readonly ID = "id";
 }
