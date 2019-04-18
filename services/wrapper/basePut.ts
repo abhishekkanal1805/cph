@@ -37,7 +37,7 @@ export class BasePut {
     }
     log.info("Record Array created succesfully in :: updateResource()");
     const keysToFetch = new Map();
-    keysToFetch.set("id", []);
+    keysToFetch.set(Constants.ID, []);
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
@@ -312,7 +312,7 @@ export class BasePut {
     }
     log.info("Record Array created succesfully in :: updateResource()");
     const keysToFetch = new Map();
-    keysToFetch.set("id", []);
+    keysToFetch.set(Constants.ID, []);
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
