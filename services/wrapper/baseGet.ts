@@ -3,7 +3,6 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
-import { DataFetch } from "../utilities/dataFetch";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
@@ -35,8 +34,7 @@ export class BaseGet {
   }
 
   /**
-   *
-   *Wrapper function to perform GET for UserProfile
+   * Wrapper function to perform GET for UserProfile
    * @static
    * @param {string} id
    * @param {*} model
@@ -51,16 +49,11 @@ export class BaseGet {
     const options = { "meta.isDeleted": false };
     let record = await DAOService.fetchRowByPkQuery(id, UserProfile, options);
     record = record.dataResource;
-    log.info("getUserProfileResource() :: Authorization started");
-    const requestorUserProfile = await DataFetch.getUserProfile([requestorProfileId]);
-    requestorUserProfile.profileId = Constants.USERPROFILE_REFERENCE + requestorUserProfile.profileId;
-    const patientId = Constants.USERPROFILE_REFERENCE + id;
-    log.info("UserProfile information retrieved successfully :: saveRecord()");
-    await AuthService.authorizeConnectionBased(requestorUserProfile.profileId, patientId);
+    await AuthService.authorizeConnectionBased(requestorProfileId, id);
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }
-   /** Wrapper function to perform search for CPH users
+  /** Wrapper function to perform search for CPH users
    * @static
    * @param {*} model Service Model for which search operation will occour
    * @param {*} queryParams Input search request

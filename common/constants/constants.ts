@@ -27,6 +27,7 @@ class Constants {
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
+  public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
   public static readonly CONNECTION_TO = "to";
@@ -68,6 +69,7 @@ class Constants {
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
+  public static readonly CONTENT_TYPE = "Content-Type";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly PDF_EXTENSION = ".pdf";

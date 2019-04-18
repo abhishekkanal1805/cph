@@ -57,4 +57,29 @@ export class S3Service {
         throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       });
   }
+
+  /**
+   * Deletes  object for the specified key from s3 bucket.
+   * @param {string} bucket
+   * @param {string} key
+   * @returns {Promise<S3.Body>}
+   */
+  public static async delete(bucket: string, key: string) {
+    log.info("Inside S3Service: delete()");
+    const paramsToDeleteObject = {
+      Bucket: bucket,
+      Key: key
+    };
+    return await s3
+      .deleteObject(paramsToDeleteObject)
+      .promise()
+      .then((data) => {
+        log.info("Object deleted from  S3 successfully");
+        return data;
+      })
+      .catch((err) => {
+        log.error("Error in deleting object from S3 bucket", err);
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      });
+  }
 }
