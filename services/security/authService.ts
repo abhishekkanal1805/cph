@@ -43,7 +43,7 @@ export class AuthService {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      await this.hasConnection(informationSourceReference, patientReference, connectionType, connectionStatus);
+      await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
      } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid patient");
@@ -82,7 +82,7 @@ export class AuthService {
       log.info ("requester is not a system user and now checking if there is a connection between requester and requestee");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      await this.hasConnection(requester, requestee, connectionType, connectionStatus);
+      await this.hasConnection(requestee, requester, connectionType, connectionStatus);
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
   }
