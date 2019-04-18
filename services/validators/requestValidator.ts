@@ -5,7 +5,9 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
+import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
+import { DataFetch } from "../utilities/dataFetch";
 
 export class RequestValidator {
   /**
@@ -138,5 +140,62 @@ export class RequestValidator {
     } catch (err) {
       throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "indication");
     }
+  }
+
+  /**
+   * Validates and filters resource references.
+   * @param requestPayload
+   * @param uniqueReferenceIds
+   * @param referenceModel
+   * @return {Promise<{validResources: any[]; errorResults: any[]}>}
+   */
+  public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel, referenceValidationAttribute: string) {
+    log.info("In RequestValidator: filterValidReferences()");
+    const response = { validResources: [], errorResults: [] };
+    const recordArr = [];
+    const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
+    const validReferenceIds: string[] = Utility.findIds(results, Constants.ID).map((eachId) => eachId);
+    if (uniqueReferenceIds.length !== validReferenceIds.length) {
+      for (const resource of requestPayload) {
+        if (
+          resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
+          !validReferenceIds.includes(resource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1])
+        ) {
+          const badRequest = new BadRequestResult(
+            errorCodeMap.InvalidReference.value,
+            errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
+          );
+          if (resource.meta && resource.meta.clientRequestId) {
+            badRequest.clientRequestId = resource.meta.clientRequestId;
+          }
+          response.errorResults.push(badRequest);
+        } else {
+          recordArr.push(resource);
+        }
+      }
+      response.validResources = recordArr;
+    } else {
+      response.validResources = requestPayload;
+      response.errorResults = [];
+    }
+    log.info("In RequestValidator: filterValidReferences()");
+    return response;
+  }
+
+  /**
+   * Processes and validates the request payload.
+   * @param requestPayload
+   * @return {requestPayload}
+   */
+  public static processAndValidateRequestPayload(requestPayload) {
+    if (!Array.isArray(requestPayload.entry)) {
+      requestPayload = [requestPayload];
+    } else {
+      const total = requestPayload.total;
+      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      RequestValidator.validateBundleTotal(requestPayload, total);
+      RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
+    }
+    return requestPayload;
   }
 }
