@@ -78,7 +78,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. is requester and requestee same users
-    if (fetchedProfiles[requesterId].profileId == fetchedProfiles[requesteeId].profileId) {
+    if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return;
     }
