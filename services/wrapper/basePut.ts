@@ -75,7 +75,7 @@ export class BasePut {
    * @returns
    * @memberof BasePut
    */
-  public static async updateResourcesWithReferenceValidation(
+  public static async updateResourcesWithReference(
     requestPayload,
     patientElement: string,
     requestorProfileId: string,
@@ -151,7 +151,7 @@ export class BasePut {
    * @returns
    * @memberof BasePut
    */
-  public static async bulkUpdateWithReferenceValidation(
+  public static async bulkUpdateWithReference(
     requestPayload,
     requestorProfileId: string,
     requestPrimaryIds: string[],
@@ -184,7 +184,7 @@ export class BasePut {
           if (
             record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
             !validReferenceIds.includes(
-              record.dataResource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.SLASH_VALUE)[1]
+              record.dataResource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1]
             )
           ) {
             const badRequest = new BadRequestResult(
