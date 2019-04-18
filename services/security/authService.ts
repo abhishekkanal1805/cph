@@ -43,7 +43,11 @@ export class AuthService {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      await this.hasConnection(informationSourceReference, patientReference, connectionType, connectionStatus);
+      const isConnectionExist = await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
+      if (!isConnectionExist) {
+        log.error("No connection found between from user and to user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
      } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid patient");
@@ -55,34 +59,36 @@ export class AuthService {
   }
 
   /**
-   *
+   * It will perform authraization for get and search methods
+   * It will validate the profile ids and check connection between them
    *
    * @static
-   * @param {string} to logged in profile ID in format UserProfile/123
+   * @param {string} to logged in profile ID in format 123
    * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle in format UserProfile/123
+   * @param {string} from patient ID coming from request bundle in format 123
    * @returns/
    * @memberof AuthService
    */
-  public static async hasConnectionBasedAccess(requester: string, requestee: string) {
+  public static async authorizeConnectionBased(requesterId: string, requesteeId: string) {
     log.info("Inside AuthService :: hasConnectionBasedAccess()");
-    const informationSourceId = requester.split(Constants.USERPROFILE_REFERENCE)[1];
-    const patientId = requestee.split(Constants.USERPROFILE_REFERENCE)[1];
-    const requestProfileIds = [requester, informationSourceId, patientId];
-
+    const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. is requester and requestee same users
-    if (fetchedProfiles[requester].profileId == fetchedProfiles [requestee].profileId) {
+    if (fetchedProfiles[requesterId].profileId == fetchedProfiles [requesteeId].profileId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return;
     }
     // check 2. if requester and requestee are not same, a connection has to exist between them or requester should be system user
-    if (fetchedProfiles[requester].profileType.toLowerCase() !== Constants.SYSTEM_USER) {
+    if (fetchedProfiles[requesterId].profileType.toLowerCase() !== Constants.SYSTEM_USER) {
       log.info ("requester is not a system user and now checking if there is a connection between requester and requestee");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      await this.hasConnection(requester, requestee, connectionType, connectionStatus);
+      const isConnectionExist = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+      if (!isConnectionExist) {
+        log.error("No connection found between from user and to user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
   }
@@ -107,10 +113,7 @@ export class AuthService {
       }
     };
     const count = await DAOService.recordsCount(queryOptions, Connection);
-    if (count != 1) {
-      log.error("No connection found between from user and to user");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
     log.info("Exiting AuthService :: hasConnection");
+    return count < 1;
   }
 }
