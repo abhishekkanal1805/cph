@@ -173,8 +173,8 @@ class QueryGenerator {
   public static createDateConditions(column: any, dateObject: any, queryObject: any, condtionOperator: symbol, datePattern: string) {
     // As date is a string we have to consider current date also in query
     const operatorMapping = {
-      [Constants.PREFIX_GREATER_THAN] : Constants.PREFIX_GREATER_THAN_EQUAL,
-      [Constants.PREFIX_LESS_THAN_EQUAL] : Constants.PREFIX_LESS_THAN
+      [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
+      [Constants.PREFIX_LESS_THAN_EQUAL]: Constants.PREFIX_LESS_THAN
     };
     const prefix = operatorMapping[dateObject.prefix] ? operatorMapping[dateObject.prefix] : dateObject.prefix;
     const operation = this.getOperator(prefix);
@@ -289,13 +289,8 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static createDateSearchConditions(column: any, value: string[], queryObject: any) {
-    let values = value;
-    let condtionOperator = Op.or;
-    if (values.length > 1) {
-      condtionOperator = Op.and;
-    } else {
-      values = values[0].split(Constants.COMMA_VALUE);
-    }
+    const values = (value.length == 1) ? value[0].split(Constants.COMMA_VALUE) : value;
+    const condtionOperator = Op.or;
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
       const isDateTime = moment(dateObject.data, Constants.DATE_TIME, true).isValid();
