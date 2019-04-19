@@ -85,6 +85,25 @@ export class DAOService {
   }
 
   /**
+   * Update record for given Model
+   * @param model
+   * @param record
+   * @param updatedResources
+   * @return {Promise<any>}
+   */
+  public static async update(model, record, updatedResources) {
+    return model
+      .update(record, { where: { id: record.id } })
+      .then(() => {
+        updatedResources.savedRecords.push(record.dataResource);
+      })
+      .catch((err) => {
+        log.error("Error in updating record: " + err);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      });
+  }
+
+  /**
    *  Bulk create records for given Model
    *
    * @static
@@ -148,7 +167,6 @@ export class DAOService {
   }
 
   /**
-   *
    *
    * @static
    * @param {string} id
