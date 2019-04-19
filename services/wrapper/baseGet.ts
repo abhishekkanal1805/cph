@@ -1,7 +1,6 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
-import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
@@ -34,7 +33,7 @@ export class BaseGet {
   }
 
   /**
-   * Wrapper function to perform GET for UserProfile
+   * Wrapper function to perform GET for record without authorization
    * @static
    * @param {string} id
    * @param {*} model
@@ -44,10 +43,10 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getUserProfileResource(id: string) {
-    log.info("In BaseGet :: getUserProfileResource()");
+  public static async getResourceWithoutAuthorization(id: string, model: any) {
+    log.info("In BaseGet :: getResourceWithoutAuthorization()");
     const options = { "meta.isDeleted": false };
-    let record = await DAOService.fetchRowByPkQuery(id, UserProfile, options);
+    let record = await DAOService.fetchRowByPkQuery(id, model, options);
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
     return record;
