@@ -54,7 +54,7 @@ export class BaseDelete {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
         eachRecord.meta.lastUpdated = new Date().toISOString();
-        eachRecord = DataHelperService.convertToModel(eachRecord, model, modelDataResource).dataValues;
+        eachRecord = DataHelperService.convertToModel(eachRecord, model, modelDataResource);
         await DAOService.softDelete(eachRecord.id, eachRecord, model);
       }
     }
