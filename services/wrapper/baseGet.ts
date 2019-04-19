@@ -26,8 +26,7 @@ export class BaseGet {
     let record = await DAOService.fetchRowByPkQuery(id, model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0];
-    log.info("UserProfile information retrieved successfully :: saveRecord()");
+    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResource() :: Record retrieved successfully");
     return record;

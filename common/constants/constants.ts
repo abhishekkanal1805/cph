@@ -19,6 +19,8 @@ class Constants {
   public static readonly BOUNDSPERIOD_LIMIT = 90;
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
+  public static readonly FROM_REFERENCE_KEY = "from.reference";
+  public static readonly TO_REFERENCE_KEY = "to.reference";
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
@@ -26,6 +28,8 @@ class Constants {
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TO = "to";
+  public static readonly CONNECTION_TYPE = "type";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
@@ -55,6 +59,7 @@ class Constants {
   public static readonly ILIKE_OPERATOR = "ilike";
 
   public static readonly ACTIVE = "active";
+  public static readonly PENDING = "pending";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";

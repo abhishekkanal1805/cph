@@ -37,7 +37,7 @@ export class BasePut {
     }
     log.info("Record Array created succesfully in :: updateResource()");
     const keysToFetch = new Map();
-    keysToFetch.set("id", []);
+    keysToFetch.set(Constants.ID, []);
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
@@ -283,6 +283,56 @@ export class BasePut {
     log.info("Firing bulk update all promises :: bulkUpdate()");
     await Promise.all(allPromise);
     log.info("Bulk create successfull :: bulkUpdate()");
+    return result;
+  }
+
+  /**
+   *  Wrapper function to perform update for FHIR services
+   *
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {string} patientElement patient reference key like subject.reference
+   * @param {*} requestorProfileId requestorProfileId Id of logged in user
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @returns
+   * @memberof BasePut
+   */
+  public static async updateFHIRResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
+    // We need modelDataResource to be passed for mapping request to dataresource columns.
+    let total;
+    if (!Array.isArray(requestPayload.entry)) {
+      requestPayload = [requestPayload];
+      total = 1;
+    } else {
+      total = requestPayload.total;
+      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      RequestValidator.validateBundleTotal(requestPayload, total);
+      RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
+    }
+    log.info("Record Array created succesfully in :: updateResource()");
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.ID, []);
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(patientElement, []);
+    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Reference Keys retrieved successfully :: updateResource()");
+    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    // patientvalidationid
+    const patientIds = [...new Set(response.get(patientElement))];
+    // primary key Ids
+    const primaryIds = [...new Set(response.get(Constants.ID))];
+    // perform patient reference validation
+    RequestValidator.validateUniquePatientReference(patientIds);
+    //  perform deviceId validation
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
+    // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
+    const patientReferenceValue = patientIds[0];
+    await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
+    log.info("User Authorization successfully :: updateResource()");
+    const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
+    log.info("Update successfull :: updateResource()");
     return result;
   }
 }
