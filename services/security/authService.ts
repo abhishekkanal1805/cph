@@ -41,7 +41,7 @@ export class AuthService {
     if (
       fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
       (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER ||
-        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER)
+        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&(requester === informationSourceId)
     ) {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
