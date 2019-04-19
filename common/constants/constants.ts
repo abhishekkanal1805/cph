@@ -67,6 +67,7 @@ class Constants {
   public static readonly PENDING = "pending";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
+  public static readonly RESOURCE_TYPE = "resourceType";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
   public static readonly CONTENT_TYPE = "Content-Type";

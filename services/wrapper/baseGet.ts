@@ -44,12 +44,11 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getUserProfileResource(id: string, requestorProfileId: string) {
+  public static async getUserProfileResource(id: string) {
     log.info("In BaseGet :: getUserProfileResource()");
     const options = { "meta.isDeleted": false };
     let record = await DAOService.fetchRowByPkQuery(id, UserProfile, options);
     record = record.dataResource;
-    await AuthService.authorizeConnectionBased(requestorProfileId, id);
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }

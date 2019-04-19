@@ -13,6 +13,7 @@ export * from "./services/security/userAuthService";
 export * from "./services/dao/daoService";
 export * from "./services/validators/requestValidator";
 export * from "./services/validators/queryValidator";
+export * from "./services/utilities/queryGenerator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";
 export * from "./services/utilities/dataTransform";
