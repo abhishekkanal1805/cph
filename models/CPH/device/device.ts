@@ -33,6 +33,5 @@ export class Device extends Model<Device> {
   meta: ResourceMetadata;
 
   @Column({ type: DataType.JSONB })
-  @Column({ type: DataType.JSONB })
   dataResource: DeviceDataResource;
 }
