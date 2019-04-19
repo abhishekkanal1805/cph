@@ -136,7 +136,7 @@ export class DAOService {
   public static deleteWithCriteria(criteria, model: any): Promise<object> {
     log.info("Entering DAOService :: deleteWithCriteria");
     return model
-      .destroy({ where: { criteria } })
+      .destroy({ where: criteria  })
       .then((rowsDeleted: any) => {
         log.info("Exiting DAOService: deleteWithCriteria() :: Record deleted successfully");
         return rowsDeleted;
