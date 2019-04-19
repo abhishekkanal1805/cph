@@ -173,8 +173,8 @@ class QueryGenerator {
   public static createDateConditions(column: any, dateObject: any, queryObject: any, condtionOperator: symbol, datePattern: string) {
     // As date is a string we have to consider current date also in query
     const operatorMapping = {
-      [Constants.PREFIX_GREATER_THAN] : Constants.PREFIX_GREATER_THAN_EQUAL,
-      [Constants.PREFIX_LESS_THAN_EQUAL] : Constants.PREFIX_LESS_THAN
+      [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
+      [Constants.PREFIX_LESS_THAN_EQUAL]: Constants.PREFIX_LESS_THAN
     };
     const prefix = operatorMapping[dateObject.prefix] ? operatorMapping[dateObject.prefix] : dateObject.prefix;
     const operation = this.getOperator(prefix);
