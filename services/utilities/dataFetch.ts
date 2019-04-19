@@ -94,4 +94,17 @@ export class DataFetch {
     const result = await DAOService.search(UserProfile, query);
     return result;
   }
+
+  public static async getConnections(model: any, searchObject: any) {
+    // Remove empty data resource object
+    searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
+      [Op.ne]: null
+    };
+    const query = {
+      where: searchObject,
+      attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+    };
+    const result = await DAOService.search(model, query);
+    return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+  }
 }
