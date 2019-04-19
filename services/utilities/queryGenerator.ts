@@ -171,7 +171,13 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static createDateConditions(column: any, dateObject: any, queryObject: any, condtionOperator: symbol, datePattern: string) {
-    const operation = this.getOperator(dateObject.prefix);
+    // As date is a string we have to consider current date also in query
+    const operatorMapping = {
+      [Constants.PREFIX_GREATER_THAN] : Constants.PREFIX_GREATER_THAN_EQUAL,
+      [Constants.PREFIX_LESS_THAN_EQUAL] : Constants.PREFIX_LESS_THAN
+    };
+    const prefix = operatorMapping[dateObject.prefix] ? operatorMapping[dateObject.prefix] : dateObject.prefix;
+    const operation = this.getOperator(prefix);
     const dateMomentObject = moment(dateObject.data, datePattern);
     let periods = Constants.PERIOD_DAYS;
     if (datePattern === Constants.YEAR_MONTH) {
@@ -256,10 +262,11 @@ class QueryGenerator {
   public static createNumberSearchConditions(column: any, value: string[], queryObject: any) {
     let values = value;
     // In case of number value can be in ["1,5"](OR op) or ["ge1","le5"](AND op)
-    let condtionOperator = Op.and;
-    if (values.length > 0 && values[0].indexOf(Constants.COMMA_VALUE) > -1) {
+    let condtionOperator = Op.or;
+    if (values.length > 1) {
+      condtionOperator = Op.and;
+    } else {
       values = values[0].split(Constants.COMMA_VALUE);
-      condtionOperator = Op.or;
     }
     for (const eachNumber of values) {
       const numberObject = Utility.getSearchPrefixValue(eachNumber);
@@ -283,10 +290,11 @@ class QueryGenerator {
    */
   public static createDateSearchConditions(column: any, value: string[], queryObject: any) {
     let values = value;
-    let condtionOperator = Op.and;
-    if (values.length > 0 && values[0].indexOf(Constants.COMMA_VALUE) > -1) {
+    let condtionOperator = Op.or;
+    if (values.length > 1) {
+      condtionOperator = Op.and;
+    } else {
       values = values[0].split(Constants.COMMA_VALUE);
-      condtionOperator = Op.or;
     }
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
