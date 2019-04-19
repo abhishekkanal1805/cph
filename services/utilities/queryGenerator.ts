@@ -289,13 +289,8 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static createDateSearchConditions(column: any, value: string[], queryObject: any) {
-    let values = value;
-    let condtionOperator = Op.or;
-    if (values.length > 1) {
-      condtionOperator = Op.and;
-    } else {
-      values = values[0].split(Constants.COMMA_VALUE);
-    }
+    const values = (value.length == 1) ? value[0].split(Constants.COMMA_VALUE) : value;
+    const condtionOperator = Op.or;
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
       const isDateTime = moment(dateObject.data, Constants.DATE_TIME, true).isValid();
