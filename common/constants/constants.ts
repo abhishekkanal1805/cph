@@ -65,6 +65,7 @@ class Constants {
   public static readonly ACTIVE = "active";
   public static readonly INACTIVE = "inactive";
   public static readonly PENDING = "pending";
+  public static readonly IN_PROGRESS = "in-progress";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly RESOURCE_TYPE = "resourceType";
