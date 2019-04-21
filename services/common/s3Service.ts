@@ -82,4 +82,29 @@ export class S3Service {
         throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
       });
   }
+
+  /**
+   * Generates s3 signed url for requested operation.
+   * @param {string} bucket
+   * @param {string} key
+   * @param {string} expiry
+   * @param {string} operation
+   * @returns {Promise<S3.Body>}
+   */
+  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string) {
+    log.info("Inside S3Service:  getSignedUrl()");
+    try {
+      const params = {
+        Bucket: bucket,
+        Key: key,
+        Expires: expiry
+      };
+      const url = await s3.getSignedUrl(operation, params);
+      log.info("Generated signedUrl successfully");
+      return url;
+    } catch (err) {
+      log.error("Error in generating signed url");
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+    }
+  }
 }
