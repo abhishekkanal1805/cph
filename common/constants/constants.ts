@@ -50,7 +50,6 @@ class Constants {
   public static readonly QUESTION_MARK_VALUE = "?";
   public static readonly COMMA_SPACE_VALUE = ", ";
   public static readonly UNDERSCORE_VALUE = "_";
-  public static readonly BACKSLASH_VALUE = "/";
   public static readonly COMMA_VALUE = ",";
   public static readonly PERCENTAGE_VALUE = "%";
   public static readonly DOUBLE_QUOTE = '"';
