@@ -1,8 +1,8 @@
 import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { DataService } from "../dao/dataService";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { DAOService } from "../dao/daoService";
 import { RequestValidator } from "./requestValidator";
 
 describe("Test validateBundleTotal() - ", () => {
@@ -89,12 +89,12 @@ describe("Test validateDeviceIds() - ", () => {
     done();
   });
   it("Throw error if device id not present in database", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 0;
     });
     const deviceIds = ["123"];
     let result;
-    const expected = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    const expected = new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + Constants.DEVICE_REFERENCE_KEY);
     try {
       await RequestValidator.validateDeviceIds(deviceIds);
     } catch (err) {
@@ -104,7 +104,7 @@ describe("Test validateDeviceIds() - ", () => {
     done();
   });
   it("No error is returned if unique device id is passed which is present in db", async (done) => {
-    spyOn(DataService, "recordsCount").and.callFake(() => {
+    spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 1;
     });
     const deviceIds = ["123"];
@@ -112,35 +112,6 @@ describe("Test validateDeviceIds() - ", () => {
     const expected = null;
     try {
       await RequestValidator.validateDeviceIds(deviceIds);
-    } catch (err) {
-      result = err;
-    }
-    expect(result).toEqual(expected);
-    done();
-  });
-});
-
-describe("Test validateUserReferenceAgainstLoggedInUser() - ", () => {
-  it("Throw error if loggedin Id is not same as user reference", (done) => {
-    const loggedInId = "12",
-      userReferenceId = "UserProfile/123";
-    let result;
-    const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    try {
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInId, userReferenceId);
-    } catch (err) {
-      result = err;
-    }
-    expect(result).toEqual(expected);
-    done();
-  });
-  it("return void if logged in Id is same as user reference id", (done) => {
-    const loggedInId = "123",
-      userReferenceId = "UserProfile/123";
-    let result = null;
-    const expected = null;
-    try {
-      RequestValidator.validateUserReferenceAgainstLoggedInUser(loggedInId, userReferenceId);
     } catch (err) {
       result = err;
     }

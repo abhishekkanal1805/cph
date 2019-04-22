@@ -128,8 +128,6 @@ class DataHelperService {
    */
   public static convertToModel(record: any, serviceModel: any, serviceDataResource: any) {
     const recordAsModel = Object.assign(new serviceModel(), record); // this makes sure all fields other than dataResource are copied
-    // if a serviceDataResource type was provided and if the dataResource field is also present then setting
-    log.debug("adding [dataResource] to the model");
     recordAsModel.dataResource = Object.assign(new serviceDataResource(), record);
     return recordAsModel;
   }
@@ -1042,13 +1040,37 @@ class DataHelperService {
             nestedAttributes = [nestedAttributes];
           }
           if (!searchObject[parentAttribute]) {
-            searchObject[parentAttribute] = {
-              [Op.or]: []
-            };
+            searchObject[parentAttribute] = {};
           }
-          searchObject[parentAttribute][Op.or].push({
-            [Op.contains]: nestedAttributes
-          });
+          if (mappedAttribute.arrayOperator) {
+            if (searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]]) {
+              searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op[mappedAttribute.arrayOperator]]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          } else {
+            if (searchObject[parentAttribute][Op.or]) {
+              searchObject[parentAttribute][Op.or].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op.or]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          }
         }
       } else {
         // comes here if mapped type is array but we match on attribute itself as nested properties are not present (like string)

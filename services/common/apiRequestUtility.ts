@@ -3,7 +3,7 @@ import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
 /**
  * Utility to help extracting request and context data from ApiEvent and ApiContext
  */
-export class GatewayUtility {
+export class APIRequestUtility {
   /**
    * Returns the value of query string if present in ApiEvent or else empty object.
    * If the ApiEvent itself is null or undefined it returns empty object

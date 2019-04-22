@@ -22,7 +22,6 @@ class UserProfileDataResource {
   address: Address;
   preferences: Preference;
   identifier: Identifier;
-  userCode: string;
   additionalAttributes: Additional[];
 }
 

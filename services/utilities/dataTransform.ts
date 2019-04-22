@@ -26,4 +26,22 @@ export class DataTransform {
     }
     return metaDataObject;
   }
+
+  public static getUpdateMetaData(record, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
+    const timestamp = new Date().toISOString();
+    const metaDataObject: any = {
+      versionId: existingRecordMetadata.versionId + 1,
+      created: existingRecordMetadata.created,
+      lastUpdated: timestamp,
+      createdBy: existingRecordMetadata.createdBy,
+      lastUpdatedBy: modifiedByUser,
+      isDeleted
+    };
+
+    metaDataObject.clientRequestId = record.meta.clientRequestId ? record.meta.clientRequestId : existingRecordMetadata.clientRequestId;
+    metaDataObject.deviceId = record.meta.deviceId ? record.meta.deviceId : existingRecordMetadata.deviceId;
+    metaDataObject.source = record.meta.source ? record.meta.source : existingRecordMetadata.source;
+
+    return metaDataObject;
+  }
 }

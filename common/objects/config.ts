@@ -510,7 +510,8 @@ const settings = {
     searchAttributes: [
       { map: "id", to: "id", type: "string", isMultiple: true },
       { map: "email", to: "email", type: "string" },
-      { map: "userCode", to: "userCode", type: "string" },
+      { map: "userCode", to: "identifier[*].value", type: "array", arrayOperator: "and" },
+      { map: "use", to: "identifier[*].use", type: "array", arrayOperator: "and" },
       { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
       { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
       {
@@ -740,7 +741,28 @@ const settings = {
       { map: "limit", type: "number" },
       { map: "offset", type: "number" }
     ]
+  },
+  appointment: {
+    searchAttributes: [
+      { map: "actor", to: "participant[*].actorReference.reference", type: "array" },
+      { map: "informationSource", to: "informationSource.reference", type: "string" },
+      { map: "appointmentType", to: "appointmentType.coding[*].code", type: "array" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "date", to: "start", type: "date", isMultiple: true },
+      { map: "reason", to: "reason[*].coding[*].code", type: "array" },
+      {
+        map: "indication",
+        to: "indication[*].reference",
+        type: "array"
+      },
+      { map: "serviceCategory", to: "serviceCategory[*].coding[*].code", type: "array" },
+      { map: "serviceType", to: "serviceType[*].coding[*].code", type: "array" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "clientRequestId", to: "meta.clientRequestId", type: "string", isMultiple: true },
+      { map: "limit", type: "number" },
+      { map: "offset", type: "number" }
+    ]
   }
 };
-
 export { data, settings };
