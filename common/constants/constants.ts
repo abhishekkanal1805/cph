@@ -66,11 +66,13 @@ class Constants {
   public static readonly INACTIVE = "inactive";
   public static readonly PENDING = "pending";
   public static readonly IN_PROGRESS = "in-progress";
+  public static readonly RETIRED = "retired";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly RESOURCE_TYPE = "resourceType";
   public static readonly CONTENT_TYPE_DEFAULT = "application/json";
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
+  public static readonly CONTENT_TYPE_PNG = "image/png";
   public static readonly CONTENT_TYPE = "Content-Type";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
