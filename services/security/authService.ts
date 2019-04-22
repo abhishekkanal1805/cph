@@ -34,7 +34,7 @@ export class AuthService {
     // check 2. is Patient submitting its own request
     if (requester === informationSourceId && requester === patientId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
-      return;
+      return {};
     }
     // check 3. is Practitioner or Care Partner submitting request for patient
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
@@ -47,15 +47,16 @@ export class AuthService {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
-      if (isConnectionExist.length < 1) {
+      const connection = await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
+      if (connection.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      return connection;
     } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid patient");
-      return;
+      return {};
     } else {
       log.error("Received a user of unknown profile type");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -75,6 +76,7 @@ export class AuthService {
    */
   public static async authorizeConnectionBased(requesterId: string, requesteeId: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
+    let connection;
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
@@ -88,13 +90,14 @@ export class AuthService {
       log.info("requester is not a system user and now checking if there is a connection between requester and requestee");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
-      if (isConnectionExist.length < 1) {
+      connection = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+      if (connection.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
+    return connection;
   }
 
   /**

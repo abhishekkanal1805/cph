@@ -57,6 +57,9 @@ class Constants {
   public static readonly POSIX_END = "\\M";
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
+  public static readonly OPENING_PARENTHESES = "(";
+  public static readonly CLOSING_PARENTHESES = ")";
+  public static readonly HYPHEN = "-";
 
   public static readonly ACTIVE = "active";
   public static readonly PENDING = "pending";
@@ -115,6 +118,11 @@ class Constants {
 
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
+
+  /*Sharing Rule Constants*/
+  public static readonly DAYS_IN_WEEK = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+  public static readonly MONTHS_IN_YEAR = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+
 }
 
 export { Constants };

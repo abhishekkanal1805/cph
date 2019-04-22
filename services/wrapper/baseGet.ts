@@ -1,6 +1,8 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
+import { DataService } from "../common/dataService";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
@@ -45,19 +47,18 @@ export class BaseGet {
    */
   public static async searchResource(model: any, queryParams: any, patientElement: string, requestorProfileId: string, attributesMapping: any) {
     // Perform User validation
+    let connection;
     // If loggedin id is not present in queryParams, then return loggedin user data only
     if (!queryParams[patientElement]) {
       log.debug("id is not present in queryParams");
       queryParams[patientElement] = [requestorProfileId];
     } else {
-      await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[patientElement][0]);
+      connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[patientElement][0]);
     }
-
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
     }
-
     let limit = Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
@@ -82,9 +83,10 @@ export class BaseGet {
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+    const whereClause = await BaseGet.addSharingRuleClause(queryObject, connection, queryParams[patientElement], model);
     // fetch data from db with all conditions
     const searchQuery = {
-      where: queryObject,
+      where: whereClause,
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES],
       limit: limit + 1,
       offset,
@@ -96,5 +98,34 @@ export class BaseGet {
     queryParams.limit = limit;
     queryParams.offset = offset;
     return result;
+  }
+
+  /**
+   * @param queryObject
+   * @param connection
+   * @param isSharingRuleCheckNeeded
+   * @param model
+   * @return {Promise<{}>}
+   */
+  /* TODO: This Function will be moved to Utility class */
+  public static async addSharingRuleClause(queryObject, connection, isSharingRuleCheckNeeded, model) {
+    log.info("Entering BaseGet :: addSharingRuleClauseToWhere()");
+    let whereClause = {};
+    const serviceName = model.getTableName();
+    if (isSharingRuleCheckNeeded) {
+      if (connection && !connection.sharingRules && connection.sharingRules.length === 0) {
+        if (serviceName === "Connection") {
+          whereClause = queryObject;
+        }
+      } else {
+        const sharingRuleConditionClause = await DataService.getSharingRulesConditionClause(connection.sharingRules, serviceName);
+        whereClause[Op.and].push(queryObject);
+        whereClause[Op.and].push(sharingRuleConditionClause);
+      }
+    } else {
+      whereClause = queryObject;
+    }
+    log.info("Exiting BaseGet :: addSharingRuleClauseToWhere()");
+    return whereClause;
   }
 }

@@ -6,13 +6,12 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Op } from "sequelize";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
-import { CriteriaExpression } from "../../models/CPH/connection/criteriaExpression";
 import { CriteriaList } from "../../models/CPH/connection/criteriaList";
-import { CriteriaValue } from "../../models/CPH/connection/criteriaValue";
 import { SharingRule } from "../../models/CPH/connection/sharingRule";
 import { Device } from "../../models/CPH/device/device";
 import { DataHelperService } from "./dataHelperService";
@@ -519,7 +518,7 @@ class DataService {
   /**
    * @param {SharingRule[]} sharingRules
    * @param {string} serviceName
-   * @return {Promise<void>}
+   * @return {Promise<any>}
    */
   public static async getSharingRulesConditionClause(sharingRules: SharingRule[], serviceName: string) {
     log.info("Entering BaseService :: getSharingRulesConditionClause()");
@@ -537,6 +536,10 @@ class DataService {
     return conditionClause;
   }
 
+  /**
+   * @param {CriteriaList} criteriaList
+   * @return {Promise<void>}
+   */
   public static async getCriteriaConditionClause(criteriaList: CriteriaList) {
     log.info("Entering BaseService :: getCriteriaCondition()");
     const operationMap = {
@@ -546,6 +549,9 @@ class DataService {
     const operation = operationMap[criteriaList.type];
     const conditionArray = {};
     conditionArray[operation] = [];
+    if (criteriaList.criteriaList) {
+      conditionArray[operation].push(await DataService.getCriteriaConditionClause(criteriaList.criteriaList));
+    }
     if (criteriaList.criteria && criteriaList.criteria.length > 0) {
       for (const criterion of criteriaList.criteria) {
         const criterionCondition = await DataService.generateConditionClause(criterion);
@@ -555,10 +561,26 @@ class DataService {
     log.info("Exiting BaseService :: getCriteriaCondition()");
   }
 
-  public static async generateConditionClause(criterion: CriteriaExpression | CriteriaValue) {
+  /**
+   * @param criterion
+   * @return {Promise<{}>}
+   */
+  public static async generateConditionClause(criterion) {
     log.info("Entering BaseService :: generateConditionClause()");
-
+    const operationMap = {
+      greaterThan: Op.gt,
+      greaterThanEqual: Op.gte,
+      lessThan: Op.lt,
+      lesserThan: Op.lte,
+      equal: Op.eq
+    };
+    const criteriaClause = {};
+    const value = criterion.value ? criterion.value : await DataService.expressionEvaluator(criterion.valueExpression);
+    const operation = operationMap[criterion.operation];
     log.info("Exiting BaseService :: generateConditionClause()");
+    return criteriaClause[criterion.field] = {
+      [operation]:  value
+    };
   }
 
   /**
@@ -568,24 +590,24 @@ class DataService {
    * @returns {string}
    */
   public static async expressionEvaluator(expression: string) {
-    const days: string[] = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-    const months: string[] = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-    const init: number = expression.indexOf("(");
-    const fin: number = expression.indexOf(")");
+    const days: string[] = Constants.DAYS_IN_WEEK;
+    const months: string[] = Constants.MONTHS_IN_YEAR;
+    const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
+    const fin: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
     const value: string = expression.substr(init + 1, fin - init - 1);
     let evaluatedValue: string;
     if (days.indexOf(value) > -1) {
       evaluatedValue = moment()
         .weekday(days.indexOf(value) - 6)
-        .format("YYYY-MM-DD");
+        .format(Constants.DATE);
     } else if (months.indexOf(value) > -1) {
       const month = months.indexOf(value);
       const lastDate: number = moment()
         .month(month)
         .daysInMonth();
-      evaluatedValue = moment().year() + "-" + (month < 9 ? "0" + (month + 1) : "" + (month + 1)) + "-" + lastDate;
+      evaluatedValue = moment().year() + Constants.HYPHEN + (month < 9 ? "0" + (month + 1) : Constants.EMPTY_VALUE + (month + 1)) + Constants.HYPHEN + lastDate;
     } else {
-      evaluatedValue = value + "-12-31";
+      evaluatedValue = value + Constants.HYPHEN + "12" + Constants.HYPHEN + "31";
     }
     return evaluatedValue;
   }

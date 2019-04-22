@@ -1,14 +1,17 @@
 import * as log from "lambda-log";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataHelperService } from "../common/dataHelperService";
 import { Utility } from "../common/Utility";
+import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { RequestValidator } from "../validators/requestValidator";
+import { BaseGet } from "./baseGet";
 
 export class BasePut {
   /**
@@ -56,9 +59,9 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization successfully :: updateResource()");
-    const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
+    const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource, connection);
     log.info("Update successfull :: updateResource()");
     return result;
   }
@@ -117,7 +120,7 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization successfully :: updateResource()");
     let uniquesReferenceIds = [...new Set(response.get(referenceValidationAttribute))].filter(Boolean);
     uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
@@ -131,7 +134,8 @@ export class BasePut {
       modelDataResource,
       referenceValidationModel,
       referenceValidationAttribute,
-      uniquesReferenceIds
+      uniquesReferenceIds,
+      connection
     );
     log.info("Update successfull :: updateResource()");
     return result;
@@ -159,12 +163,23 @@ export class BasePut {
     modelDataResource,
     referenceValidationModel,
     referenceValidationAttribute: string,
-    uniquesReferenceIds
+    uniquesReferenceIds,
+    connection
   ) {
     log.info("In bulkUpdate() :: BasePut Class");
     let validReferenceIds = await DataFetch.getValidIds(referenceValidationModel, uniquesReferenceIds);
     validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map((eachId) => eachId);
-    const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
+    const queryObject = {};
+    const whereClause = {};
+    /* TODO: From line number 175-180 can be moved to separate function */
+    queryObject[Constants.ID] = {
+      [Op.or]: requestPrimaryIds
+    };
+    queryObject["meta.isDeleted"] = {
+      [Op.eq]: false
+    };
+    whereClause["where"] = await BaseGet.addSharingRuleClause(queryObject, connection, true, model);
+    const validPrimaryIds = await DAOService.search(model, whereClause);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
@@ -237,9 +252,19 @@ export class BasePut {
    * @returns
    * @memberof BasePut
    */
-  public static async bulkUpdate(requestPayload, requestorProfileId: string, requestPrimaryIds: string[], model, modelDataResource) {
+  public static async bulkUpdate(requestPayload, requestorProfileId: string, requestPrimaryIds: string[], model, modelDataResource, connection) {
     log.info("In bulkUpdate() :: BasePut Class");
-    const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
+    const queryObject = {};
+    const whereClause = {};
+    /* TODO: From line number 259-265 can be moved to separate function */
+    queryObject[Constants.ID] = {
+      [Op.or]: requestPrimaryIds
+    };
+    queryObject["meta.isDeleted"] = {
+      [Op.eq]: false
+    };
+    whereClause["where"] = await BaseGet.addSharingRuleClause(queryObject, connection, true, model);
+    const validPrimaryIds = await DAOService.search(model, whereClause);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
@@ -329,9 +354,9 @@ export class BasePut {
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
     log.info("User Authorization successfully :: updateResource()");
-    const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
+    const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource, connection);
     log.info("Update successfull :: updateResource()");
     return result;
   }
