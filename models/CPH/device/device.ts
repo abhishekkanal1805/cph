@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
+import {Constants} from "../../../common/constants/constants";
 import { InformationSource } from "../../common/informationSource";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { DeviceDataResource } from "./deviceDataResource";
@@ -16,7 +17,7 @@ export class Device extends Model<Device> {
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
-  @Column({ type: DataType.STRING, field: "informationSource" })
+  @Column({ type: DataType.STRING, field: Constants.INFORMATION_SOURCE_ATTRIBUTE })
   _informationSource: string;
 
   @Column({ type: DataType.STRING })
