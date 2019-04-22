@@ -75,6 +75,29 @@ export class DataFetch {
     const result = await DAOService.search(model, query);
     return result;
   }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} model
+   * @param {string[]} recordIds
+   * @returns {Promise<any>}
+   * @memberof DataFetch
+   */
+  public static async getReferenceResouce(model, recordIds: string): Promise<any[]> {
+    const query = {
+      where: {
+        "id": {
+          [Op.or]: recordIds
+        },
+        "meta.isDeleted": false
+      },
+      attributes: ["dataResource"]
+    };
+    const result = await DAOService.search(model, query);
+    return result;
+  }
   /**
    * @param model
    * @param {string[]} recordIds

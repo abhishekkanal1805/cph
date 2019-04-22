@@ -163,8 +163,8 @@ export class Utility {
    * @param {ApiEvent} event
    * @returns {string}
    */
-  public static getResourceFullUrl(event: ApiEvent) {
-    log.info("Inside Utility: getResourceFullUrl()");
+  public static getRequestUrl(event: ApiEvent) {
+    log.info("Inside Utility: getRequestUrl()");
     const scheme = event["headers"]["X-Forwarded-Proto"];
     const hostName = event["headers"]["Host"];
     const path = event.requestContext["path"];
