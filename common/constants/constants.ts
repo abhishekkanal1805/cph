@@ -47,6 +47,7 @@ class Constants {
   public static readonly FORWARD_SLASH = "/";
   public static readonly DOT_VALUE = ".";
   public static readonly SPACE_VALUE = " ";
+  public static readonly QUESTION_MARK_VALUE = "?";
   public static readonly COMMA_SPACE_VALUE = ", ";
   public static readonly UNDERSCORE_VALUE = "_";
   public static readonly BACKSLASH_VALUE = "/";
@@ -67,6 +68,8 @@ class Constants {
   public static readonly PENDING = "pending";
   public static readonly IN_PROGRESS = "in-progress";
   public static readonly RETIRED = "retired";
+  public static readonly GET_OBJECT = "getObject";
+  public static readonly PUT_OBJECT = "putObject";
   public static readonly CONNECTION_FROM = "from";
   public static readonly CONNECTION = "connection";
   public static readonly RESOURCE_TYPE = "resourceType";
