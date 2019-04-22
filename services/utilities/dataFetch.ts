@@ -103,8 +103,8 @@ export class DataFetch {
     };
     if (requestExpirationDate) {
       searchObject[Constants.REQUEST_EXPIRATION_DATE] = {
-            [Op.gte]: requestExpirationDate,
-            [Op.ne]: null
+        [Op.gte]: requestExpirationDate,
+        [Op.ne]: null
       };
     }
     const query = {
@@ -112,6 +112,19 @@ export class DataFetch {
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
     };
     const result = await DAOService.search(Connection, query);
+    return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+  }
+
+  public static async getUserProfiles(searchObject: any) {
+    // Remove empty data resource object
+    searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
+      [Op.ne]: null
+    };
+    const query = {
+      where: searchObject,
+      attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+    };
+    const result = await DAOService.search(UserProfile, query);
     return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 }

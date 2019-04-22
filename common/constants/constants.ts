@@ -24,6 +24,7 @@ class Constants {
   public static readonly SUBJECT_REFERENCE_KEY = "subject.reference";
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
