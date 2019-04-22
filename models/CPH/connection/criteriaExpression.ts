@@ -1,7 +1,10 @@
+import { CriteriaValue } from "./criteriaValue";
+
 interface CriteriaExpression {
-  linkId: number;
   field: string;
   operation: string;
-  value: string;
+  valueExpression: string;
+  type: string;
+  criteria: Array<CriteriaValue | CriteriaExpression>;
 }
 export { CriteriaExpression };

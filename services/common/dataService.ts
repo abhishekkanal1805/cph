@@ -4,10 +4,16 @@
  */
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import * as moment from "moment";
+import { Op } from "sequelize";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
+import { CriteriaExpression } from "../../models/CPH/connection/criteriaExpression";
+import { CriteriaList } from "../../models/CPH/connection/criteriaList";
+import { CriteriaValue } from "../../models/CPH/connection/criteriaValue";
+import { SharingRule } from "../../models/CPH/connection/sharingRule";
 import { Device } from "../../models/CPH/device/device";
 import { DataHelperService } from "./dataHelperService";
 import { DataValidatorUtility } from "./dataValidatorUtility";
@@ -605,6 +611,81 @@ class DataService {
     res.offset = result.offset;
     return res;
   }
+
+  /**
+   * @param {SharingRule[]} sharingRules
+   * @param {string} serviceName
+   * @return {Promise<void>}
+   */
+  public static async getSharingRulesConditionClause(sharingRules: SharingRule[], serviceName: string) {
+    log.info("Entering BaseService :: getSharingRulesConditionClause()");
+    let conditionClause: any = {};
+    if (sharingRules && sharingRules.length > 0) {
+      for (const sharingRule of sharingRules) { // TODO: all sharing rules should be ORed
+        if (sharingRule.resourceType.toLowerCase() ===  serviceName.toLowerCase() && sharingRule.criteriaList) {
+          conditionClause = await DataService.getCriteriaConditionClause(sharingRule.criteriaList);
+        }
+      }
+    } else {
+      log.info("SharingRules for the connection are undefined or empty");
+    }
+    log.info("Exiting  BaseService :: getSharingRulesConditionClause()");
+    return conditionClause;
+  }
+
+  public static async getCriteriaConditionClause(criteriaList: CriteriaList) {
+    log.info("Entering BaseService :: getCriteriaCondition()");
+    const operationMap = {
+      ANY: Op.or,
+      AND: Op.and
+    };
+    const operation = operationMap[criteriaList.type];
+    const conditionArray = {};
+    conditionArray[operation] = [];
+    if (criteriaList.criteria && criteriaList.criteria.length > 0) {
+      for (const criterion of criteriaList.criteria) {
+        const criterionCondition = await DataService.generateConditionClause(criterion);
+        conditionArray[operation].push(criterionCondition);
+      }
+    }
+    log.info("Exiting BaseService :: getCriteriaCondition()");
+  }
+
+  public static async generateConditionClause(criterion: CriteriaExpression | CriteriaValue) {
+    log.info("Entering BaseService :: generateConditionClause()");
+
+    log.info("Exiting BaseService :: generateConditionClause()");
+  }
+
+  /**
+   * This function takes a predefiend date expression comes from Sharing Rule valueExpression
+   * and convert it into a valid date string.
+   * @param {string} expression : expression to be eveluated
+   * @returns {string}
+   */
+  public static async expressionEvaluator(expression: string) {
+    const days: string[] = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    const months: string[] = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+    const init: number = expression.indexOf("(");
+    const fin: number = expression.indexOf(")");
+    const value: string = expression.substr(init + 1, fin - init - 1);
+    let evaluatedValue: string;
+    if (days.indexOf(value) > -1) {
+      evaluatedValue = moment()
+        .weekday(days.indexOf(value) - 6)
+        .format("YYYY-MM-DD");
+    } else if (months.indexOf(value) > -1) {
+      const month = months.indexOf(value);
+      const lastDate: number = moment()
+        .month(month)
+        .daysInMonth();
+      evaluatedValue = moment().year() + "-" + (month < 9 ? "0" + (month + 1) : "" + (month + 1)) + "-" + lastDate;
+    } else {
+      evaluatedValue = value + "-12-31";
+    }
+    return evaluatedValue;
+  }
+
 }
 
 export { DataService };

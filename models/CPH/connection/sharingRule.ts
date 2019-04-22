@@ -1,12 +1,10 @@
-import { CriteriaExpression } from "./criteriaExpression";
-import { CriteriaValue } from "./criteriaValue";
+import { CriteriaList } from "./criteriaList";
+
 interface SharingRule {
-  linkId: number;
   name: string;
   description: string;
-  resourceType: string;
   accessLevel: string;
-  criteria: Array<CriteriaValue | CriteriaExpression>;
-  criteriaLogic: string;
+  resourceType: string;
+  criteriaList: CriteriaList;
 }
 export { SharingRule };
