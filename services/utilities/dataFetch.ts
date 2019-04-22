@@ -103,12 +103,8 @@ export class DataFetch {
     };
     if (requestExpirationDate) {
       searchObject[Constants.REQUEST_EXPIRATION_DATE] = {
-        [Constants.REQUEST_EXPIRATION_DATE]: {
-          [Op.or]: {
             [Op.gte]: requestExpirationDate,
             [Op.ne]: null
-          }
-        }
       };
     }
     const query = {

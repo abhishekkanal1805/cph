@@ -31,7 +31,7 @@ class Constants {
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
   public static readonly STATUS = "status";
-  public static readonly REQUEST_EXPIRATION_DATE = "requestexpirationdate";
+  public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
 
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
