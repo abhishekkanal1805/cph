@@ -85,6 +85,25 @@ export class DAOService {
   }
 
   /**
+   * Update record for given Model
+   * @param model
+   * @param record
+   * @param updatedResources
+   * @return {Promise<any>}
+   */
+  public static async update(model, record, updatedResources) {
+    return model
+      .update(record, { where: { id: record.id } })
+      .then(() => {
+        updatedResources.savedRecords.push(record.dataResource);
+      })
+      .catch((err) => {
+        log.error("Error in updating record: " + err);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      });
+  }
+
+  /**
    *  Bulk create records for given Model
    *
    * @static
@@ -136,7 +155,7 @@ export class DAOService {
   public static deleteWithCriteria(criteria, model: any): Promise<object> {
     log.info("Entering DAOService :: deleteWithCriteria");
     return model
-      .destroy({ where: { criteria } })
+      .destroy({ where: criteria  })
       .then((rowsDeleted: any) => {
         log.info("Exiting DAOService: deleteWithCriteria() :: Record deleted successfully");
         return rowsDeleted;
@@ -149,7 +168,6 @@ export class DAOService {
 
   /**
    *
-   *
    * @static
    * @param {string} id
    * @param {*} record
@@ -157,7 +175,7 @@ export class DAOService {
    * @returns {Promise<any>}
    * @memberof DAOService
    */
-  public static softDelete(id: string, record: any, model: any): Promise<any> {
+  public static softDelete(id: string, record: any, model): Promise<any> {
     log.info("Entering DAOService :: softDelete");
     // Default value remove. this works if onMissing is null and undefined both.
     return model
