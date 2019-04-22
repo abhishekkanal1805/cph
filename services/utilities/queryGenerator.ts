@@ -289,7 +289,7 @@ class QueryGenerator {
    * @memberof QueryGenerator
    */
   public static createDateSearchConditions(column: any, value: string[], queryObject: any) {
-    const values = (value.length == 1) ? value[0].split(Constants.COMMA_VALUE) : value;
+    const values = value.length == 1 ? value[0].split(Constants.COMMA_VALUE) : value;
     const condtionOperator = Op.or;
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
