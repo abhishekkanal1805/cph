@@ -146,6 +146,7 @@ class Constants {
   public static readonly DEVICE = "Device";
   public static readonly APPOINTMENT = "Appointment";
   public static readonly PERMANENT = "permanent";
+  public static readonly TRUE = true;
   public static readonly USER_PROFILE = "UserProfile";
 }
 
