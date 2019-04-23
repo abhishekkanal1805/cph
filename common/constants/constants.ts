@@ -25,13 +25,17 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
+  public static readonly STATUS = "status";
+  public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";

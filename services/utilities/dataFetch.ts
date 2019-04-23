@@ -4,6 +4,7 @@ import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { Connection } from "../../models/CPH/connection/connection";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 export class DataFetch {
@@ -116,5 +117,54 @@ export class DataFetch {
     };
     const result = await DAOService.search(UserProfile, query);
     return result;
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} searchObject
+   * @param {string} [requestExpirationDate]
+   * @returns
+   * @memberof DataFetch
+   */
+  public static async getConnections(searchObject: any, requestExpirationDate?: string) {
+    // Remove empty data resource object
+    searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
+      [Op.ne]: null
+    };
+    if (requestExpirationDate) {
+      searchObject[Constants.REQUEST_EXPIRATION_DATE] = {
+        [Op.gte]: requestExpirationDate,
+        [Op.ne]: null
+      };
+    }
+    const query = {
+      where: searchObject,
+      attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+    };
+    const result = await DAOService.search(Connection, query);
+    return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+  }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} searchObject
+   * @returns
+   * @memberof DataFetch
+   */
+  public static async getUserProfiles(searchObject: any) {
+    // Remove empty data resource object
+    searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
+      [Op.ne]: null
+    };
+    const query = {
+      where: searchObject,
+      attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+    };
+    const result = await DAOService.search(UserProfile, query);
+    return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 }
