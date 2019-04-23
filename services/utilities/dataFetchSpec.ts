@@ -6,7 +6,7 @@ import { DAOService } from "../dao/daoService";
 import { DataFetch } from "./dataFetch";
 
 describe("Test getUserProfile() - ", () => {
-  it("Throw error if profile is missing in authorizer data", async done => {
+  it("Throw error if profile is missing in authorizer data", async (done) => {
     const profile = null;
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -18,7 +18,7 @@ describe("Test getUserProfile() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("Throw error if user profile of logged in user is not active", async done => {
+  it("Throw error if user profile of logged in user is not active", async (done) => {
     spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: "inactive" };
     });
@@ -33,7 +33,7 @@ describe("Test getUserProfile() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("Return user attributes if user is active", async done => {
+  it("Return user attributes if user is active", async (done) => {
     spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
       return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
@@ -56,7 +56,7 @@ describe("Test getUserProfile() - ", () => {
     expect(result.profileId).toEqual(expected.profileId);
     done();
   });
-  it("Throw error if profile is missing in authorizer data", async done => {
+  it("Throw error if profile is missing in authorizer data", async (done) => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {

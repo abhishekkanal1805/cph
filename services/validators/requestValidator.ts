@@ -3,6 +3,7 @@ import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
 import { Utility } from "../common/Utility";
@@ -127,18 +128,33 @@ export class RequestValidator {
   public static async validateReference(resourceType: string, resourceIds: string[]) {
     log.info("In RequestValidator: validateReference()");
     try {
-      await DataSource.getDataSource()
-        .query('SELECT count(*) FROM "' + resourceType + '" WHERE id in :id and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';", {
-          replacements: { id: resourceIds },
-          type: sequelize.QueryTypes.SELECT
-        })
-        .then((results) => {
-          if (results[0].count != 1) {
-            throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "indication");
+      const tableName = resourceTypeToTableNameMapping[resourceType];
+      if (tableName) {
+        if (resourceType === Constants.USER_PROFILE) {
+          // validate UserProfile resourceType
+          log.info("Validating UserProfile resource");
+          const result = await DataFetch.getValidUserProfileIds(resourceIds);
+          if (result.length < 1) {
+            log.error("Invalid UserProfile resourceType reference");
+            throw Error();
           }
-        });
+        } else {
+          await DataSource.getDataSource()
+            .query('SELECT count(*) FROM "' + tableName + '" WHERE id in (:id) and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';", {
+              replacements: { id: resourceIds },
+              type: sequelize.QueryTypes.SELECT
+            })
+            .then((results) => {
+              if (results[0].count != 1) {
+                throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description);
+              }
+            });
+        }
+      } else {
+        throw Error();
+      }
     } catch (err) {
-      throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + "indication");
+      throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description);
     }
   }
 

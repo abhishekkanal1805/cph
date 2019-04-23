@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
-import {Constants} from "../../common/constants/constants";
-import {errorCodeMap} from "../../common/constants/error-codes-map";
-import {UnAuthorizedResult} from "../../common/objects/custom-errors";
+import { Constants } from "../../common/constants/constants";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataHelperService } from "../common/dataHelperService";
 import { DAOService } from "../dao/daoService";
 import { BaseGet } from "./baseGet";
@@ -34,7 +34,6 @@ export class BaseDelete {
     } else {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
       throw new UnAuthorizedResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
-
     }
   }
 
