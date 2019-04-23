@@ -96,6 +96,15 @@ export class DataFetch {
     return result;
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {*} searchObject
+   * @param {string} [requestExpirationDate]
+   * @returns
+   * @memberof DataFetch
+   */
   public static async getConnections(searchObject: any, requestExpirationDate?: string) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
@@ -115,6 +124,14 @@ export class DataFetch {
     return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 
+  /**
+   *
+   *
+   * @static
+   * @param {*} searchObject
+   * @returns
+   * @memberof DataFetch
+   */
   public static async getUserProfiles(searchObject: any) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
