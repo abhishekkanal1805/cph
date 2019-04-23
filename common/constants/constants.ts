@@ -25,6 +25,7 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
@@ -33,6 +34,8 @@ class Constants {
   public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
+  public static readonly STATUS = "status";
+  public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
@@ -63,6 +66,8 @@ class Constants {
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
 
+  public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
+  public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
   public static readonly ACTIVE = "active";
   public static readonly INACTIVE = "inactive";
   public static readonly PENDING = "pending";
