@@ -6,7 +6,7 @@ import { DAOService } from "../dao/daoService";
 import { RequestValidator } from "./requestValidator";
 
 describe("Test validateBundleTotal() - ", () => {
-  it("Throw error if bundle total doesnt match total attribute passed in parameter", (done) => {
+  it("Throw error if bundle total doesnt match total attribute passed in parameter", done => {
     const records = [{}],
       total = 2;
     let result;
@@ -19,7 +19,7 @@ describe("Test validateBundleTotal() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("Returns no error if bundle total match total attribute", (done) => {
+  it("Returns no error if bundle total match total attribute", done => {
     const records = [{}],
       total = 1;
     let result = null;
@@ -35,7 +35,7 @@ describe("Test validateBundleTotal() - ", () => {
 });
 
 describe("Test validateBundlePostLimit() - ", () => {
-  it("Throw error if bundle length is more than POST limit", (done) => {
+  it("Throw error if bundle length is more than POST limit", done => {
     const records = [];
     records.length = 600;
     let result;
@@ -48,7 +48,7 @@ describe("Test validateBundlePostLimit() - ", () => {
     expect(expected).toEqual(result);
     done();
   });
-  it("Throw error if bundle length is more than POST limit", (done) => {
+  it("Throw error if bundle length is more than POST limit", done => {
     const records = [];
     records.length = 300;
     let result = null;
@@ -64,7 +64,7 @@ describe("Test validateBundlePostLimit() - ", () => {
 });
 
 describe("Test validateDeviceIds() - ", () => {
-  it("Throw error if multiple device id present in bundle", async (done) => {
+  it("Throw error if multiple device id present in bundle", async done => {
     const deviceIds = ["123", "12"];
     let result;
     const expected = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
@@ -76,7 +76,7 @@ describe("Test validateDeviceIds() - ", () => {
     expect(expected).toEqual(result);
     done();
   });
-  it("return void if no device id is passed to it", async (done) => {
+  it("return void if no device id is passed to it", async done => {
     const deviceIds = [];
     let result = null;
     const expected = null;
@@ -88,7 +88,7 @@ describe("Test validateDeviceIds() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("Throw error if device id not present in database", async (done) => {
+  it("Throw error if device id not present in database", async done => {
     spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 0;
     });
@@ -103,7 +103,7 @@ describe("Test validateDeviceIds() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("No error is returned if unique device id is passed which is present in db", async (done) => {
+  it("No error is returned if unique device id is passed which is present in db", async done => {
     spyOn(DAOService, "recordsCount").and.callFake(() => {
       return 1;
     });
@@ -121,7 +121,7 @@ describe("Test validateDeviceIds() - ", () => {
 });
 
 describe("Test validateUniquePatientReference() - ", () => {
-  it("Throw error patient reference id are more than 1", (done) => {
+  it("Throw error patient reference id are more than 1", done => {
     const patientReferenceId = ["1", "2"];
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -133,7 +133,7 @@ describe("Test validateUniquePatientReference() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("No error is thrown if patient reference are unique", (done) => {
+  it("No error is thrown if patient reference are unique", done => {
     const patientReferenceId = ["1"];
     let result = null;
     const expected = null;
@@ -148,7 +148,7 @@ describe("Test validateUniquePatientReference() - ", () => {
 });
 
 describe("Test validateNumberOfUniqueUserReference() - ", () => {
-  it("Throw error user reference id are more than 1", (done) => {
+  it("Throw error user reference id are more than 1", done => {
     const userReferenceId = ["1", "2"];
     let result;
     const expected = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
@@ -160,7 +160,7 @@ describe("Test validateNumberOfUniqueUserReference() - ", () => {
     expect(result).toEqual(expected);
     done();
   });
-  it("No error is thrown if patient reference are unique", (done) => {
+  it("No error is thrown if patient reference are unique", done => {
     const userReferenceId = ["1"];
     let result = null;
     const expected = null;

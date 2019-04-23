@@ -2,7 +2,7 @@ import "jasmine";
 import { DataTransform } from "./dataTransform";
 
 describe("Test getRecordMetaData() - ", () => {
-  it("Populate record meta data as per provided user details", async (done) => {
+  it("Populate record meta data as per provided user details", async done => {
     const record = {};
 
     const result = DataTransform.getRecordMetaData(record, "1", "2");
@@ -16,7 +16,7 @@ describe("Test getRecordMetaData() - ", () => {
     expect(result.source).toEqual(undefined);
     done();
   });
-  it("Populate record meta data as per provided user details taking input meta in consideration", async (done) => {
+  it("Populate record meta data as per provided user details taking input meta in consideration", async done => {
     const record = { meta: { clientRequestId: "123", deviceId: "456", source: "mobile" } };
     const result = DataTransform.getRecordMetaData(record, "1", "2");
     expect(result.versionId).toEqual(1);

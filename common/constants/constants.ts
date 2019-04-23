@@ -28,6 +28,7 @@ class Constants {
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
 
@@ -115,6 +116,17 @@ class Constants {
 
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
+
+  public static readonly FHIR_ALLERGY_INTOLERANCE = "FhirAllergyIntolerance";
+  public static readonly FHIR_CONDITION = "FhirCondition";
+  public static readonly FHIR_IMMUNIZATION = "FhirImmunization";
+  public static readonly FHIR_MEDICATION_STATEMENT = "FhirMedicationStatement";
+  public static readonly FHIR_MEDICATION_ORDER = "FhirMedicationOrder";
+  public static readonly FHIR_OBSERVATION = "FhirObservation";
+  public static readonly FHIR_PROCEDURE = "FhirProcedure";
+  public static readonly DEVICE = "Device";
+  public static readonly APPOINTMENT = "Appointment";
+  public static readonly PERMANENT = "permanent";
 }
 
 export { Constants };

@@ -31,7 +31,7 @@ export class BasePut {
       total = 1;
     } else {
       total = requestPayload.total;
-      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      requestPayload = requestPayload.entry.map(entry => entry.resource);
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
@@ -91,7 +91,7 @@ export class BasePut {
       total = 1;
     } else {
       total = requestPayload.total;
-      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      requestPayload = requestPayload.entry.map(entry => entry.resource);
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
@@ -120,7 +120,7 @@ export class BasePut {
     await AuthService.authorizeRequest(requestorProfileId, informationSourceId, patientId);
     log.info("User Authorization successfully :: updateResource()");
     let uniquesReferenceIds = [...new Set(response.get(referenceValidationAttribute))].filter(Boolean);
-    uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
+    uniquesReferenceIds = uniquesReferenceIds.map(referenceId => {
       return referenceId.split("/")[1];
     });
     const result = await BasePut.bulkUpdateWithReference(
@@ -163,16 +163,16 @@ export class BasePut {
   ) {
     log.info("In bulkUpdate() :: BasePut Class");
     let validReferenceIds = await DataFetch.getValidIds(referenceValidationModel, uniquesReferenceIds);
-    validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map((eachId) => eachId);
+    validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map(eachId => eachId);
     const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
     const allPromise = [];
     // looping over all records to filter good vs bad records
-    requestPayload.forEach((record) => {
+    requestPayload.forEach(record => {
       // Finding if given record id exists in the record ID list received via DB batch get call.
-      const existingRecord = validPrimaryIds.find((validPrimaryId) => {
+      const existingRecord = validPrimaryIds.find(validPrimaryId => {
         return validPrimaryId.id === record.id;
       });
       if (existingRecord) {
@@ -199,7 +199,7 @@ export class BasePut {
               .then(() => {
                 result.savedRecords.push(record.dataResource);
               })
-              .catch((err) => {
+              .catch(err => {
                 log.error("Error in updating record: " + err);
                 throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
               });
@@ -245,9 +245,9 @@ export class BasePut {
     // creating an all promise array which can be executed in parallel.
     const allPromise = [];
     // looping over all records to filter good vs bad records
-    requestPayload.forEach((record) => {
+    requestPayload.forEach(record => {
       // Finding if given record id exists in the record ID list received via DB batch get call.
-      const existingRecord = validPrimaryIds.find((validPrimaryId) => {
+      const existingRecord = validPrimaryIds.find(validPrimaryId => {
         return validPrimaryId.id === record.id;
       });
       if (existingRecord) {
@@ -261,7 +261,7 @@ export class BasePut {
             .then(() => {
               result.savedRecords.push(record.dataResource);
             })
-            .catch((err) => {
+            .catch(err => {
               log.error("Error in updating record: " + err);
               throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
             });
@@ -306,7 +306,7 @@ export class BasePut {
       total = 1;
     } else {
       total = requestPayload.total;
-      requestPayload = requestPayload.entry.map((entry) => entry.resource);
+      requestPayload = requestPayload.entry.map(entry => entry.resource);
       RequestValidator.validateBundleTotal(requestPayload, total);
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }

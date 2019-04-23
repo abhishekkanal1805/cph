@@ -41,7 +41,8 @@ export class AuthService {
     if (
       fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
       (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER ||
-        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&(requester === informationSourceId)
+        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&
+      requester === informationSourceId
     ) {
       log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
@@ -92,6 +93,12 @@ export class AuthService {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+    } else if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
+      return;
+    } else {
+      log.error("Unrecognized user type");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
   }

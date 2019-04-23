@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import {Constants} from "../../../common/constants/constants";
+import { Constants } from "../../../common/constants/constants";
 import { InformationSource } from "../../common/informationSource";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { DeviceDataResource } from "./deviceDataResource";

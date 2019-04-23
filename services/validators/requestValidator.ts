@@ -120,16 +120,16 @@ export class RequestValidator {
 
   /**
    * This function is used to validate relative reference irrespective of the model.
-   * @param {string} modelName which table needs to be queried
-   * @param {string} referenceId which id needs to be validated
+   * @param {string} resourceType which table needs to be queried
+   * @param {string} resourceId which id needs to be validated
    * @returns {Promise<boolean>} returns true if validated else false
    */
-  public static async validateReference(modelName: string, referenceId: string) {
+  public static async validateReference(resourceType: string, resourceIds: string[]) {
     log.info("In RequestValidator: validateReference()");
     try {
       await DataSource.getDataSource()
-        .query('SELECT count(*) FROM "' + modelName + '" WHERE id = :id and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';", {
-          replacements: { id: referenceId },
+        .query('SELECT count(*) FROM "' + resourceType + '" WHERE id in :id and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';", {
+          replacements: { id: resourceIds },
           type: sequelize.QueryTypes.SELECT
         })
         .then((results) => {
