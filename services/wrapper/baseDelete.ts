@@ -37,4 +37,33 @@ export class BaseDelete {
 
     }
   }
+
+  /**
+   *  Wrapper function to perform delete for multiple resources base on provided parameters
+   *
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {string} patientElement patient reference key like subject.reference
+   * @param {*} requestorProfileId requestorProfileId Id of logged in user
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @returns
+   * @memberof BaseDelete
+   */
+  public static async deleteResources(resourcesToBeDeleted, criteriaToDelete, model, modelDataResource, permanent: boolean) {
+    /* TODO: endpoint has to be removed from function contract as per new search implementation */
+    log.info("In BaseDelete :: deleteResource()");
+    if (permanent) {
+      log.info("Deleting item Permanently");
+      await DAOService.deleteWithCriteria(criteriaToDelete, model);
+    } else {
+      for (let eachRecord of resourcesToBeDeleted) {
+        log.info("Soft deleting the item" + eachRecord.id);
+        eachRecord.meta.isDeleted = true;
+        eachRecord.meta.lastUpdated = new Date().toISOString();
+        eachRecord = DataHelperService.convertToModel(eachRecord, model, modelDataResource);
+        await DAOService.softDelete(eachRecord.id, eachRecord, model);
+      }
+    }
+  }
 }
