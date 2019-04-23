@@ -93,12 +93,9 @@ export class AuthService {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-    } else if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+    } else {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
       return;
-    } else {
-      log.error("Unrecognized user type");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
   }
