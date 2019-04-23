@@ -33,10 +33,10 @@ export class DAOService {
    * @returns {Promise<any>}
    * @memberof DAOService
    */
-  public static async fetchRowByPkQuery(id: string, model: any, options: any): Promise<any> {
+  public static async fetchRowByPkQuery(model: any, options: any): Promise<any> {
     log.info("Entering DAOService :: fetchRowByPkQuery()");
     try {
-      const results = await model.findByPk(id, options);
+      const results = await model.findOne(options);
       return results.dataValues;
     } catch (err) {
       log.error("fetchRowByPkQuery() :: Error in fetching the record :: " + err);
