@@ -148,6 +148,8 @@ class Constants {
   public static readonly PERMANENT = "permanent";
   public static readonly TRUE = true;
   public static readonly USER_PROFILE = "UserProfile";
+  public static readonly LIMIT = "limit";
+  public static readonly OFFSET = "offset";
 }
 
 export { Constants };
