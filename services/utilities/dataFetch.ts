@@ -1,5 +1,6 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import * as moment from "moment";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
@@ -128,16 +129,40 @@ export class DataFetch {
    * @returns
    * @memberof DataFetch
    */
+
   public static async getConnections(searchObject: any, requestExpirationDate?: string) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
       [Op.ne]: null
     };
     if (requestExpirationDate) {
-      searchObject[Constants.REQUEST_EXPIRATION_DATE] = {
-        [Op.gte]: requestExpirationDate,
-        [Op.ne]: null
-      };
+      const exiporationMomentObject = moment(requestExpirationDate, Constants.DATE);
+      if (!searchObject[Op.or]) {
+        searchObject[Op.or] = [];
+      }
+      // requestExpirationDate will be date so we will check for date, year-month, year and null
+      searchObject[Op.or].push(
+        {
+          [Constants.REQUEST_EXPIRATION_DATE]: {
+            [Op.gte]: requestExpirationDate
+          }
+        },
+        {
+          [Constants.REQUEST_EXPIRATION_DATE]: {
+            [Op.eq]: exiporationMomentObject.format(Constants.YEAR_MONTH)
+          }
+        },
+        {
+          [Constants.REQUEST_EXPIRATION_DATE]: {
+            [Op.eq]: exiporationMomentObject.format(Constants.YEAR)
+          }
+        },
+        {
+          [Constants.REQUEST_EXPIRATION_DATE]: {
+            [Op.eq]: null
+          }
+        }
+      );
     }
     const query = {
       where: searchObject,
