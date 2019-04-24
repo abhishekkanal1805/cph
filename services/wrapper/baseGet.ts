@@ -113,7 +113,7 @@ export class BaseGet {
     // fetch data from db with all conditions
     const searchQuery = {
       where: queryObject,
-      attributes: attributesToRetrieve && attributesToRetrieve.length > 0 ? attributesToRetrieve : Constants.DEFAULT_SEARCH_ATTRIBUTES,
+      attributes: attributesToRetrieve && attributesToRetrieve.length > 0 ? attributesToRetrieve : [Constants.DEFAULT_SEARCH_ATTRIBUTES],
       limit: limit + 1,
       offset,
       order: Constants.DEFAULT_ORDER_BY
