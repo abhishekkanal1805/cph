@@ -25,13 +25,17 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
+  public static readonly STATUS = "status";
+  public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
@@ -62,6 +66,8 @@ class Constants {
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
 
+  public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
+  public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
   public static readonly ACTIVE = "active";
   public static readonly INACTIVE = "inactive";
   public static readonly PENDING = "pending";
@@ -140,6 +146,20 @@ class Constants {
   public static readonly TITLE_IMAGE_CREATION = "creation";
   public static readonly TITLE_IMAGE_URL = "url";
 
+  public static readonly FHIR_ALLERGY_INTOLERANCE = "FhirAllergyIntolerance";
+  public static readonly FHIR_CONDITION = "FhirCondition";
+  public static readonly FHIR_IMMUNIZATION = "FhirImmunization";
+  public static readonly FHIR_MEDICATION_STATEMENT = "FhirMedicationStatement";
+  public static readonly FHIR_MEDICATION_ORDER = "FhirMedicationOrder";
+  public static readonly FHIR_OBSERVATION = "FhirObservation";
+  public static readonly FHIR_PROCEDURE = "FhirProcedure";
+  public static readonly DEVICE = "Device";
+  public static readonly APPOINTMENT = "Appointment";
+  public static readonly PERMANENT = "permanent";
+  public static readonly TRUE = true;
+  public static readonly USER_PROFILE = "UserProfile";
+  public static readonly LIMIT = "limit";
+  public static readonly OFFSET = "offset";
 }
 
 export { Constants };

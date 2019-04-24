@@ -1,6 +1,8 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
@@ -22,8 +24,8 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
     log.info("In BaseGet :: getResource()");
-    const options = { "meta.isDeleted": false };
-    let record = await DAOService.fetchRowByPkQuery(id, model, options);
+    const options = { where: { id, "meta.isDeleted": false } };
+    let record = await DAOService.fetchRowByPkQuery(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
@@ -45,8 +47,8 @@ export class BaseGet {
    */
   public static async getResourceWithoutAuthorization(id: string, model: any) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
-    const options = { "meta.isDeleted": false };
-    let record = await DAOService.fetchRowByPkQuery(id, model, options);
+    const options = { where: { id, "meta.isDeleted": false } };
+    let record = await DAOService.fetchRowByPkQuery(model, options);
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
     return record;
@@ -82,7 +84,8 @@ export class BaseGet {
     if (queryParams.limit) {
       limit = _.toNumber(queryParams.limit[0]);
       if (_.isNaN(limit) || !_.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        log.info("limit in request is not valid hence default limit was used " + queryParams.limit[0]);
+        log.info("limit in request is not valid " + queryParams.limit[0]);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.LIMIT);
       }
       // delete limit attibute as it is not part of search attribute
       delete queryParams.limit;
@@ -91,7 +94,8 @@ export class BaseGet {
     if (queryParams.offset) {
       offset = _.toNumber(queryParams.offset[0]);
       if (_.isNaN(offset) || offset < 0 || !_.isInteger(offset)) {
-        log.info("offset in request is not valid hence default offset was used " + queryParams.offset[0]);
+        log.info("offset in request is not valid " + queryParams.offset[0]);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.OFFSET);
       }
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
