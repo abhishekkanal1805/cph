@@ -141,6 +141,11 @@ class Constants {
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
+  public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
+  public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";
+  public static readonly TITLE_IMAGE_CREATION = "creation";
+  public static readonly TITLE_IMAGE_URL = "url";
+
   public static readonly FHIR_ALLERGY_INTOLERANCE = "FhirAllergyIntolerance";
   public static readonly FHIR_CONDITION = "FhirCondition";
   public static readonly FHIR_IMMUNIZATION = "FhirImmunization";
