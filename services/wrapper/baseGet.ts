@@ -67,12 +67,13 @@ export class BaseGet {
   public static async searchResource(model: any, queryParams: any, resourceOwnerElement: string, requestorProfileId: string,
                                      attributesMapping: any, attributesToRetrieve?: string[]) {
     // Perform User validation
-    // If loggedin id is not present in queryParams, then return loggedin user data only
-    if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.constructor.name)) {
+    if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
+      log.info("Search for resource accessible to all: " + model.name);
       await AuthService.authorizeConnectionBased(requestorProfileId, requestorProfileId);
     } else {
       if (!queryParams[resourceOwnerElement]) {
         log.debug("id is not present in queryParams");
+        // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
       }
       await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
