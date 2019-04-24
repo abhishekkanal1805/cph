@@ -68,7 +68,7 @@ export class BaseGet {
                                      attributesMapping: any, attributesToRetrieve: string[]) {
     // Perform User validation
     // If loggedin id is not present in queryParams, then return loggedin user data only
-    if (Constants.RESOURCE_ACCESSIBLE_TO_ALL.includes(model.constructor.name)) {
+    if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.constructor.name)) {
       await AuthService.authorizeConnectionBased(requestorProfileId, requestorProfileId);
     } else {
       if (!queryParams[resourceOwnerElement]) {
