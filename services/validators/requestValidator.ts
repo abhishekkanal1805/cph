@@ -177,14 +177,14 @@ export class RequestValidator {
           resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
           !validReferenceIds.includes(resource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1])
         ) {
-          const badRequest = new BadRequestResult(
+          const badRequestError = new BadRequestResult(
             errorCodeMap.InvalidReference.value,
             errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
           );
           if (resource.meta && resource.meta.clientRequestId) {
-            badRequest.clientRequestId = resource.meta.clientRequestId;
+            badRequestError.clientRequestId = resource.meta.clientRequestId;
           }
-          response.errorResults.push(badRequest);
+          response.errorResults.push(badRequestError);
         } else {
           recordArr.push(resource);
         }
