@@ -138,6 +138,7 @@ class Constants {
   public static readonly PERIOD_MONTHS = "months";
   public static readonly PERIOD_YEARS = "years";
 
+  public static readonly RESOURCES_ACCESSIBLE_TO_ALL = ["Questionnaire", "Device"];
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
