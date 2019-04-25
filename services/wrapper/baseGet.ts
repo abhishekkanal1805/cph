@@ -64,8 +64,14 @@ export class BaseGet {
    * @returns
    * @memberof BaseSearch
    */
-  public static async searchResource(model: any, queryParams: any, resourceOwnerElement: string, requestorProfileId: string,
-                                     attributesMapping: any, attributesToRetrieve?: string[]) {
+  public static async searchResource(
+    model: any,
+    queryParams: any,
+    resourceOwnerElement: string,
+    requestorProfileId: string,
+    attributesMapping: any,
+    attributesToRetrieve?: string[]
+  ) {
     // Perform User validation
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
@@ -119,11 +125,13 @@ export class BaseGet {
       order: Constants.DEFAULT_ORDER_BY
     };
     let result: any = await DAOService.search(model, searchQuery);
-    result = attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve !== [Constants.DEFAULT_SEARCH_ATTRIBUTES] ? result : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
+    result =
+      attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve !== [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+        ? result
+        : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
     queryParams.limit = limit;
     queryParams.offset = offset;
     return result;
   }
-
 }
