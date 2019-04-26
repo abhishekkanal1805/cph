@@ -1,4 +1,5 @@
 import * as HttpStatusCode from "http-status-codes";
+import { Constants } from "../constants/constants";
 import { ApiCallback, ApiResponse } from "./api-interfaces";
 import * as config from "./config";
 import {
@@ -62,7 +63,12 @@ export class APIResponseBuilder {
     APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback);
   }
   private static defaultHeaders = {
-    "Content-Type": config.data.headers.contentTypes.json
+    [Constants.CONTENT_TYPE]: config.data.headers.contentTypes.json,
+    [Constants.HEADER_STRICT_TRANSPORT_SECURITY]: Constants.HEADER_STRICT_TRANSPORT_SECURITY_VALUE,
+    [Constants.HEADER_X_CONTENT_TYPE]: Constants.HEADER_X_CONTENT_TYPE_VALUE,
+    [Constants.HEADER_X_FRAME_OPTIONS]: Constants.HEADER_X_FRAME_OPTIONS_VALUE,
+    [Constants.HEADER_X_XSS_PROTECTION]: Constants.HEADER_X_XSS_PROTECTION_VALUE,
+    [Constants.HEADER_REFERRER_POLICY]: Constants.HEADER_REFERRER_POLICY_VALUE
   };
   private static base64Encoding: boolean = false;
 
