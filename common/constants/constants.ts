@@ -129,10 +129,17 @@ class Constants {
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
 
+  public static readonly GREATER_THAN = ">";
+  public static readonly GREATER_THAN_EQUAL = ">=";
+  public static readonly LESS_THAN = "<";
+  public static readonly LESS_THAN_EQUAL = "<=";
+  public static readonly EQUAL = "=";
+
   public static readonly OPERATION_LIKE = "like";
   public static readonly OPERATION_STARTS_WITH = "startsWith";
   public static readonly OPERATION_ENDS_WITH = "endsWith";
   public static readonly OPERATION_WORD_MATCH = "wordMatch";
+  public static readonly OPERATION_NUMERIC_MATCH = "numericMatch";
 
   public static readonly PERIOD_DAYS = "days";
   public static readonly PERIOD_MONTHS = "months";
