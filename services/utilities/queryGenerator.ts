@@ -318,7 +318,12 @@ class QueryGenerator {
       const isDate = moment(dateObject.data, Constants.DATE, true).isValid();
       const isYearMonth = moment(dateObject.data, Constants.YEAR_MONTH, true).isValid();
       const isYear = moment(dateObject.data, Constants.YEAR, true).isValid();
-      condtionOperator = values.length > 1 && values.indexOf(eachDate) > 0 ? Op.and : Op.or;
+      // If user is perfroming range operation(AND operation) date/year-month/year, then condtionOperator should be Op.and for 2nd date
+      // If user is perfroming OR operation date/year-month/year, then condtionOperator should be Op.or for both date
+      if (value[0].indexOf(Constants.COMMA_VALUE) == -1) {
+        // comma not present means it is an AND operation
+        condtionOperator = values.length > 1 && values.indexOf(eachDate) > 0 ? Op.and : Op.or;
+      }
       if (!queryObject[condtionOperator]) {
         queryObject[condtionOperator] = [];
       }
