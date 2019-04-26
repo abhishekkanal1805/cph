@@ -27,6 +27,24 @@ class QueryGenerator {
     };
     return operatorMap[operation] || Op.eq;
   }
+  /**
+   * It return symbol for a prefix
+   *
+   * @static
+   * @param {string} operation Prefix attibute like ge/le/gt/lt/eq
+   * @returns
+   * @memberof QueryGenerator
+   */
+  public static getNumericSymbol(operation: string) {
+    const operatorMap = {
+      ge: Constants.GREATER_THAN_EQUAL,
+      le: Constants.LESS_THAN_EQUAL,
+      gt: Constants.GREATER_THAN,
+      lt: Constants.LESS_THAN,
+      eq: Constants.EQUAL
+    };
+    return operatorMap[operation] || Constants.EQUAL;
+  }
 
   /**
    * It will add wild card charecter for like/ilike operation
@@ -368,7 +386,7 @@ class QueryGenerator {
    * @returns
    * @memberof QueryGenerator
    */
-  public static getNestedAttributes(attributes: string[], value: string|number, nestedAttributes: any, arrFlag: boolean) {
+  public static getNestedAttributes(attributes: string[], value: string | number, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
       nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] =
@@ -496,13 +514,21 @@ class QueryGenerator {
         rawSql = unnestSql;
       }
     }
-    // If it is wordmatch we have to do startswith and endswith, in posix we will set boundries
     const operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
     const searchQuery = [];
-    _.each(values, (eachValue: any) => {
-      eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-      searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
-    });
+    if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
+      _.each(values, (eachValue: any) => {
+        const numberObject = Utility.getSearchPrefixValue(eachValue);
+        const numericOperation = this.getNumericSymbol(numberObject.prefix);
+        eachValue = this.getUpdatedSearchValue(numberObject.data, column);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+      });
+    } else {
+      _.each(values, (eachValue: any) => {
+        eachValue = this.getUpdatedSearchValue(eachValue, column, true);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
+      });
+    }
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));
   }
 
@@ -542,7 +568,13 @@ class QueryGenerator {
     }
     // To perform like/ilike operation with array of object, we need raw sql support
     if (
-      [Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH, Constants.OPERATION_ENDS_WITH, Constants.OPERATION_WORD_MATCH].indexOf(column.operation) > -1
+      [
+        Constants.OPERATION_LIKE,
+        Constants.OPERATION_STARTS_WITH,
+        Constants.OPERATION_ENDS_WITH,
+        Constants.OPERATION_WORD_MATCH,
+        Constants.OPERATION_NUMERIC_MATCH
+      ].indexOf(column.operation) > -1
     ) {
       this.createParitalSearchConditions(column, values, queryObject);
       return;
