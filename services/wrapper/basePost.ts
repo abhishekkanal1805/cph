@@ -2,158 +2,116 @@ import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { DataHelperService } from "../common/dataHelperService";
+import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
+import { ReferenceValidator } from "../validators/referenceValidator";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
-  /**
-   *  Wrapper function to perform save for CPH users
-   *
-   * @static
-   * @param {*} requestPayload requestPayload array in JSON format
-   * @param {string} patientElement patient reference key like subject.reference
-   * @param {*} requestorProfileId requestorProfileId Id of logged in user
-   * @param {*} model Model which need to be saved
-   * @param {*} modelDataResource Data resource model which can be used for object mapping.
-   * @returns
-   * @memberof BasePost
-   */
-  public static async saveResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
-    // We need modelDataResource to be passed for mapping request to dataresource columns.
+
+  public static async saveClinicalResources<T>(requestPayload,
+                                               requestorProfileId: string,
+                                               payloadModel: T,
+                                               payloadDataResourceModel,
+                                               patientElement: string,
+                                               informationSourceElement: string,
+                                               referenceValidationModel?,
+                                               referenceValidationElement?: string): Promise<GenericResponse<T>> {
+
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
-    keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    keysToFetch.set(informationSourceElement, []);
+    const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Reference Keys retrieved successfully :: saveResource()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds = [...new Set(response.get(patientElement))];
-    // userids
-    const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
-    // perform Authorization
-    await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
-    // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientReferenceValue = patientIds[0];
-    const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
-    log.info("User Authorization is successful ");
-    log.info("Calling prepareModelAndSave method ");
-    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
-  }
+    const patientIds = [...new Set(valuesMap.get(patientElement))];
+    const informationSourceIds = [...new Set(valuesMap.get(informationSourceElement))];
 
-  /**
-   * Wrapper function to perform save for CPH users with Reference validation.
-   * @param requestPayload
-   * @param requestorProfileId
-   * @return {Promise<any>}
-   */
-  public static async saveResourcesWithReference(
-    requestPayload,
-    patientElement: string,
-    requestorProfileId: string,
-    model,
-    modelDataResource,
-    referenceValidationModel,
-    referenceValidationAttribute: string
-  ) {
-    // We need modelDataResource to be passed for mapping request to dataresource columns.
-    const result: any = { savedRecords: [], errorRecords: [] };
-    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
-    log.info("Record Array created succesfully in :: saveResource()");
-    const keysToFetch = new Map();
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(Constants.SUBJECT_REFERENCE_KEY, []);
-    keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
-    keysToFetch.set(referenceValidationAttribute, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveResource()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    // patientvalidationid
-    const patientIds = [...new Set(response.get(Constants.SUBJECT_REFERENCE_KEY))];
-    // userids
-    const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
+    // TODO: any scenarios when we want to skip this?
     await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization is successful ");
-    // uniquesReferenceIds
-    let uniquesReferenceIds = [...new Set(response.get(referenceValidationAttribute))].filter(Boolean);
-    uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
-      return referenceId.split("/")[1];
-    });
-    const filteredResources = await RequestValidator.filterValidReferences(
-      requestPayload,
-      uniquesReferenceIds,
-      referenceValidationModel,
-      referenceValidationAttribute
-    );
-    if (filteredResources.validResources.length > 0) {
+
+    const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
+
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(
-        filteredResources.validResources,
-        model,
-        modelDataResource,
+        validatedResources.validResources,
+        payloadModel,
+        payloadDataResourceModel,
         requestorProfileId,
         requestorProfileId
       );
-      result.savedRecords = savedResources.savedRecords;
+      saveResponse.savedRecords = savedResources;
     }
-    if (filteredResources.errorResults) {
-      result.errorRecords = filteredResources.errorResults;
-    }
-    return result;
+    return saveResponse;
   }
 
-  /**
-   *  Wrapper function to perform save for FHIR services users
-   *
-   * @static
-   * @param {*} requestPayload requestPayload array in JSON format
-   * @param {string} patientElement patient reference key like subject.reference
-   * @param {*} requestorProfileId requestorProfileId Id of logged in user
-   * @param {*} model Model which need to be saved
-   * @param {*} modelDataResource Data resource model which can be used for object mapping.
-   * @returns
-   * @memberof BasePost
-   */
-  public static async saveFHIRResource(requestPayload, patientElement: string, requestorProfileId: string, model, modelDataResource) {
-    // We need modelDataResource to be passed for mapping request to dataresource columns.
+  public static async saveNonClinicalResources<T>(requestPayload,
+                                                  requestorProfileId: string,
+                                                  payloadModel: T,
+                                                  payloadDataResourceModel,
+                                                  ownerElement: string,
+                                                  referenceValidationModel?,
+                                                  referenceValidationElement?: string): Promise<GenericResponse<T>> {
+
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
-    log.info("Record Array created succesfully in :: saveRecord()");
+    log.info("Record Array created succesfully in :: saveResource()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientElement, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveRecord()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    // patientvalidationid
-    const patientIds: any = [...new Set(response.get(patientElement))];
-    // perform patient reference validation
-    RequestValidator.validateUniquePatientReference(patientIds);
+    keysToFetch.set(ownerElement, []);
+
+    const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Reference Keys retrieved successfully :: saveResource()");
+    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const ownerIds = [...new Set(valuesMap.get(ownerElement))];
+
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
-    const patientReferenceValue = patientIds[0];
-    // FHIR services don't have informationSource validation so created new function for authorization
-    // Patient will be information source
-    await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
-    log.info("User Authorization successfully :: saveRecord()");
-    log.info("Calling prepareModelAndSave method ");
-    return await this.prepareModelAndSave(requestPayload, model, modelDataResource, requestorProfileId, requestorProfileId);
+    log.info("User Authorization is successful ");
+    // perform owner reference validation
+    RequestValidator.validateSingularPatientReference(ownerIds);
+    log.info("User Authorization is successful ");
+
+    // perform Authorization
+    await AuthService.authorizeRequest(requestorProfileId, ownerIds[0], ownerIds[0]);
+    log.info("User Authorization is successful ");
+
+    const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
+
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(
+        validatedResources.validResources,
+        payloadModel,
+        payloadDataResourceModel,
+        requestorProfileId,
+        requestorProfileId
+      );
+      saveResponse.savedRecords = savedResources;
+    }
+    return saveResponse;
   }
 
   /**
-   * Function to Update resources with MetaData and ID and calls DAO service to save the resources.
-   *
+   * The function creates meta and uuid for all resources, converts all resources to Model and performs bulk save.
+   * Either all will be saved or nothing. If save fails exception is thrown by DAO and will not return any error records.
    * @static
    * @param {*} requestPayload requestPayload array in JSON format
    * @param {*} model Model which need to be saved
@@ -163,7 +121,6 @@ export class BasePost {
    * @return {Promise<any>}
    */
   public static async prepareModelAndSave(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
-    const result = { savedRecords: [], errorRecords: [] };
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
       record.id = uuid();
@@ -172,9 +129,9 @@ export class BasePost {
     });
     await DAOService.bulkSave(requestPayload, model);
     log.info("Bulk Save successfully :: saveRecord()");
-    result.savedRecords = requestPayload.map((record) => {
+    const savedRecords = requestPayload.map((record) => {
       return record.dataResource;
     });
-    return result;
+    return savedRecords;
   }
 }

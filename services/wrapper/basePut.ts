@@ -323,7 +323,7 @@ export class BasePut {
     // primary key Ids
     const primaryIds = [...new Set(response.get(Constants.ID))];
     // perform patient reference validation
-    RequestValidator.validateUniquePatientReference(patientIds);
+    RequestValidator.validateSingularPatientReference(patientIds);
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);

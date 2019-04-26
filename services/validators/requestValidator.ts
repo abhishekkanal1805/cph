@@ -72,7 +72,7 @@ export class RequestValidator {
    * @param {string[]} patientReferenceId
    * @memberof RequestValidator
    */
-  public static validateUniquePatientReference(patientReferenceId: string[]): void {
+  public static validateSingularPatientReference(patientReferenceId: string[]): void {
     log.info("In RequestValidator: validateUniquePatientReference()");
     if (patientReferenceId.length != 1) {
       log.error("Error: Multiple or zero patient reference present in request");
@@ -88,7 +88,7 @@ export class RequestValidator {
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static validateNumberOfUniqueUserReference(informationSourceIds: string[]): void {
+  public static validateSingularUserReference(informationSourceIds: string[]): void {
     log.info("In RequestValidator: validateNumberOfUniqueUserReference()");
     if (informationSourceIds.length != 1) {
       log.error("Error: Multiple user Id's found in request");
@@ -106,8 +106,8 @@ export class RequestValidator {
    * @memberof RequestValidator
    */
   public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
-    RequestValidator.validateNumberOfUniqueUserReference(informationSourceIds);
-    RequestValidator.validateUniquePatientReference(patientIds);
+    RequestValidator.validateSingularUserReference(informationSourceIds);
+    RequestValidator.validateSingularPatientReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
 

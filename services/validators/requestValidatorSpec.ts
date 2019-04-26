@@ -126,7 +126,7 @@ describe("Test validateUniquePatientReference() - ", () => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      RequestValidator.validateUniquePatientReference(patientReferenceId);
+      RequestValidator.validateSingularPatientReference(patientReferenceId);
     } catch (err) {
       result = err;
     }
@@ -138,7 +138,7 @@ describe("Test validateUniquePatientReference() - ", () => {
     let result = null;
     const expected = null;
     try {
-      RequestValidator.validateUniquePatientReference(patientReferenceId);
+      RequestValidator.validateSingularPatientReference(patientReferenceId);
     } catch (err) {
       result = err;
     }
@@ -153,7 +153,7 @@ describe("Test validateNumberOfUniqueUserReference() - ", () => {
     let result;
     const expected = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     try {
-      RequestValidator.validateNumberOfUniqueUserReference(userReferenceId);
+      RequestValidator.validateSingularUserReference(userReferenceId);
     } catch (err) {
       result = err;
     }
@@ -165,7 +165,7 @@ describe("Test validateNumberOfUniqueUserReference() - ", () => {
     let result = null;
     const expected = null;
     try {
-      RequestValidator.validateUniquePatientReference(userReferenceId);
+      RequestValidator.validateSingularPatientReference(userReferenceId);
     } catch (err) {
       result = err;
     }
