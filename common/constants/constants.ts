@@ -161,6 +161,17 @@ class Constants {
   public static readonly USER_PROFILE = "UserProfile";
   public static readonly LIMIT = "limit";
   public static readonly OFFSET = "offset";
+
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY = "strict-transport-security";
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY_VALUE = "[{key:'Strict-Transport-Security', value:'max-age=63072000; includeSubdomains; preload'}]";
+  public static readonly HEADER_X_CONTENT_TYPE = "x-content-type";
+  public static readonly HEADER_X_CONTENT_TYPE_VALUE = "[{key:'X-Content-Type-Options', value:'nosniff'}]";
+  public static readonly HEADER_X_FRAME_OPTIONS = "x-frame-options";
+  public static readonly HEADER_X_FRAME_OPTIONS_VALUE = "[{key:'X-Frame-Options', value:'DENY'}]";
+  public static readonly HEADER_X_XSS_PROTECTION = "x-xss-protection";
+  public static readonly HEADER_X_XSS_PROTECTION_VALUE = "[{key:'X-XSS-Protection', value:'1; mode=block'}]";
+  public static readonly HEADER_REFERRER_POLICY = "referrer-policy";
+  public static readonly HEADER_REFERRER_POLICY_VALUE = "[{key:'Referrer-Policy', value:'same-origin'}]";
 }
 
 export { Constants };

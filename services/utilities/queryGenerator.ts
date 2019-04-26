@@ -42,6 +42,9 @@ class QueryGenerator {
     const prefixValue = column.prefix || Constants.EMPTY_VALUE;
     const suffixValue = column.suffix || Constants.EMPTY_VALUE;
     const quoteValue = isRawQuery ? Constants.DOUBLE_QUOTE : Constants.EMPTY_VALUE;
+    if (column.cast === Constants.TYPE_NUMBER) {
+      return Number(value) || 0;
+    }
     value = [prefixValue, value, suffixValue].join(Constants.EMPTY_VALUE);
     switch (column.operation) {
       case Constants.OPERATION_LIKE:
@@ -359,13 +362,13 @@ class QueryGenerator {
    * Example: attribute1[*].attribute2.attribute3[*].attribute4
    * @static
    * @param {string[]} attributes Nested array attributes
-   * @param {string} value Input value for search
+   * @param {string|number} value Input value for search
    * @param {*} nestedAttributes NestedAttributes to store array search condition
    * @param {boolean} arrFlag Boolean flag to check if input is array type or not
    * @returns
    * @memberof QueryGenerator
    */
-  public static getNestedAttributes(attributes: string[], value: string, nestedAttributes: any, arrFlag: boolean) {
+  public static getNestedAttributes(attributes: string[], value: string|number, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
       nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] =
