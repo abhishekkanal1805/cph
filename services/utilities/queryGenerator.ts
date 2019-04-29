@@ -27,6 +27,24 @@ class QueryGenerator {
     };
     return operatorMap[operation] || Op.eq;
   }
+  /**
+   * It return symbol for a prefix
+   *
+   * @static
+   * @param {string} operation Prefix attibute like ge/le/gt/lt/eq
+   * @returns
+   * @memberof QueryGenerator
+   */
+  public static getNumericSymbol(operation: string) {
+    const operatorMap = {
+      ge: Constants.GREATER_THAN_EQUAL,
+      le: Constants.LESS_THAN_EQUAL,
+      gt: Constants.GREATER_THAN,
+      lt: Constants.LESS_THAN,
+      eq: Constants.EQUAL
+    };
+    return operatorMap[operation] || Constants.EQUAL;
+  }
 
   /**
    * It will add wild card charecter for like/ilike operation
@@ -42,6 +60,9 @@ class QueryGenerator {
     const prefixValue = column.prefix || Constants.EMPTY_VALUE;
     const suffixValue = column.suffix || Constants.EMPTY_VALUE;
     const quoteValue = isRawQuery ? Constants.DOUBLE_QUOTE : Constants.EMPTY_VALUE;
+    if (column.cast === Constants.TYPE_NUMBER) {
+      return Number(value) || 0;
+    }
     value = [prefixValue, value, suffixValue].join(Constants.EMPTY_VALUE);
     switch (column.operation) {
       case Constants.OPERATION_LIKE:
@@ -290,13 +311,19 @@ class QueryGenerator {
    */
   public static createDateSearchConditions(column: any, value: string[], queryObject: any) {
     const values = value.length == 1 ? value[0].split(Constants.COMMA_VALUE) : value;
-    const condtionOperator = Op.or;
+    let condtionOperator = Op.or;
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
       const isDateTime = moment(dateObject.data, Constants.DATE_TIME, true).isValid();
       const isDate = moment(dateObject.data, Constants.DATE, true).isValid();
       const isYearMonth = moment(dateObject.data, Constants.YEAR_MONTH, true).isValid();
       const isYear = moment(dateObject.data, Constants.YEAR, true).isValid();
+      // If user is perfroming range operation(AND operation) date/year-month/year, then condtionOperator should be Op.and for 2nd date
+      // If user is perfroming OR operation date/year-month/year, then condtionOperator should be Op.or for both date
+      if (value[0].indexOf(Constants.COMMA_VALUE) == -1) {
+        // comma not present means it is an AND operation
+        condtionOperator = values.length > 1 && values.indexOf(eachDate) > 0 ? Op.and : Op.or;
+      }
       if (!queryObject[condtionOperator]) {
         queryObject[condtionOperator] = [];
       }
@@ -358,13 +385,13 @@ class QueryGenerator {
    * Example: attribute1[*].attribute2.attribute3[*].attribute4
    * @static
    * @param {string[]} attributes Nested array attributes
-   * @param {string} value Input value for search
+   * @param {string|number} value Input value for search
    * @param {*} nestedAttributes NestedAttributes to store array search condition
    * @param {boolean} arrFlag Boolean flag to check if input is array type or not
    * @returns
    * @memberof QueryGenerator
    */
-  public static getNestedAttributes(attributes: string[], value: string, nestedAttributes: any, arrFlag: boolean) {
+  public static getNestedAttributes(attributes: string[], value: string | number, nestedAttributes: any, arrFlag: boolean) {
     if (attributes.length == 1) {
       // if column is an array like address[*].line[*], then we have to convert value to an array
       nestedAttributes[attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE)] =
@@ -492,13 +519,21 @@ class QueryGenerator {
         rawSql = unnestSql;
       }
     }
-    // If it is wordmatch we have to do startswith and endswith, in posix we will set boundries
     const operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
     const searchQuery = [];
-    _.each(values, (eachValue: any) => {
-      eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-      searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
-    });
+    if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
+      _.each(values, (eachValue: any) => {
+        const numberObject = Utility.getSearchPrefixValue(eachValue);
+        const numericOperation = this.getNumericSymbol(numberObject.prefix);
+        eachValue = this.getUpdatedSearchValue(numberObject.data, column);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+      });
+    } else {
+      _.each(values, (eachValue: any) => {
+        eachValue = this.getUpdatedSearchValue(eachValue, column, true);
+        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
+      });
+    }
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));
   }
 
@@ -538,7 +573,13 @@ class QueryGenerator {
     }
     // To perform like/ilike operation with array of object, we need raw sql support
     if (
-      [Constants.OPERATION_LIKE, Constants.OPERATION_STARTS_WITH, Constants.OPERATION_ENDS_WITH, Constants.OPERATION_WORD_MATCH].indexOf(column.operation) > -1
+      [
+        Constants.OPERATION_LIKE,
+        Constants.OPERATION_STARTS_WITH,
+        Constants.OPERATION_ENDS_WITH,
+        Constants.OPERATION_WORD_MATCH,
+        Constants.OPERATION_NUMERIC_MATCH
+      ].indexOf(column.operation) > -1
     ) {
       this.createParitalSearchConditions(column, values, queryObject);
       return;

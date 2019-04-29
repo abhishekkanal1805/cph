@@ -129,10 +129,17 @@ class Constants {
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
 
+  public static readonly GREATER_THAN = ">";
+  public static readonly GREATER_THAN_EQUAL = ">=";
+  public static readonly LESS_THAN = "<";
+  public static readonly LESS_THAN_EQUAL = "<=";
+  public static readonly EQUAL = "=";
+
   public static readonly OPERATION_LIKE = "like";
   public static readonly OPERATION_STARTS_WITH = "startsWith";
   public static readonly OPERATION_ENDS_WITH = "endsWith";
   public static readonly OPERATION_WORD_MATCH = "wordMatch";
+  public static readonly OPERATION_NUMERIC_MATCH = "numericMatch";
 
   public static readonly PERIOD_DAYS = "days";
   public static readonly PERIOD_MONTHS = "months";
@@ -161,6 +168,17 @@ class Constants {
   public static readonly USER_PROFILE = "UserProfile";
   public static readonly LIMIT = "limit";
   public static readonly OFFSET = "offset";
+
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY_VALUE = "max-age=63072000; includeSubdomains; preload";
+  public static readonly HEADER_X_CONTENT_TYPE = "X-Content-Type-Options";
+  public static readonly HEADER_X_CONTENT_TYPE_VALUE = "nosniff";
+  public static readonly HEADER_X_FRAME_OPTIONS = "X-Frame-Options";
+  public static readonly HEADER_X_FRAME_OPTIONS_VALUE = "DENY";
+  public static readonly HEADER_X_XSS_PROTECTION = "X-XSS-Protection";
+  public static readonly HEADER_X_XSS_PROTECTION_VALUE = "1; mode=block";
+  public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
+  public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
 }
 
 export { Constants };
