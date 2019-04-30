@@ -8,29 +8,65 @@ import { BaseGet } from "./baseGet";
 
 export class BaseDelete {
   /**
-   *  Wrapper function to perform save for CPH users
+   *  Deletes the id for provided Model from database
+   *  A get is first performed to make the record exists in database and also to make sure the access by requestor is authorized.
    *
    * @static
    * @param {*} requestPayload requestPayload array in JSON format
    * @param {string} patientElement patient reference key like subject.reference
    * @param {*} requesterProfileId requestorProfileId Id of logged in user
+   * @param patientElement Element name that will be used for validating against the requesterProfileId
    * @param {*} model Model which need to be saved
    * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param permanent true or "true" for parmanent delete. false or "false" for soft delete
    * @returns
    * @memberof BaseDelete
    */
   public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
     log.info("In BaseDelete :: deleteResource()");
-    let record = await BaseGet.getResource(id, model, requesterProfileId, patientElement);
+    // getResource will always return the record. if nothing found it throws NotFound error.
+    const record = await BaseGet.getResource(id, model, requesterProfileId, patientElement);
+    this.deleteObject(record, model, modelDataResource, permanent);
+  }
+
+  /**
+   * Variation of the deleteResource where access authorization checks are not performed before performing delete.
+   * A get is first performed to make the record exists in database.
+   *
+   * @param id
+   * @param model
+   * @param modelDataResource
+   * @param permanent
+   * @returns {Promise<void>}
+   */
+  public static async deleteResourceWithoutAuthorization(id, model, modelDataResource, permanent) {
+    log.info("In BaseDelete :: deleteResourceWithoutAuthorization()");
+    // getResource will always return the record. if nothing found it throws NotFound error.
+    const record = await BaseGet.getResourceWithoutAuthorization(id, model);
+    this.deleteObject(record, model, modelDataResource, permanent);
+  }
+
+  /**
+   * Deletes the provided object from database.
+   * A GET is not performed for to make sure the object state is current or whether this exists in DB.
+   * No access authorization checks are not performed before performing delete.
+   *
+   * @param record Existing record that needs to be deleted. Should be provided as instance of the Sequelize Object to be deleted.
+   * @param model class for
+   * @param modelDataResource
+   * @param permanent true or "true" for parmanent delete. false or "false" for soft delete
+   * @returns {Promise<void>}
+   */
+  public static async deleteObject(record, model, modelDataResource, permanent) {
     if (permanent === true || permanent === "true") {
-      log.info("Deleting item Permanently :: deleteResource()");
-      await DAOService.delete(id, model);
+      log.info("Permanently deleting the item" + record.id);
+      await DAOService.delete(record.id, model);
     } else if (permanent === false || permanent === "false") {
-      log.info("Soft deleting the item" + id);
+      log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
       record = DataHelperService.convertToModel(record, model, modelDataResource);
-      await DAOService.softDelete(id, record, model);
+      await DAOService.softDelete(record.id, record, model);
     } else {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
       throw new UnAuthorizedResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
