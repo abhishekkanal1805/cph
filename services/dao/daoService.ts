@@ -53,12 +53,12 @@ export class DAOService {
         return results.dataValues;
       }
     } catch (err) {
-      log.error("fetchOne() :: Error in fetching record for [" + model.name + "] for options=" + JSON.stringify(options) + ". Message" + err.stack, err);
+      log.error("fetchOne() :: Error in fetching record for [" + model.name + "]. Message" + err.stack, err);
       throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
 
     // it will come here if results were null
-    log.info("fetchOne() :: No records found for [" + model.name + "] for options=" + JSON.stringify(options));
+    log.info("fetchOne() :: No records found for [" + model.name + "].");
     // TODO: Review if record not found should be error state. Its here to prevent refactoring of calling functions
     throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
   }
