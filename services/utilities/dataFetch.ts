@@ -25,6 +25,7 @@ export class DataFetch {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // Take uniq values and get records and validate count
+    // FIXME: can we re-use
     profiles = _.uniq(profiles);
     const queryObject = {
       where: {
@@ -39,6 +40,7 @@ export class DataFetch {
     }
     for (const profile of result) {
       if (profile.status !== Constants.ACTIVE) {
+        // FIXME: it will never come here
         log.error("Error in DataFetch: UserProfile status is inactive for id : " + profile.id);
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
@@ -87,7 +89,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getReferenceResouce(model, recordIds: string): Promise<any[]> {
+  public static async getReferenceResouce(model, recordIds: string[]): Promise<any[]> {
     const query = {
       where: {
         "id": {
