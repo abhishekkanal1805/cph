@@ -8,10 +8,13 @@ import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
+
+// FIXME: add documentation to all functions. example: will it search for deleted ones, active ones, exceptions thrown, what attributes are returned etc.
 export class DataFetch {
+
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
-   *
+   * FIXME: rename to getUserProfiles. also this returned value is not really userProfile. it is a userAccessObj. we should define this as a class
    * @static
    * @param {*} authorizerData
    * @returns {Promise<any>}
@@ -25,7 +28,7 @@ export class DataFetch {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // Take uniq values and get records and validate count
-    // FIXME: can we re-use
+    // FIXME: can we re-use from other functions
     profiles = _.uniq(profiles);
     const queryObject = {
       where: {
@@ -66,7 +69,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getValidIds(model, recordIds: string[]): Promise<any[]> {
+  public static getValidIds(model, recordIds: string[]): Promise<any[]> {
     const query = {
       where: {
         "id": {
@@ -76,12 +79,12 @@ export class DataFetch {
       },
       attributes: ["id", "meta"]
     };
-    const result = await DAOService.search(model, query);
-    return result;
+    return DAOService.search(model, query);
   }
 
   /**
-   *
+   * Queries the database for the provided ids and returns only the ones that are not deleted.
+   * Entire resource is returned
    *
    * @static
    * @param {*} model
@@ -89,7 +92,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static async getReferenceResouce(model, recordIds: string[]): Promise<any[]> {
+  public static getReferenceResource(model, recordIds: string[]): Promise<any[]> {
     const query = {
       where: {
         "id": {
@@ -99,15 +102,17 @@ export class DataFetch {
       },
       attributes: ["dataResource"]
     };
-    const result = await DAOService.search(model, query);
-    return result;
+    return DAOService.search(model, query);
   }
+
   /**
+   * Queries the database for the provided profile ids and returns only the ones that are active and not deleted.
+   * Only valid ids are returned.
    * @param model
    * @param {string[]} recordIds
    * @return {Promise<any[]>}
    */
-  public static async getValidUserProfileIds(recordIds: string[]): Promise<any[]> {
+  public static getValidUserProfileIds(recordIds: string[]): Promise<any[]> {
     const query = {
       where: {
         "id": {
@@ -118,8 +123,28 @@ export class DataFetch {
       },
       attributes: ["id"]
     };
-    const result = await DAOService.search(UserProfile, query);
-    return result;
+    return DAOService.search(UserProfile, query);
+  }
+
+  /**
+   * Returns user profile for the provided id if it was found and if it was un-deleted.
+   * Only the dataValues are returned by the function.
+   * It does not care if the profile is active or not.
+   * If the profile was not found it will throw a NotFoundResult.
+   * All Database errors are thrown as InternalServerError
+   * @param {string} id
+   * @returns {Promise<any>}
+   */
+  public static getUserProfileById(id: string): Promise<any> {
+    const query = {
+      where: {
+        id,
+        "meta.isDeleted": false
+      },
+      attributes: ["dataResource"]
+    };
+    // fetchOne extracts dataValues and returns only that
+    return DAOService.fetchOne(UserProfile, query);
   }
 
   /**
@@ -176,7 +201,7 @@ export class DataFetch {
 
   /**
    *
-   *
+   * FIXME: Add documentation for this. perhaps this method should be re-used in other profile search in this class
    * @static
    * @param {*} searchObject
    * @returns
