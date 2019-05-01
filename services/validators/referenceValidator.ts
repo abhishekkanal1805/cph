@@ -13,11 +13,11 @@ export class ReferenceValidator {
    */
   public static validateReference<T>(requestPayload, referenceValidationModel?, referenceValidationElement?: string): Promise<{validResources: any[], errorResults: any[]}> {
     if (referenceValidationElement && referenceValidationModel) {
-      log.info("Validating all references in resource.");
+      log.info("Validating all references for element:" + referenceValidationElement);
       const keysToFetch = new Map();
       keysToFetch.set(referenceValidationElement, []);
       const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-      log.info("Reference Keys retrieved successfully :: saveResource()");
+      log.debug("Reference Keys retrieved successfully.");
 
       // uniquesReferenceIds
       let uniquesReferenceIds = [...new Set(valuesMap.get(referenceValidationElement))].filter(Boolean);
@@ -31,9 +31,10 @@ export class ReferenceValidator {
         referenceValidationModel,
         referenceValidationElement
       );
+      log.info("Reference Keys validation completed for element:" + referenceValidationElement);
     } else {
       // if nothing to validate then all resources are valid
-      log.info("No references to validate, returning all.");
+      log.debug("No references to validate, returning entire payload as valid.");
       return Promise.resolve({validResources: requestPayload, errorResults: []});
     }
 

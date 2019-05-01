@@ -12,6 +12,22 @@ import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePost {
 
+  /**
+   * For all clinical resource patientElement hold the profile reference to who the record belongs,
+   * informationSourceElement holds the profile reference to the someone who is creating the patient data,
+   * requestorId points to the logged in user.
+   * For use with FHIR resources we would set the informationSourceElement same as patientElement
+   * TODO: should we disallow nulls for patientElement and informationSourceElement
+   * @param requestPayload
+   * @param {string} requestorProfileId
+   * @param {T} payloadModel
+   * @param payloadDataResourceModel
+   * @param {string} patientElement
+   * @param {string} informationSourceElement
+   * @param referenceValidationModel
+   * @param {string} referenceValidationElement
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async saveClinicalResources<T>(requestPayload,
                                                requestorProfileId: string,
                                                payloadModel: T,
@@ -26,20 +42,34 @@ export class BasePost {
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
-    keysToFetch.set(informationSourceElement, []);
+    const validateInformationSourceElement: boolean = informationSourceElement && (informationSourceElement !== patientElement);
+    if (validateInformationSourceElement) {
+      keysToFetch.set(informationSourceElement, []);
+    }
     const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Reference Keys retrieved successfully :: saveResource()");
-    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    // patientvalidationid
-    const patientIds = [...new Set(valuesMap.get(patientElement))];
-    const informationSourceIds = [...new Set(valuesMap.get(informationSourceElement))];
+    log.info("Device and User Keys retrieved successfully :: saveResource()");
 
-    // perform Authorization
-    await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
-    // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.debug("Devices [" + patientElement + "] validation is successful");
+
+    // perform user validation for owner reference
+    const patientIds = [...new Set(valuesMap.get(patientElement))];
+    RequestValidator.validateSingularPatientReference(patientIds);
     const patientReferenceValue = patientIds[0];
-    const informationSourceReferenceValue = informationSourceIds[0];
-    // TODO: any scenarios when we want to skip this?
+    log.debug("PatientElement [" + patientElement + "] validation is successful");
+
+    // perform user validation for information source
+    let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
+    if (validateInformationSourceElement) {
+      const informationSourceIds = [...new Set(valuesMap.get(informationSourceElement))];
+      RequestValidator.validateSingularUserReference(informationSourceIds);
+      informationSourceReferenceValue = informationSourceIds[0];
+      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
+    }
+    log.info("Device and user validation is successful");
+
     await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization is successful ");
 
@@ -61,6 +91,17 @@ export class BasePost {
     return saveResponse;
   }
 
+  /**
+   * FIXME: Review this for non-clinical usage. Currently no integrations
+   * @param requestPayload
+   * @param {string} requestorProfileId
+   * @param {T} payloadModel
+   * @param payloadDataResourceModel
+   * @param {string} ownerElement
+   * @param referenceValidationModel
+   * @param {string} referenceValidationElement
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async saveNonClinicalResources<T>(requestPayload,
                                                   requestorProfileId: string,
                                                   payloadModel: T,

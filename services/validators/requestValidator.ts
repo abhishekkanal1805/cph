@@ -166,7 +166,7 @@ export class RequestValidator {
    * @return {Promise<{validResources: any[]; errorResults: any[]}>}
    */
   public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel, referenceValidationAttribute: string) {
-    log.info("In RequestValidator: filterValidReferences()");
+    log.info("filterValidReferences for referenceValidationAttribute=" + referenceValidationAttribute);
     const response = { validResources: [], errorResults: [] };
     const recordArr = [];
     const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
@@ -194,7 +194,7 @@ export class RequestValidator {
       response.validResources = requestPayload;
       response.errorResults = [];
     }
-    log.info("In RequestValidator: filterValidReferences()");
+    log.info("Completed filterValidReferences for referenceValidationAttribute=" + referenceValidationAttribute);
     return response;
   }
 
