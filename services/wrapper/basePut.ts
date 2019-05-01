@@ -36,20 +36,21 @@ export class BasePut {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: updateResource()");
-    const keysToFetch = new Map();
-    keysToFetch.set(Constants.ID, []);
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientElement, []);
-    keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    const keysMap = JsonParser.findAllKeysAsMap(
+      requestPayload,
+      Constants.ID,
+      Constants.DEVICE_REFERENCE_KEY,
+      patientElement,
+      Constants.INFORMATION_SOURCE_REFERENCE_KEY);
+
     log.info("Reference Keys retrieved successfully :: updateResource()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(keysMap.get(patientElement))];
     // userids
-    const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
+    const informationSourceIds = [...new Set(keysMap.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // primary key Ids
-    const primaryIds = [...new Set(response.get(Constants.ID))];
+    const primaryIds = [...new Set(keysMap.get(Constants.ID))];
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
@@ -96,21 +97,22 @@ export class BasePut {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: updateResource()");
-    const keysToFetch = new Map();
-    keysToFetch.set("id", []);
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientElement, []);
-    keysToFetch.set(Constants.INFORMATION_SOURCE_REFERENCE_KEY, []);
-    keysToFetch.set(referenceValidationAttribute, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    const keysMap = JsonParser.findAllKeysAsMap(
+      requestPayload,
+      Constants.ID,
+      Constants.DEVICE_REFERENCE_KEY,
+      patientElement,
+      Constants.INFORMATION_SOURCE_REFERENCE_KEY,
+      referenceValidationAttribute);
+
     log.info("Reference Keys retrieved successfully :: updateResource()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(keysMap.get(patientElement))];
     // userids
-    const informationSourceIds = [...new Set(response.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
+    const informationSourceIds = [...new Set(keysMap.get(Constants.INFORMATION_SOURCE_REFERENCE_KEY))];
     // primary key Ids
-    const primaryIds = [...new Set(response.get(Constants.ID))];
+    const primaryIds = [...new Set(keysMap.get(Constants.ID))];
     // perform Authorization
     await RequestValidator.validateDeviceAndProfile(uniqueDeviceIds, informationSourceIds, patientIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
@@ -119,7 +121,7 @@ export class BasePut {
     const informationSourceReferenceValue = informationSourceIds[0];
     await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
     log.info("User Authorization successfully :: updateResource()");
-    let uniquesReferenceIds = [...new Set(response.get(referenceValidationAttribute))].filter(Boolean);
+    let uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationAttribute))].filter(Boolean);
     uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
       return referenceId.split("/")[1];
     });
@@ -287,6 +289,7 @@ export class BasePut {
   }
 
   /**
+   * FIXME: Document how is this different from other updates
    *  Wrapper function to perform update for FHIR services
    *
    * @static
@@ -311,17 +314,18 @@ export class BasePut {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: updateResource()");
-    const keysToFetch = new Map();
-    keysToFetch.set(Constants.ID, []);
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientElement, []);
-    const response = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    const keysMap = JsonParser.findAllKeysAsMap(
+      requestPayload,
+      Constants.ID,
+      Constants.DEVICE_REFERENCE_KEY,
+      patientElement);
+
     log.info("Reference Keys retrieved successfully :: updateResource()");
-    const uniqueDeviceIds = [...new Set(response.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     // patientvalidationid
-    const patientIds = [...new Set(response.get(patientElement))];
+    const patientIds = [...new Set(keysMap.get(patientElement))];
     // primary key Ids
-    const primaryIds = [...new Set(response.get(Constants.ID))];
+    const primaryIds = [...new Set(keysMap.get(Constants.ID))];
     // perform patient reference validation
     RequestValidator.validateSingularPatientReference(patientIds);
     //  perform deviceId validation

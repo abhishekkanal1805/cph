@@ -14,13 +14,11 @@ export class ReferenceValidator {
   public static validateReference<T>(requestPayload, referenceValidationModel?, referenceValidationElement?: string): Promise<{validResources: any[], errorResults: any[]}> {
     if (referenceValidationElement && referenceValidationModel) {
       log.info("Validating all references for element:" + referenceValidationElement);
-      const keysToFetch = new Map();
-      keysToFetch.set(referenceValidationElement, []);
-      const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-      log.debug("Reference Keys retrieved successfully.");
+
+      const keysMap = JsonParser.findAllKeysAsMap(requestPayload, referenceValidationElement);
 
       // uniquesReferenceIds
-      let uniquesReferenceIds = [...new Set(valuesMap.get(referenceValidationElement))].filter(Boolean);
+      let uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationElement))].filter(Boolean);
       uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
         return referenceId.split("/")[1];
       });

@@ -42,20 +42,21 @@ export class BasePost {
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
+    // validate information source key only if element is present and if its different from patient element
     const validateInformationSourceElement: boolean = informationSourceElement && (informationSourceElement !== patientElement);
     if (validateInformationSourceElement) {
       keysToFetch.set(informationSourceElement, []);
     }
-    const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Device and User Keys retrieved successfully :: saveResource()");
 
     // perform deviceId validation
-    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     log.debug("Devices [" + patientElement + "] validation is successful");
 
     // perform user validation for owner reference
-    const patientIds = [...new Set(valuesMap.get(patientElement))];
+    const patientIds = [...new Set(keysMap.get(patientElement))];
     RequestValidator.validateSingularPatientReference(patientIds);
     const patientReferenceValue = patientIds[0];
     log.debug("PatientElement [" + patientElement + "] validation is successful");
@@ -63,7 +64,7 @@ export class BasePost {
     // perform user validation for information source
     let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
     if (validateInformationSourceElement) {
-      const informationSourceIds = [...new Set(valuesMap.get(informationSourceElement))];
+      const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
       RequestValidator.validateSingularUserReference(informationSourceIds);
       informationSourceReferenceValue = informationSourceIds[0];
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
@@ -112,24 +113,22 @@ export class BasePost {
 
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
-    const keysToFetch = new Map();
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(ownerElement, []);
 
-    const valuesMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    const keysMap = JsonParser.findAllKeysAsMap(
+      requestPayload,
+      Constants.DEVICE_REFERENCE_KEY,
+      ownerElement);
     log.info("Reference Keys retrieved successfully :: saveResource()");
-    const uniqueDeviceIds = [...new Set(valuesMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    const ownerIds = [...new Set(valuesMap.get(ownerElement))];
 
     //  perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.info("User Authorization is successful ");
     // perform owner reference validation
-    RequestValidator.validateSingularPatientReference(ownerIds);
-    log.info("User Authorization is successful ");
+    const ownerIds = [...new Set(keysMap.get(ownerElement))];
+    RequestValidator.validateSingularUserReference(ownerIds);
 
     // perform Authorization
-    await AuthService.authorizeRequest(requestorProfileId, ownerIds[0], ownerIds[0]);
+    await AuthService.authorizeConnectionBased(requestorProfileId, ownerIds[0]);
     log.info("User Authorization is successful ");
 
     const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
