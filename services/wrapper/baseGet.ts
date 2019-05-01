@@ -25,7 +25,7 @@ export class BaseGet {
   public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
     log.info("In BaseGet :: getResource()");
     const options = { where: { id, "meta.isDeleted": false } };
-    let record = await DAOService.fetchRowByPkQuery(model, options);
+    let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
@@ -48,7 +48,7 @@ export class BaseGet {
   public static async getResourceWithoutAuthorization(id: string, model: any) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
     const options = { where: { id, "meta.isDeleted": false } };
-    let record = await DAOService.fetchRowByPkQuery(model, options);
+    let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
     return record;
