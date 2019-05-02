@@ -83,29 +83,6 @@ export class DataFetch {
   }
 
   /**
-   * Queries the database for the provided ids and returns only the ones that are not deleted.
-   * Entire resource is returned
-   *
-   * @static
-   * @param {*} model
-   * @param {string[]} recordIds
-   * @returns {Promise<any>}
-   * @memberof DataFetch
-   */
-  public static getReferenceResource(model, recordIds: string[]): Promise<any[]> {
-    const query = {
-      where: {
-        "id": {
-          [Op.or]: recordIds
-        },
-        "meta.isDeleted": false
-      },
-      attributes: ["dataResource"]
-    };
-    return DAOService.search(model, query);
-  }
-
-  /**
    * Queries the database for the provided profile ids and returns only the ones that are active and not deleted.
    * Only valid ids are returned.
    * @param model
