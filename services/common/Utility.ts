@@ -40,24 +40,6 @@ export class Utility {
   }
 
   /**
-   * Retuns the Mapped attributes on basis of provided endpoints.
-   * @param attribute
-   * @param prop
-   * @param endpoint
-   * @returns {any}
-   */
-  public static getMappedAttribute(attribute, prop, endpoint) {
-    log.info("Inside Utility: getMappedAttribute()");
-    const mapped = config.settings[endpoint].searchAttributes;
-    const index = mapped.findIndex((x) => x[prop] == attribute);
-    if (index > -1) {
-      return mapped[index];
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Returns current timestamp
    * @example
    * getTimeStamp() // 2018-09-03T08:18:45.732Z
