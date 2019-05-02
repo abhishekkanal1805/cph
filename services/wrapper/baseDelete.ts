@@ -26,7 +26,7 @@ export class BaseDelete {
     log.info("In BaseDelete :: deleteResource()");
     // getResource will always return the record. if nothing found it throws NotFound error.
     const record = await BaseGet.getResource(id, model, requesterProfileId, patientElement);
-    await this.deleteObject(record, model, modelDataResource, permanent);
+    await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 
   /**
@@ -43,7 +43,7 @@ export class BaseDelete {
     log.info("In BaseDelete :: deleteResourceWithoutAuthorization()");
     // getResource will always return the record. if nothing found it throws NotFound error.
     const record = await BaseGet.getResourceWithoutAuthorization(id, model);
-    await this.deleteObject(record, model, modelDataResource, permanent);
+    await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 
   /**

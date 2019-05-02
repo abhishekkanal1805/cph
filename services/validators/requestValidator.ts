@@ -72,7 +72,7 @@ export class RequestValidator {
    * @param {string[]} patientReferenceId
    * @memberof RequestValidator
    */
-  public static validateUniquePatientReference(patientReferenceId: string[]): void {
+  public static validateSingularPatientReference(patientReferenceId: string[]): void {
     log.info("In RequestValidator: validateUniquePatientReference()");
     if (patientReferenceId.length != 1) {
       log.error("Error: Multiple or zero patient reference present in request");
@@ -88,7 +88,7 @@ export class RequestValidator {
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static validateNumberOfUniqueUserReference(informationSourceIds: string[]): void {
+  public static validateSingularUserReference(informationSourceIds: string[]): void {
     log.info("In RequestValidator: validateNumberOfUniqueUserReference()");
     if (informationSourceIds.length != 1) {
       log.error("Error: Multiple user Id's found in request");
@@ -106,8 +106,8 @@ export class RequestValidator {
    * @memberof RequestValidator
    */
   public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
-    RequestValidator.validateNumberOfUniqueUserReference(informationSourceIds);
-    RequestValidator.validateUniquePatientReference(patientIds);
+    RequestValidator.validateSingularUserReference(informationSourceIds);
+    RequestValidator.validateSingularPatientReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
 
@@ -166,7 +166,7 @@ export class RequestValidator {
    * @return {Promise<{validResources: any[]; errorResults: any[]}>}
    */
   public static async filterValidReferences(requestPayload, uniqueReferenceIds, referenceModel, referenceValidationAttribute: string) {
-    log.info("In RequestValidator: filterValidReferences()");
+    log.info("filterValidReferences for referenceValidationAttribute=" + referenceValidationAttribute);
     const response = { validResources: [], errorResults: [] };
     const recordArr = [];
     const results: any = await DataFetch.getValidIds(referenceModel, uniqueReferenceIds);
@@ -177,14 +177,14 @@ export class RequestValidator {
           resource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
           !validReferenceIds.includes(resource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1])
         ) {
-          const badRequest = new BadRequestResult(
+          const badRequestError = new BadRequestResult(
             errorCodeMap.InvalidReference.value,
             errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
           );
           if (resource.meta && resource.meta.clientRequestId) {
-            badRequest.clientRequestId = resource.meta.clientRequestId;
+            badRequestError.clientRequestId = resource.meta.clientRequestId;
           }
-          response.errorResults.push(badRequest);
+          response.errorResults.push(badRequestError);
         } else {
           recordArr.push(resource);
         }
@@ -194,7 +194,7 @@ export class RequestValidator {
       response.validResources = requestPayload;
       response.errorResults = [];
     }
-    log.info("In RequestValidator: filterValidReferences()");
+    log.info("Completed filterValidReferences for referenceValidationAttribute=" + referenceValidationAttribute);
     return response;
   }
 

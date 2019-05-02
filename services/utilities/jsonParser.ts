@@ -50,7 +50,7 @@ export class JsonParser {
    * This function is an extentsion of findValuesForKey() where it supports multiple key search in single loop
    * @static
    * @param {any[]} records
-   * @param {Map<string, any[]>} searchKey
+   * @param {Map<string, any[]>} searchKeys
    * @returns {Map<string, any[]>}
    * @memberof JsonParser
    */
@@ -64,5 +64,19 @@ export class JsonParser {
       });
     });
     return searchKeys;
+  }
+
+  /**
+   * Variation of the findValuesForKeyMap where the search key maps is initialized
+   * @param {any[]} records
+   * @param {string} keys
+   * @returns {Map<string, any[]>}
+   */
+  public static findAllKeysAsMap(records: any[], ...keys: string[]): Map<string, any[]> {
+    const keysToFetch = new Map();
+    for (const key of keys) {
+      keysToFetch.set(key, []);
+    }
+    return JsonParser.findValuesForKeyMap(records, keysToFetch);
   }
 }
