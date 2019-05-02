@@ -196,7 +196,7 @@ class ResponseBuilderService {
    */
   public static async initDisplayName(profileId: string) {
     try {
-      const result = await DAOService.fetchRowByPk(profileId, UserProfile);
+      const result = await DAOService.fetchByPk(profileId, UserProfile);
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
       const familyName = result.name ? result.name.family || "" : "";

@@ -1,11 +1,34 @@
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import {
-  InternalServerErrorResult,
-  NotFoundResult
-} from "../../common/objects/custom-errors";
+import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 
 export class DAOService {
+  /**
+   * Fetch database record by its primary key
+   *
+   * @static
+   * @param {string} id : primary key id
+   * @param {*} model : sequelize model
+   * @returns {Promise<any>}
+   * @memberof DAOService
+   */
+  public static async fetchByPk(id: string, model: any): Promise<any> {
+    log.info("Entering DAOService :: fetchByPk()");
+    try {
+      const results = await model.findByPk(id);
+      if (results) {
+        return results.dataValues;
+      }
+    } catch (err) {
+      log.error("fetchByPk() :: Error in fetching record for [" + model.name + "] for id=" + id + ". Message" + err.stack, err);
+      throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+
+    // it will come here if results were null
+    log.info("fetchByPk() :: No records found for [" + model.name + "] for id=" + id);
+    // TODO: Review if record not found should be error state. Its here to prevent refactoring of calling functions
+    throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+  }
 
   /**
    * Executes findOne on the Sequelize Model with the provided options.
