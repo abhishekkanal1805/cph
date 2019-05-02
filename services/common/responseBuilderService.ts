@@ -13,12 +13,11 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
-import { DataSource } from "../../dataSource";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
-import { DataService } from "./dataService";
+import { DAOService } from "../dao/daoService";
 import { Utility } from "./Utility";
 
 const response = {
@@ -197,8 +196,7 @@ class ResponseBuilderService {
    */
   public static async initDisplayName(profileId: string) {
     try {
-      DataSource.addModel(UserProfile);
-      const result = await DataService.fetchDatabaseRowStandard(profileId, UserProfile);
+      const result = await DAOService.fetchRowByPk(profileId, UserProfile);
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
       const familyName = result.name ? result.name.family || "" : "";
