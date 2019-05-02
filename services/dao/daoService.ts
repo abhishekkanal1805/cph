@@ -1,12 +1,8 @@
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import {
-  InternalServerErrorResult,
-  NotFoundResult
-} from "../../common/objects/custom-errors";
+import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 
 export class DAOService {
-
   /**
    * Fetch database record by its primary key
    *
