@@ -104,27 +104,6 @@ export class DataFetch {
   }
 
   /**
-   * Returns user profile for the provided id if it was found and if it was un-deleted.
-   * Only the dataValues are returned by the function.
-   * It does not care if the profile is active or not.
-   * If the profile was not found it will throw a NotFoundResult.
-   * All Database errors are thrown as InternalServerError
-   * @param {string} id
-   * @returns {Promise<any>}
-   */
-  public static getUserProfileById(id: string): Promise<any> {
-    const query = {
-      where: {
-        id,
-        "meta.isDeleted": false
-      },
-      attributes: ["dataResource"]
-    };
-    // fetchOne extracts dataValues and returns only that
-    return DAOService.fetchOne(UserProfile, query);
-  }
-
-  /**
    *
    *
    * @static
