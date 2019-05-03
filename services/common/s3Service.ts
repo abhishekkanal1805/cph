@@ -2,7 +2,7 @@ import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
-const s3 = new AWS.S3();
+const s3 = new AWS.S3({ signatureVersion: "v4" });
 
 export class S3Service {
   /**
