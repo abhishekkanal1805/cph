@@ -544,21 +544,23 @@ class DataService {
     log.info("Entering BaseService :: getCriteriaCondition()");
     const operationMap = {
       ANY: Op.or,
-      AND: Op.and
+      ALL: Op.and
     };
     const operation = operationMap[criteriaList.type];
     const conditionArray = {};
     conditionArray[operation] = [];
-    if (criteriaList.criteriaList) {
-      conditionArray[operation].push(await DataService.getCriteriaConditionClause(criteriaList.criteriaList));
-    }
     if (criteriaList.criteria && criteriaList.criteria.length > 0) {
       for (const criterion of criteriaList.criteria) {
         const criterionCondition = await DataService.generateConditionClause(criterion);
         conditionArray[operation].push(criterionCondition);
       }
     }
+    if (criteriaList.criteriaList) {
+      const criteriaListConditions: any = await DataService.getCriteriaConditionClause(criteriaList.criteriaList);
+      conditionArray[operation].push(criteriaListConditions);
+    }
     log.info("Exiting BaseService :: getCriteriaCondition()");
+    return conditionArray;
   }
 
   /**
@@ -569,17 +571,18 @@ class DataService {
     log.info("Entering BaseService :: generateConditionClause()");
     const operationMap = {
       greaterThan: Op.gt,
-      greaterThanEqual: Op.gte,
+      greaterThanOrEqual: Op.gte,
       lessThan: Op.lt,
-      lesserThan: Op.lte,
+      lessThanOrEqual: Op.lte,
       equal: Op.eq
     };
-    const criteriaClause = {};
     const value = criterion.value ? criterion.value : await DataService.expressionEvaluator(criterion.valueExpression);
     const operation = operationMap[criterion.operation];
     log.info("Exiting BaseService :: generateConditionClause()");
-    return criteriaClause[criterion.field] = {
-      [operation]:  value
+    return {
+      [criterion.field]: {
+        [operation]:  value
+      }
     };
   }
 
