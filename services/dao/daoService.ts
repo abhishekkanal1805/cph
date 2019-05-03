@@ -12,19 +12,27 @@ export class DAOService {
    * @returns {Promise<any>}
    * @memberof DAOService
    */
-  public static async fetchRowByPk(id: string, model: any): Promise<any> {
-    log.info("Entering DAOService :: fetchRowByPk()");
+  public static async fetchByPk(id: string, model: any): Promise<any> {
+    log.info("Entering DAOService :: fetchByPk()");
     try {
       const results = await model.findByPk(id);
-      return results.dataValues;
+      if (results) {
+        return results.dataValues;
+      }
     } catch (err) {
-      log.error("fetchRowByPk() :: Error in fetching the record :: " + err);
-      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      log.error("fetchByPk() :: Error in fetching record for [" + model.name + "] for id=" + id + ". Message" + err.stack, err);
+      throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
+
+    // it will come here if results were null
+    log.info("fetchByPk() :: No records found for [" + model.name + "] for id=" + id);
+    // TODO: Review if record not found should be error state. Its here to prevent refactoring of calling functions
+    throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
   }
 
   /**
-   *
+   * Executes findOne on the Sequelize Model with the provided options.
+   * Depending on the options more rows can exits in the DB but we limit the fetch to one row.
    *
    * @static
    * @param {string} id
@@ -33,15 +41,22 @@ export class DAOService {
    * @returns {Promise<any>}
    * @memberof DAOService
    */
-  public static async fetchRowByPkQuery(id: string, model: any, options: any): Promise<any> {
-    log.info("Entering DAOService :: fetchRowByPkQuery()");
+  public static async fetchOne(model: any, options: any): Promise<any> {
+    log.info("Entering DAOService :: fetchOne()");
     try {
-      const results = await model.findByPk(id, options);
-      return results.dataValues;
+      const results = await model.findOne(options);
+      if (results) {
+        return results.dataValues;
+      }
     } catch (err) {
-      log.error("fetchRowByPkQuery() :: Error in fetching the record :: " + err);
-      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      log.error("fetchOne() :: Error in fetching record for [" + model.name + "]. Message" + err.stack, err);
+      throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
+
+    // it will come here if results were null
+    log.info("fetchOne() :: No records found for [" + model.name + "].");
+    // TODO: Review if record not found should be error state. Its here to prevent refactoring of calling functions
+    throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
   }
 
   /**

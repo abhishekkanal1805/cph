@@ -19,7 +19,7 @@ describe("Test getUserProfile() - ", () => {
     done();
   });
   it("Throw error if user profile of logged in user is not active", async (done) => {
-    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
+    spyOn(DAOService, "fetchByPk").and.callFake(() => {
       return { status: "inactive" };
     });
     const profile = ["123"];
@@ -34,7 +34,7 @@ describe("Test getUserProfile() - ", () => {
     done();
   });
   it("Return user attributes if user is active", async (done) => {
-    spyOn(DAOService, "fetchRowByPk").and.callFake(() => {
+    spyOn(DAOService, "fetchByPk").and.callFake(() => {
       return { status: Constants.ACTIVE, type: "patient", name: { given: ["Sam"], family: "Jackson" } };
     });
     const profile = ["123"];

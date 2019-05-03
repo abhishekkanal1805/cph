@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import { Identifier } from "../../common/identifier";
+import { Constants } from "../../../common/constants/constants";
 import { InformationSource } from "../../common/informationSource";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { DeviceDataResource } from "./deviceDataResource";
@@ -17,22 +17,19 @@ export class Device extends Model<Device> {
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
-  /**
-   * Cognito device ID or the bundle ID, app identifier
-   */
-  @Column({ type: DataType.JSONB })
-  identifier: Identifier[];
+  @Column({ type: DataType.STRING, field: Constants.INFORMATION_SOURCE_ATTRIBUTE })
+  _informationSource: string;
 
-  @Column({ type: DataType.JSONB })
-  platformToken: Identifier;
-
-  @Column({ type: DataType.JSONB, allowNull: false })
-  informationSource: InformationSource;
+  @Column({ type: DataType.STRING })
+  status: string;
 
   @Column({ type: DataType.JSONB })
   meta: ResourceMetadata;
 
   @Column({ type: DataType.JSONB })
-  @Column({ type: DataType.JSONB })
   dataResource: DeviceDataResource;
+
+  set informationSource(value: InformationSource) {
+    this._informationSource = value.reference;
+  }
 }

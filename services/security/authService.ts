@@ -95,6 +95,9 @@ export class AuthService {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+    } else {
+      log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
+      return;
     }
     log.info("Exiting AuthService :: hasConnectionBasedAccess");
     return connection;

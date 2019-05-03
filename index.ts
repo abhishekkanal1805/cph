@@ -1,15 +1,11 @@
 export { Utility } from "./services/common/Utility";
 export { DataHelperService } from "./services/common/dataHelperService";
-export { DataService } from "./services/common/dataService";
-export { DataValidatorUtility } from "./services/common/dataValidatorUtility";
 export { FieldVisitor } from "./services/common/fieldVisitor";
 export { APIRequestUtility } from "./services/common/apiRequestUtility";
 export { LogUtility } from "./services/common/logUtility";
 export { ResponseBuilderService } from "./services/common/responseBuilderService";
-export { UserService } from "./services/common/userService";
 export { AggregationUtils } from "./services/common/aggregationUtils";
 
-export * from "./services/security/userAuthService";
 export * from "./services/dao/daoService";
 export * from "./services/validators/requestValidator";
 export * from "./services/validators/queryValidator";
@@ -17,6 +13,8 @@ export * from "./services/utilities/queryGenerator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";
 export * from "./services/utilities/dataTransform";
+export {GenericResponse} from "./services/common/genericResponse";
+export {QueryOptions} from "./services/common/queryOptions";
 export * from "./services/common/s3Service";
 export * from "./services/security/authService";
 export * from "./services/wrapper/basePost";
@@ -59,8 +57,6 @@ export * from "./models/CPH/connection/connection";
 export * from "./models/CPH/connection/connectionDataResource";
 export { Device } from "./models/CPH/device/device";
 export * from "./models/CPH/device/deviceDataResource";
-
-export * from "./services/connection/connectionService";
 
 export * from "./common/constants/constants";
 export * from "./common/constants/error-codes-map";

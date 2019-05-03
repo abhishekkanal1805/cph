@@ -25,13 +25,17 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
   public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
+  public static readonly STATUS = "status";
+  public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
@@ -65,6 +69,8 @@ class Constants {
   public static readonly CLOSING_PARENTHESES = ")";
   public static readonly HYPHEN = "-";
 
+  public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
+  public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
   public static readonly ACTIVE = "active";
   public static readonly INACTIVE = "inactive";
   public static readonly PENDING = "pending";
@@ -126,15 +132,23 @@ class Constants {
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
 
+  public static readonly GREATER_THAN = ">";
+  public static readonly GREATER_THAN_EQUAL = ">=";
+  public static readonly LESS_THAN = "<";
+  public static readonly LESS_THAN_EQUAL = "<=";
+  public static readonly EQUAL = "=";
+
   public static readonly OPERATION_LIKE = "like";
   public static readonly OPERATION_STARTS_WITH = "startsWith";
   public static readonly OPERATION_ENDS_WITH = "endsWith";
   public static readonly OPERATION_WORD_MATCH = "wordMatch";
+  public static readonly OPERATION_NUMERIC_MATCH = "numericMatch";
 
   public static readonly PERIOD_DAYS = "days";
   public static readonly PERIOD_MONTHS = "months";
   public static readonly PERIOD_YEARS = "years";
 
+  public static readonly RESOURCES_ACCESSIBLE_TO_ALL = ["Questionnaire"];
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
@@ -142,6 +156,36 @@ class Constants {
   public static readonly DAYS_IN_WEEK = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
   public static readonly MONTHS_IN_YEAR = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 
+  public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
+  public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";
+  public static readonly TITLE_IMAGE_CREATION = "creation";
+  public static readonly TITLE_IMAGE_URL = "url";
+
+  public static readonly FHIR_ALLERGY_INTOLERANCE = "FhirAllergyIntolerance";
+  public static readonly FHIR_CONDITION = "FhirCondition";
+  public static readonly FHIR_IMMUNIZATION = "FhirImmunization";
+  public static readonly FHIR_MEDICATION_STATEMENT = "FhirMedicationStatement";
+  public static readonly FHIR_MEDICATION_ORDER = "FhirMedicationOrder";
+  public static readonly FHIR_OBSERVATION = "FhirObservation";
+  public static readonly FHIR_PROCEDURE = "FhirProcedure";
+  public static readonly DEVICE = "Device";
+  public static readonly APPOINTMENT = "Appointment";
+  public static readonly PERMANENT = "permanent";
+  public static readonly TRUE = true;
+  public static readonly USER_PROFILE = "UserProfile";
+  public static readonly LIMIT = "limit";
+  public static readonly OFFSET = "offset";
+
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
+  public static readonly HEADER_STRICT_TRANSPORT_SECURITY_VALUE = "max-age=63072000; includeSubdomains; preload";
+  public static readonly HEADER_X_CONTENT_TYPE = "X-Content-Type-Options";
+  public static readonly HEADER_X_CONTENT_TYPE_VALUE = "nosniff";
+  public static readonly HEADER_X_FRAME_OPTIONS = "X-Frame-Options";
+  public static readonly HEADER_X_FRAME_OPTIONS_VALUE = "DENY";
+  public static readonly HEADER_X_XSS_PROTECTION = "X-XSS-Protection";
+  public static readonly HEADER_X_XSS_PROTECTION_VALUE = "1; mode=block";
+  public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
+  public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
 }
 
 export { Constants };
