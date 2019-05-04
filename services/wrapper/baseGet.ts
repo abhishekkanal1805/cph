@@ -134,4 +134,54 @@ export class BaseGet {
     queryParams.offset = offset;
     return result;
   }
+
+  /**
+   *
+   *
+   * @static
+   * @param {*} queryParams
+   * @param {*} attributesMapping
+   * @param {*} attributesToRetrieve
+   * @returns
+   * @memberof BaseGet
+   */
+  public static prepareSearchQuery(queryParams,attributesMapping,attributesToRetrieve, orderBy){
+    if (!queryParams[Constants.IS_DELETED]) {
+      queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
+    }
+
+    let limit = Constants.FETCH_LIMIT;
+    let offset = Constants.DEFAULT_OFFSET;
+    // Validate limit parameter
+    if (queryParams.limit) {
+      limit = _.toNumber(queryParams.limit[0]);
+      if (_.isNaN(limit) || !_.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
+        log.info("limit in request is not valid " + queryParams.limit[0]);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.LIMIT);
+      }
+      // delete limit attibute as it is not part of search attribute
+      delete queryParams.limit;
+    }
+    // Validate offset parameter
+    if (queryParams.offset) {
+      offset = _.toNumber(queryParams.offset[0]);
+      if (_.isNaN(offset) || offset < 0 || !_.isInteger(offset)) {
+        log.info("offset in request is not valid " + queryParams.offset[0]);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.OFFSET);
+      }
+      // delete offset attibute as it is not part of search attribute
+      delete queryParams.offset;
+    }
+    // Generate Search Query based on query parameter & config settings
+    const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+    // fetch data from db with all conditions
+    const searchQuery = {
+      where: queryObject,
+      attributes: attributesToRetrieve && attributesToRetrieve.length > 0 ? attributesToRetrieve : [Constants.DEFAULT_SEARCH_ATTRIBUTES],
+      limit: limit + 1,
+      offset,
+      order: orderBy? orderBy:Constants.DEFAULT_ORDER_BY
+    }; 
+    return searchQuery;
+  }
 }

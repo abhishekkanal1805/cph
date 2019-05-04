@@ -2,7 +2,6 @@ import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { DataHelperService } from "../common/dataHelperService";
 import { Utility } from "../common/Utility";
 import { AuthService } from "../security/authService";
 import { DataFetch } from "../utilities/dataFetch";
@@ -182,7 +181,7 @@ export class BasePut {
         if (existingRecord.meta.versionId === record.meta.versionId) {
           // We proceed with creation of metadata and adding record to be saved if its version ID is correct
           record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requestorProfileId, false);
-          record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+          record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
           if (
             record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
             !validReferenceIds.includes(
@@ -257,7 +256,7 @@ export class BasePut {
         if (existingRecord.meta.versionId === record.meta.versionId) {
           // We proceed with creation of metadata and adding record to be saved if its version ID is correct
           record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requestorProfileId, false);
-          record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+          record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
           const thisPromise = model
             .update(record, { where: { id: record.id } })
             .then(() => {

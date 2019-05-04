@@ -44,4 +44,18 @@ export class DataTransform {
 
     return metaDataObject;
   }
+
+  /**
+   * Converts raw record/payload into service model
+   * if a serviceDataResource type was provided and if the dataResource field is also present then setting
+   * @param record
+   * @param serviceModel
+   * @param serviceDataResource
+   * @returns {any}
+   */
+  public static convertToModel(record: any, serviceModel: any, serviceDataResource: any) {
+    const recordAsModel = Object.assign(new serviceModel(), record); // this makes sure all fields other than dataResource are copied
+    recordAsModel.dataResource = Object.assign(new serviceDataResource(), record);
+    return recordAsModel;
+  }
 }

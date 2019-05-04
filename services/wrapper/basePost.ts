@@ -164,7 +164,7 @@ export class BasePost {
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
       record.id = uuid();
-      record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+      record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
       requestPayload[index] = record;
     });
     await DAOService.bulkSave(requestPayload, model);

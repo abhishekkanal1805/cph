@@ -5,6 +5,7 @@ import { UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { DataHelperService } from "../common/dataHelperService";
 import { DAOService } from "../dao/daoService";
 import { BaseGet } from "./baseGet";
+import { DataTransform } from '../utilities/dataTransform';
 
 export class BaseDelete {
   /**
@@ -65,7 +66,7 @@ export class BaseDelete {
       log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
-      record = DataHelperService.convertToModel(record, model, modelDataResource);
+      record = DataTransform.convertToModel(record, model, modelDataResource);
       await DAOService.softDelete(record.id, record, model);
     } else {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
@@ -96,7 +97,7 @@ export class BaseDelete {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
         eachRecord.meta.lastUpdated = new Date().toISOString();
-        eachRecord = DataHelperService.convertToModel(eachRecord, model, modelDataResource);
+        eachRecord = DataTransform.convertToModel(eachRecord, model, modelDataResource);
         await DAOService.softDelete(eachRecord.id, eachRecord, model);
       }
     } else {
