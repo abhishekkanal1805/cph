@@ -1,4 +1,3 @@
-
 export class QueryOptions {
   // contains the conditions that makes up the search criteria
   where: object;

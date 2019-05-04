@@ -40,7 +40,8 @@ export class BasePut {
       Constants.ID,
       Constants.DEVICE_REFERENCE_KEY,
       patientElement,
-      Constants.INFORMATION_SOURCE_REFERENCE_KEY);
+      Constants.INFORMATION_SOURCE_REFERENCE_KEY
+    );
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -102,7 +103,8 @@ export class BasePut {
       Constants.DEVICE_REFERENCE_KEY,
       patientElement,
       Constants.INFORMATION_SOURCE_REFERENCE_KEY,
-      referenceValidationAttribute);
+      referenceValidationAttribute
+    );
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -313,11 +315,7 @@ export class BasePut {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: updateResource()");
-    const keysMap = JsonParser.findAllKeysAsMap(
-      requestPayload,
-      Constants.ID,
-      Constants.DEVICE_REFERENCE_KEY,
-      patientElement);
+    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.ID, Constants.DEVICE_REFERENCE_KEY, patientElement);
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);

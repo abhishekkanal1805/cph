@@ -14,7 +14,6 @@ import { DeviceDataResource } from "./deviceDataResource";
  */
 @Table({ tableName: "Device" })
 export class Device extends Model<Device> {
-
   static STATUS_ACTIVE = "active";
 
   @Column({ type: DataType.UUID, primaryKey: true })
