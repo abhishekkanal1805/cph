@@ -11,10 +11,9 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 import { Utility } from "../common/Utility";
-import { AggregationValidatorUtility } from './aggregationValidatorUtility';
+import { AggregationValidatorUtility } from "./aggregationValidatorUtility";
 
 class AggregationHelperService {
-
   public static async searchRecords(
     serviceModel: any,
     authorizerData: any,
