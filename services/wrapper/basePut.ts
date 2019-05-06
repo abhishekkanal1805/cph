@@ -57,7 +57,7 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization successfully :: updateResource()");
     const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
     log.info("Update successfull :: updateResource()");
@@ -120,7 +120,7 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization successfully :: updateResource()");
     let uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationAttribute))].filter(Boolean);
     uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
@@ -324,13 +324,13 @@ export class BasePut {
     // primary key Ids
     const primaryIds = [...new Set(keysMap.get(Constants.ID))];
     // perform patient reference validation
-    RequestValidator.validateSingularPatientReference(patientIds);
+    RequestValidator.validateSingularUserReference(patientIds);
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
-    await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
+    await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization successfully :: updateResource()");
     const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource);
     log.info("Update successfull :: updateResource()");

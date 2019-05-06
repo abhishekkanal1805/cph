@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
@@ -66,21 +66,6 @@ export class RequestValidator {
   }
 
   /**
-   * Validates that number of patient references should be unique
-   *
-   * @static
-   * @param {string[]} patientReferenceId
-   * @memberof RequestValidator
-   */
-  public static validateSingularPatientReference(patientReferenceId: string[]): void {
-    log.info("In RequestValidator: validateUniquePatientReference()");
-    if (patientReferenceId.length != 1) {
-      log.error("Error: Multiple or zero patient reference present in request");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
-  }
-
-  /**
    * Validates that number of user reference in bundle should be 1
    *
    * @static
@@ -107,7 +92,7 @@ export class RequestValidator {
    */
   public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
     RequestValidator.validateSingularUserReference(informationSourceIds);
-    RequestValidator.validateSingularPatientReference(patientIds);
+    RequestValidator.validateSingularUserReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
 

@@ -16,27 +16,29 @@ export class AuthService {
    * @param {string} profile profileId of logged in User
    * @param {string[]} informationSourceIds User Id references in format UserProfile/123
    * @param {string[]} patientIds patientId references in format UserProfile/123
+   * @param {string} ownerType optional. if provided can be used to enforce the profileType of ownerReference. Forbidden error is throw if
+   * they dont matach. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
    */
 
-  public static async authorizeRequest(requester: string, informationSourceReference: string, patientReference: string) {
+  public static async authorizeRequest(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: performAuthorization()");
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
-    const patientId = patientReference.split(Constants.USERPROFILE_REFERENCE)[1];
-    const requestProfileIds = [requester, informationSourceId, patientId];
+    const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
+    const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. if patientReference is a valid profile of patient
-    if (fetchedProfiles[patientId].profileType != Constants.PATIENT_USER) {
-      log.error("Patient is not a valid active patient");
+    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
+    if (ownerType && (fetchedProfiles[ownerId].profileType != ownerType)) {
+      log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    // check 2. is Patient submitting its own request
-    if (requester === informationSourceId && requester === patientId) {
-      log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
+    // check 2. is Owner submitting its own request
+    if (requester === informationSourceId && requester === ownerId) {
+      log.info("Exiting AuthService, owner is submitting its own request :: hasConnectionBasedAccess()");
       return;
     }
-    // check 3. is Practitioner or Care Partner submitting request for patient
+    // check 3. is Practitioner or Care Partner submitting request for owner
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
     if (
       fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
@@ -44,17 +46,17 @@ export class AuthService {
         fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&
       requester === informationSourceId
     ) {
-      log.info("requester is of type Practitioner or Care Partner and requestee is Patient, checking Connection");
+      log.info("requester is of type Practitioner or Care Partner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await this.hasConnection(patientReference, informationSourceReference, connectionType, connectionStatus);
+      const isConnectionExist = await this.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
       if (isConnectionExist.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
-      log.info("requester is a system user and it is submitting request for a valid patient");
+      log.info("requester is a system user and it is submitting request for a valid owner");
       return;
     } else {
       log.error("Received a user of unknown profile type");
@@ -63,7 +65,7 @@ export class AuthService {
   }
 
   /**
-   * It will perform authraization for get and search methods
+   * It will perform authorization for get and search methods
    * It will validate the profile ids and check connection between them
    *
    * @static

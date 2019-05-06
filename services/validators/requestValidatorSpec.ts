@@ -126,7 +126,7 @@ describe("Test validateUniquePatientReference() - ", () => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      RequestValidator.validateSingularPatientReference(patientReferenceId);
+      RequestValidator.validateSingularUserReference(patientReferenceId);
     } catch (err) {
       result = err;
     }
@@ -138,7 +138,7 @@ describe("Test validateUniquePatientReference() - ", () => {
     let result = null;
     const expected = null;
     try {
-      RequestValidator.validateSingularPatientReference(patientReferenceId);
+      RequestValidator.validateSingularUserReference(patientReferenceId);
     } catch (err) {
       result = err;
     }
@@ -165,7 +165,7 @@ describe("Test validateNumberOfUniqueUserReference() - ", () => {
     let result = null;
     const expected = null;
     try {
-      RequestValidator.validateSingularPatientReference(userReferenceId);
+      RequestValidator.validateSingularUserReference(userReferenceId);
     } catch (err) {
       result = err;
     }
