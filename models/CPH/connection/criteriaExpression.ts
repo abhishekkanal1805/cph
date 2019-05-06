@@ -1,5 +1,6 @@
 interface CriteriaExpression {
-  field: string;
+  type: string;
+  element: string;
   operation: string;
   valueExpression: string;
 }

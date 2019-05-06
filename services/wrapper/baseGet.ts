@@ -1,16 +1,13 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
-import * as moment from "moment";
-import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
-import { CriteriaList } from "../../models/CPH/connection/criteriaList";
-import { SharingRule } from "../../models/CPH/connection/sharingRule";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { QueryValidator } from "../validators/queryValidator";
 
 export class BaseGet {
@@ -76,6 +73,7 @@ export class BaseGet {
     attributesMapping: any,
     attributesToRetrieve?: string[]
   ) {
+    let isSharingRuleClauseNeeded = true;
     // Perform User validation
     let connection;
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
@@ -86,6 +84,7 @@ export class BaseGet {
         log.debug("id is not present in queryParams");
         // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
+        isSharingRuleClauseNeeded = false;
       }
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
     }
@@ -120,10 +119,13 @@ export class BaseGet {
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
-    log.info(">>>" + JSON.stringify(connection));
-    log.info("BEFORE" + (new Date().toISOString()));
-    const whereClause: any = await BaseGet.addSharingRuleClause(queryObject, connection[0], queryParams[resourceOwnerElement], model);
-    log.info("AFTER" + (new Date().toISOString()));
+    log.info(">>>" + JSON.stringify(connection)); /* TODO: To be removed */
+    log.info("BEFORE" + (new Date().toISOString())); /* TODO: To be removed */
+    const whereClause: any = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], isSharingRuleClauseNeeded, model);
+    log.info("AFTER" + (new Date().toISOString())); /* TODO: To be removed */
+    if (whereClause === {}) {
+      return [];
+    }
     // fetch data from db with all conditions
     const searchQuery = {
       where: whereClause,
@@ -141,135 +143,5 @@ export class BaseGet {
     queryParams.limit = limit;
     queryParams.offset = offset;
     return result;
-  }
-
-  /**
-   * @param queryObject
-   * @param connection
-   * @param isSharingRuleCheckNeeded
-   * @param model
-   * @return {Promise<{}>}
-   */
-  /* TODO: This Function will be moved to Utility class */
-  public static async addSharingRuleClause(queryObject, connection, isSharingRuleCheckNeeded, model) {
-    log.info("Entering BaseGet :: addSharingRuleClauseToWhere()");
-    let whereClause = {};
-    const serviceName = model.getTableName();
-    if (isSharingRuleCheckNeeded) {
-      if (connection && !connection.sharingRules && connection.sharingRules.length === 0) {
-        if (serviceName === "Connection") {
-          whereClause = queryObject;
-        }
-      } else {
-        const sharingRuleConditionClause: any = await BaseGet.getSharingRulesConditionClause(connection.sharingRules, serviceName);
-        const andCondition = [];
-        andCondition.push(queryObject);
-        andCondition.push(sharingRuleConditionClause);
-        whereClause[Op.and] = andCondition;
-      }
-    } else {
-      whereClause = queryObject;
-    }
-    log.info("Exiting BaseGet :: addSharingRuleClauseToWhere()");
-    return whereClause;
-  }
-
-  /**
-   * @param {SharingRule[]} sharingRules
-   * @param {string} serviceName
-   * @return {Promise<any>}
-   */
-  public static async getSharingRulesConditionClause(sharingRules: SharingRule[], serviceName: string) {
-    log.info("Entering BaseService :: getSharingRulesConditionClause()");
-    let conditionClause: any = {};
-    if (sharingRules && sharingRules.length > 0) {
-      for (const sharingRule of sharingRules) { // TODO: all sharing rules should be ORed
-        if (sharingRule.resourceType.toLowerCase() ===  serviceName.toLowerCase() && sharingRule.criteriaList) {
-          conditionClause = await BaseGet.getCriteriaConditionClause(sharingRule.criteriaList);
-        }
-      }
-    } else {
-      log.info("SharingRules for the connection are undefined or empty");
-    }
-    log.info("Exiting  BaseService :: getSharingRulesConditionClause()");
-    return conditionClause;
-  }
-
-  /**
-   * @param {CriteriaList} criteriaList
-   * @return {Promise<void>}
-   */
-  public static async getCriteriaConditionClause(criteriaList: CriteriaList) {
-    log.info("Entering BaseService :: getCriteriaCondition()");
-    const operationMap = {
-      ANY: Op.or,
-      ALL: Op.and
-    };
-    const operation = operationMap[criteriaList.type];
-    const conditionArray = {};
-    conditionArray[operation] = [];
-    if (criteriaList.criteria && criteriaList.criteria.length > 0) {
-      for (const criterion of criteriaList.criteria) {
-        const criterionCondition = await BaseGet.generateConditionClause(criterion);
-        conditionArray[operation].push(criterionCondition);
-      }
-    }
-    if (criteriaList.criteriaList) {
-      const criteriaListConditions: any = await BaseGet.getCriteriaConditionClause(criteriaList.criteriaList);
-      conditionArray[operation].push(criteriaListConditions);
-    }
-    log.info("Exiting BaseService :: getCriteriaCondition()");
-    return conditionArray;
-  }
-
-  /**
-   * @param criterion
-   * @return {Promise<{}>}
-   */
-  public static async generateConditionClause(criterion) {
-    log.info("Entering BaseService :: generateConditionClause()");
-    const operationMap = {
-      greaterThan: Op.gt,
-      greaterThanOrEqual: Op.gte,
-      lessThan: Op.lt,
-      lessThanOrEqual: Op.lte,
-      equal: Op.eq
-    };
-    const criteriaClause = {};
-    const value = criterion.value ? criterion.value : await BaseGet.expressionEvaluator(criterion.valueExpression);
-    const operation = operationMap[criterion.operation];
-    log.info("Exiting BaseService :: generateConditionClause()");
-    return criteriaClause[criterion.field] = {
-      [operation]:  value
-    };
-  }
-
-  /**
-   * This function takes a predefiend date expression comes from Sharing Rule valueExpression
-   * and convert it into a valid date string.
-   * @param {string} expression : expression to be eveluated
-   * @returns {string}
-   */
-  public static async expressionEvaluator(expression: string) {
-    const days: string[] = Constants.DAYS_IN_WEEK;
-    const months: string[] = Constants.MONTHS_IN_YEAR;
-    const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
-    const fin: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
-    const value: string = expression.substr(init + 1, fin - init - 1);
-    let evaluatedValue: string;
-    if (days.indexOf(value) > -1) {
-      evaluatedValue = moment()
-        .weekday(days.indexOf(value) - 6)
-        .format(Constants.DATE);
-    } else if (months.indexOf(value) > -1) {
-      const month = months.indexOf(value);
-      const lastDate: number = moment()
-        .month(month)
-        .daysInMonth();
-      evaluatedValue = moment().year() + Constants.HYPHEN + (month < 9 ? "0" + (month + 1) : Constants.EMPTY_VALUE + (month + 1)) + Constants.HYPHEN + lastDate;
-    } else {
-      evaluatedValue = value + Constants.HYPHEN + "12" + Constants.HYPHEN + "31";
-    }
-    return evaluatedValue;
   }
 }

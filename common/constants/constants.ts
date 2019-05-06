@@ -131,6 +131,8 @@ class Constants {
   public static readonly PREFIX_LESS_THAN = "lt";
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
+  public static readonly OPERATION_OR = "OR";
+  public static readonly OPERATION_AND = "AND";
 
   public static readonly GREATER_THAN = ">";
   public static readonly GREATER_THAN_EQUAL = ">=";
@@ -155,6 +157,8 @@ class Constants {
   /*Sharing Rule Constants*/
   public static readonly DAYS_IN_WEEK = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
   public static readonly MONTHS_IN_YEAR = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+  public static readonly TYPE_SINGLE = "single";
+  public static readonly TYPE_GROUP = "group";
 
   public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
   public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";
@@ -170,6 +174,7 @@ class Constants {
   public static readonly FHIR_PROCEDURE = "FhirProcedure";
   public static readonly DEVICE = "Device";
   public static readonly APPOINTMENT = "Appointment";
+  public static readonly CONNECTION_SERVICE = "Connection";
   public static readonly PERMANENT = "permanent";
   public static readonly TRUE = true;
   public static readonly USER_PROFILE = "UserProfile";

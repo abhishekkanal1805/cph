@@ -1,5 +1,6 @@
 interface CriteriaValue {
-  field: string;
+  type: string;
+  element: string;
   operation: string;
   value: string;
 }
