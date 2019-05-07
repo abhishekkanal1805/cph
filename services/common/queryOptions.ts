@@ -15,11 +15,11 @@ export class QueryOptions {
   constructor(where: object, attributes?: string[], limit?: number, offset?: number, order?: string[][]) {
     this.where = where;
     // if attributes
-    this.attributes = (attributes && attributes.length > 0) ? attributes : [Constants.DEFAULT_SEARCH_ATTRIBUTES];
-    this.limit = (limit) ? limit : Constants.FETCH_LIMIT;
+    this.attributes = attributes && attributes.length > 0 ? attributes : [Constants.DEFAULT_SEARCH_ATTRIBUTES];
+    this.limit = limit ? limit : Constants.FETCH_LIMIT;
     if (offset) {
       this.offset = offset;
     }
-    this.order = (order) ? order : Constants.DEFAULT_ORDER_BY;
+    this.order = order ? order : Constants.DEFAULT_ORDER_BY;
   }
 }
