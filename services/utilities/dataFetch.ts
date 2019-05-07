@@ -11,7 +11,6 @@ import { DAOService } from "../dao/daoService";
 
 // FIXME: add documentation to all functions. example: will it search for deleted ones, active ones, exceptions thrown, what attributes are returned etc.
 export class DataFetch {
-
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
    * FIXME: rename to getUserProfiles. also this returned value is not really userProfile. it is a userAccessObj. we should define this as a class

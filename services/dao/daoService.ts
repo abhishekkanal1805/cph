@@ -100,22 +100,20 @@ export class DAOService {
   }
 
   /**
-   * Update record for given Model
+   * A generic update record the can be used for any Model. A blind update will be attempted.
+   * If successful it returns the updated resource and all exceptions are thrown
    * @param model
    * @param record
-   * @param updatedResources
-   * @return {Promise<any>}
+   * @return {Promise<any>} return the update record
    */
-  public static async update(model, record, updatedResources) {
-    return model
-      .update(record, { where: { id: record.id } })
-      .then(() => {
-        updatedResources.savedRecords.push(record.dataResource);
-      })
-      .catch((err) => {
-        log.error("Error in updating record: " + err);
-        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
-      });
+  public static async update(model, record) {
+    try {
+      const updatedRecord = await model.update(record, { where: { id: record.id } });
+      return updatedRecord.dataResource;
+    } catch (err) {
+      log.error("Error in updating record: " + err);
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+    }
   }
 
   /**

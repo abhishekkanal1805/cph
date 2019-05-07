@@ -47,5 +47,62 @@ const data = {
     requiredAttributes: ["articleId", "fileName", "format"]
   }
 };
-
-export { data };
+const settings = {
+  medicationactivityaggregation: {
+    searchAttributes: [
+      {
+        map: "informationSource",
+        to: "informationSource",
+        type: "string"
+      },
+      { map: "subject", to: "subject", type: "string" },
+      { map: "status", to: "status", type: "string", isMultiple: true },
+      { map: "dateAsserted", to: "dateAsserted", type: "date", isMultiple: true },
+      { map: "plannedDateTime", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "effectiveDateTime", to: "effectiveDateTime", type: "date", isMultiple: true },
+      { map: "medicationPlan", to: "medicationPlan", type: "string" },
+      { map: "isDeleted", to: "meta.isDeleted", type: "boolean" },
+      { map: "lastUpdated", to: "meta.lastUpdated", type: "date", isMultiple: true },
+      { map: "code", to: "dataResource.medicationCodeableConcept.coding[*].code", type: "array" },
+      { map: "date", to: "plannedDateTime", type: "date", isMultiple: true },
+      { map: "valueCriteria", to: "valueCriteria", type: "multicolumn" },
+      {
+        map: "clientRequestId",
+        to: "meta.clientRequestId",
+        type: "string",
+        isMultiple: true
+      },
+      {
+        map: "limit",
+        type: "number"
+      },
+      {
+        map: "offset",
+        type: "number"
+      }
+    ],
+    aggregationFunctions: [
+      { functions: ["count"], column: "status", alias: "statuscount" },
+      { columns: ["status"] },
+      { functions: ["count"], column: "dataResource.taken", alias: "takencount", convertTo: "json" },
+      { columns: ["dataResource.taken"], alias: "taken", convertTo: "json" },
+      { functions: ["date"], column: "plannedDateTime", alias: "dt" },
+      { columns: ["medicationPlan"] },
+      { columns: ["dataResource.medicationCodeableConcept"], alias: "code", convertTo: "json", cast: "jsonb" }
+    ],
+    groupBy: [`code`, "medicationPlan", `dt`, "status", `taken`],
+    orderBy: ["dt ASC"]
+  },
+  medicationplanaggregation: {
+    searchAttributes: [
+      {
+        map: "id",
+        to: "id",
+        type: "string",
+        isMultiple: true
+      },
+      { map: "subject", to: "subject", type: "string" }
+    ]
+  }
+};
+export { data, settings };

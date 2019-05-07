@@ -18,6 +18,7 @@ class Constants {
 
   public static readonly BOUNDSPERIOD_LIMIT = 90;
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
+  public static readonly META_IS_DELETED_KEY = "meta.isDeleted";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly FROM_REFERENCE_KEY = "from.reference";
   public static readonly TO_REFERENCE_KEY = "to.reference";

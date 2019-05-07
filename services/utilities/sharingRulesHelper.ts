@@ -13,11 +13,11 @@ export class SharingRulesHelper {
    * @param model
    * @return {Promise<{}>}
    */
-  public static async addSharingRuleClause(queryObject, connection, isSharingRuleClauseNeeded, model) {
-    log.info("Entering SharingRulesHelper :: addSharingRuleClauseToWhere()");
+  public static async addSharingRuleClause(queryObject, connection, model) {
+    log.info("Entering SharingRulesHelper :: addSharingRuleClause()");
     let whereClause = {};
     const serviceName = model.getTableName();
-    if (isSharingRuleClauseNeeded) {
+    if (connection !== {}) {
       if (!connection.sharingRules || connection.sharingRules.length === 0) {
         if (serviceName === Constants.CONNECTION_SERVICE) {
           whereClause = queryObject;
@@ -32,7 +32,7 @@ export class SharingRulesHelper {
     } else {
       whereClause = queryObject;
     }
-    log.info("Exiting SharingRulesHelper :: addSharingRuleClauseToWhere()");
+    log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
     return whereClause;
   }
 
@@ -61,7 +61,6 @@ export class SharingRulesHelper {
    * @return {Promise<{}>}
    */
   public static async getCriteriaClause(criteria, operation?) {
-    log.info("Entering SharingRulesHelper :: getCriteriaClause()");
     const operationMap = {
       OR: Op.or,
       AND: Op.and
@@ -75,14 +74,13 @@ export class SharingRulesHelper {
     conditionArray[operation] = [];
     for (const criterion of criteria) {
       if (criterion.type === Constants.TYPE_SINGLE) {
-        const criterionCondition = await SharingRulesHelper.generateConditionClause(criterion);
+        const criterionCondition = await SharingRulesHelper.generateCriteriaClause(criterion);
         conditionArray[operation].push(criterionCondition);
       } else {
         const criteriaGroupConditions: any = await SharingRulesHelper.getCriteriaClause(criterion.criteria, criterion.operator);
         conditionArray[operation].push(criteriaGroupConditions);
       }
     }
-    log.info("Exiting SharingRulesHelper :: getCriteriaClause()");
     return conditionArray;
   }
 
@@ -90,8 +88,8 @@ export class SharingRulesHelper {
    * @param criterion
    * @return {Promise<{}>}
    */
-  public static async generateConditionClause(criterion) {
-    log.info("Entering SharingRulesHelper :: generateConditionClause()");
+  public static async generateCriteriaClause(criterion) {
+    /*const column = {columnHierarchy: criterion.element};*/
     const operationMap = {
       greaterThan: Op.gt,
       greaterThanOrEqual: Op.gte,
@@ -101,7 +99,6 @@ export class SharingRulesHelper {
     };
     const value = criterion.value ? criterion.value : await SharingRulesHelper.expressionEvaluator(criterion.valueExpression);
     const operation = operationMap[criterion.operation];
-    log.info("Exiting SharingRulesHelper :: generateConditionClause()");
     return {
       [criterion.element]: {
         [operation]:  value
@@ -116,7 +113,6 @@ export class SharingRulesHelper {
    * @returns {string}
    */
   public static async expressionEvaluator(expression: string) {
-    log.info("Entering SharingRulesHelper :: expressionEvaluator()");
     const days: string[] = Constants.DAYS_IN_WEEK;
     const months: string[] = Constants.MONTHS_IN_YEAR;
     const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
@@ -136,7 +132,6 @@ export class SharingRulesHelper {
     } else {
       evaluatedValue = value + Constants.HYPHEN + "12" + Constants.HYPHEN + "31";
     }
-    log.info("Exiting SharingRulesHelper :: expressionEvaluator()");
     return evaluatedValue;
   }
 }

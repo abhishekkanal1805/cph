@@ -73,7 +73,6 @@ export class BaseGet {
     attributesMapping: any,
     attributesToRetrieve?: string[]
   ) {
-    let isSharingRuleClauseNeeded = true;
     // Perform User validation
     let connection;
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
@@ -84,7 +83,6 @@ export class BaseGet {
         log.debug("id is not present in queryParams");
         // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
-        isSharingRuleClauseNeeded = false;
       }
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
     }
@@ -121,7 +119,7 @@ export class BaseGet {
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
     log.info(">>>" + JSON.stringify(connection)); /* TODO: To be removed */
     log.info("BEFORE" + (new Date().toISOString())); /* TODO: To be removed */
-    const whereClause: any = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], isSharingRuleClauseNeeded, model);
+    const whereClause: any = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model);
     log.info("AFTER" + (new Date().toISOString())); /* TODO: To be removed */
     if (whereClause === {}) {
       return [];

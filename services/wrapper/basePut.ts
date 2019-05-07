@@ -3,15 +3,14 @@ import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { DataHelperService } from "../common/dataHelperService";
 import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { RequestValidator } from "../validators/requestValidator";
-import { BaseGet } from "./baseGet";
 
 export class BasePut {
   /**
@@ -44,7 +43,8 @@ export class BasePut {
       Constants.ID,
       Constants.DEVICE_REFERENCE_KEY,
       patientElement,
-      Constants.INFORMATION_SOURCE_REFERENCE_KEY);
+      Constants.INFORMATION_SOURCE_REFERENCE_KEY
+    );
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -60,7 +60,8 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
+    log.info(">>>>>" + JSON.stringify(connection));
     log.info("User Authorization successfully :: updateResource()");
     const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource, connection);
     log.info("Update successfull :: updateResource()");
@@ -106,7 +107,8 @@ export class BasePut {
       Constants.DEVICE_REFERENCE_KEY,
       patientElement,
       Constants.INFORMATION_SOURCE_REFERENCE_KEY,
-      referenceValidationAttribute);
+      referenceValidationAttribute
+    );
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -122,7 +124,7 @@ export class BasePut {
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
     const informationSourceReferenceValue = informationSourceIds[0];
-    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization successfully :: updateResource()");
     let uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationAttribute))].filter(Boolean);
     uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
@@ -171,17 +173,21 @@ export class BasePut {
     log.info("In bulkUpdate() :: BasePut Class");
     let validReferenceIds = await DataFetch.getValidIds(referenceValidationModel, uniquesReferenceIds);
     validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map((eachId) => eachId);
+    /* TODO: SharingRules changes. this can be moved to separate function */
+    let validPrimaryIds = [];
     const queryObject = {};
-    const whereClause = {};
-    /* TODO: From line number 175-180 can be moved to separate function */
+    const whereClause = { where: {}};
     queryObject[Constants.ID] = {
       [Op.or]: requestPrimaryIds
     };
-    queryObject["meta.isDeleted"] = {
+    queryObject[Constants.META_IS_DELETED_KEY] = {
       [Op.eq]: false
     };
-    whereClause["where"] = await BaseGet.addSharingRuleClause(queryObject, connection, true, model);
-    const validPrimaryIds = await DAOService.search(model, whereClause);
+    whereClause.where = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model);
+    if (whereClause.where !== {}) {
+      validPrimaryIds = await DAOService.search(model, whereClause);
+    }
+    /* TODO: SharingRules changes. this can be moved to separate function */
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
@@ -197,7 +203,7 @@ export class BasePut {
         if (existingRecord.meta.versionId === record.meta.versionId) {
           // We proceed with creation of metadata and adding record to be saved if its version ID is correct
           record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requestorProfileId, false);
-          record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+          record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
           if (
             record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
             !validReferenceIds.includes(
@@ -256,17 +262,22 @@ export class BasePut {
    */
   public static async bulkUpdate(requestPayload, requestorProfileId: string, requestPrimaryIds: string[], model, modelDataResource, connection) {
     log.info("In bulkUpdate() :: BasePut Class");
+    /* TODO: SharingRules changes. this can be moved to separate function */
     const queryObject = {};
-    const whereClause = {};
-    /* TODO: From line number 259-265 can be moved to separate function */
+    const whereClause = { where: {}};
+    let validPrimaryIds = [];
     queryObject[Constants.ID] = {
       [Op.or]: requestPrimaryIds
     };
-    queryObject["meta.isDeleted"] = {
+    queryObject[Constants.META_IS_DELETED_KEY] = {
       [Op.eq]: false
     };
-    whereClause["where"] = await BaseGet.addSharingRuleClause(queryObject, connection, true, model);
-    const validPrimaryIds = await DAOService.search(model, whereClause);
+    whereClause.where = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model);
+    if (whereClause.where  !== {}) {
+      validPrimaryIds = await DAOService.search(model, whereClause);
+    }
+    /* TODO: SharingRules changes. this can be moved to separate function */
+
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
@@ -282,7 +293,7 @@ export class BasePut {
         if (existingRecord.meta.versionId === record.meta.versionId) {
           // We proceed with creation of metadata and adding record to be saved if its version ID is correct
           record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requestorProfileId, false);
-          record = DataHelperService.convertToModel(record, model, modelDataResource).dataValues;
+          record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
           const thisPromise = model
             .update(record, { where: { id: record.id } })
             .then(() => {
@@ -339,11 +350,7 @@ export class BasePut {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     log.info("Record Array created succesfully in :: updateResource()");
-    const keysMap = JsonParser.findAllKeysAsMap(
-      requestPayload,
-      Constants.ID,
-      Constants.DEVICE_REFERENCE_KEY,
-      patientElement);
+    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.ID, Constants.DEVICE_REFERENCE_KEY, patientElement);
 
     log.info("Reference Keys retrieved successfully :: updateResource()");
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
@@ -352,13 +359,13 @@ export class BasePut {
     // primary key Ids
     const primaryIds = [...new Set(keysMap.get(Constants.ID))];
     // perform patient reference validation
-    RequestValidator.validateSingularPatientReference(patientIds);
+    RequestValidator.validateSingularUserReference(patientIds);
     //  perform deviceId validation
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     await RequestValidator.validateUniqueIDForPUT(primaryIds, total);
     // We can directly use 0th element as we have validated the uniqueness of reference key in validateDeviceAndProfile
     const patientReferenceValue = patientIds[0];
-    const connection = await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue);
+    const connection = await AuthService.authorizeRequest(requestorProfileId, patientReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization successfully :: updateResource()");
     const result = await BasePut.bulkUpdate(requestPayload, requestorProfileId, primaryIds, model, modelDataResource, connection);
     log.info("Update successfull :: updateResource()");

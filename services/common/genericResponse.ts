@@ -1,5 +1,4 @@
 export class GenericResponse<T> {
-
   savedRecords: T[];
   errorRecords: T[];
 
@@ -7,5 +6,4 @@ export class GenericResponse<T> {
     this.savedRecords = [];
     this.errorRecords = [];
   }
-
 }
