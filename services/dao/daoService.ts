@@ -108,8 +108,10 @@ export class DAOService {
    */
   public static async update(model, record) {
     try {
-      const updatedRecord = await model.update(record, { where: { id: record.id } });
-      return updatedRecord.dataResource;
+      return await model.update(record, { where: { id: record.id } }).then(() => {
+        return record.dataResource;
+      });
+
     } catch (err) {
       log.error("Error in updating record: " + err);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
