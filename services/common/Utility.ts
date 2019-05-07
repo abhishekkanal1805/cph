@@ -3,7 +3,7 @@ import * as log from "lambda-log";
 import * as lodash from "lodash";
 import * as moment from "moment";
 import { Constants } from "../../common/constants/constants";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ApiEvent } from "../../common/objects/api-interfaces";
 import * as config from "../../common/objects/config";
 import { BadRequestResult } from "../../common/objects/custom-errors";
@@ -37,24 +37,6 @@ export class Utility {
       prefix: date.slice(0, offset),
       date: date.slice(offset, dateLength)
     };
-  }
-
-  /**
-   * Retuns the Mapped attributes on basis of provided endpoints.
-   * @param attribute
-   * @param prop
-   * @param endpoint
-   * @returns {any}
-   */
-  public static getMappedAttribute(attribute, prop, endpoint) {
-    log.info("Inside Utility: getMappedAttribute()");
-    const mapped = config.settings[endpoint].searchAttributes;
-    const index = mapped.findIndex((x) => x[prop] == attribute);
-    if (index > -1) {
-      return mapped[index];
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -163,8 +145,8 @@ export class Utility {
    * @param {ApiEvent} event
    * @returns {string}
    */
-  public static getResourceFullUrl(event: ApiEvent) {
-    log.info("Inside Utility: getResourceFullUrl()");
+  public static getRequestUrl(event: ApiEvent) {
+    log.info("Inside Utility: getRequestUrl()");
     const scheme = event["headers"]["X-Forwarded-Proto"];
     const hostName = event["headers"]["Host"];
     const path = event.requestContext["path"];
@@ -261,7 +243,7 @@ export class Utility {
           const serviceObj: any = Utility.getServiceId(eachEntry[displayAttribute].reference);
           if (serviceObj.resourceType.toLowerCase() != "userprofile") {
             log.error("Error occoured as resourceType is not userprofile");
-            const badRequest = new BadRequestResult(errorCode.InvalidUserId, "UserProfile missing in reference");
+            const badRequest = new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
             if (eachEntry.meta && eachEntry.meta.clientRequestId) {
               badRequest.clientRequestId = eachEntry.meta.clientRequestId;
             }
@@ -280,11 +262,25 @@ export class Utility {
           if (eachEntry[displayAttribute].display) {
             delete eachEntry[displayAttribute].display;
           }
+          // removing type field from json to prevent it from being saved
+          if (eachEntry[displayAttribute].type) {
+            delete eachEntry[displayAttribute].type;
+          }
         }
       }
       for (const nonUserDisplayAttribute of config.data.nonUserDisplayFields) {
         if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].display) {
           eachEntry[nonUserDisplayAttribute].display = "";
+        }
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[nonUserDisplayAttribute] && eachEntry[nonUserDisplayAttribute].reference && eachEntry[nonUserDisplayAttribute].type) {
+          delete eachEntry[nonUserDisplayAttribute].type;
+        }
+      }
+      for (const typeAttribute of config.data.typeAttributeAdditionalFields) {
+        // removing type field from json to prevent it from being saved
+        if (eachEntry[typeAttribute] && eachEntry[typeAttribute].reference && eachEntry[typeAttribute].type) {
+          delete eachEntry[typeAttribute].type;
         }
       }
       if (insertRecordtoResource) {
@@ -305,7 +301,7 @@ export class Utility {
     } catch (error) {
       // error in the above string (in this case, yes)!
       log.error("getResourceFromRequest() failed :: Exiting Utility :: getResourceFromRequest()");
-      throw new BadRequestResult(errorCode.InvalidInput, "Provided resource is invalid");
+      throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
     }
     if (limitNoOfRecordsToSave === undefined) {
       limitNoOfRecordsToSave = true;
@@ -318,11 +314,11 @@ export class Utility {
     resourceArray = requestBody.entry.map((entry) => entry.resource);
     if (resourceArray.length !== requestBody.total) {
       log.error("Error: entries length do not match total count");
-      throw new BadRequestResult(errorCode.InvalidCount, "Bundle total attribute doesn't match number of records in request");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
     }
     if (resourceArray.length > Constants.POST_LIMIT && limitNoOfRecordsToSave) {
       log.error("Error: entries total count is more than allowed records");
-      throw new BadRequestResult(errorCode.InvalidCount, "Bundle record count is more than allowed records");
+      throw new BadRequestResult(errorCodeMap.RequestTooLarge.value, errorCodeMap.RequestTooLarge.description);
     }
     return resourceArray;
   }
@@ -367,11 +363,11 @@ export class Utility {
     const searchValue = [];
     for (const item in queryParams) {
       // in case date attribute we will get 2 items in array for others it will be 1
-      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&") : queryParams[item].toString();
-      if (config.data.displayFields.indexOf(item) > -1) {
-        // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
-        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
-      }
+      const itemValue = queryParams[item].length > 1 ? queryParams[item].join("&" + item + "=") : queryParams[item].toString();
+      // if (config.data.displayFields.indexOf(item) > -1) {
+      //   // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
+      //   itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
+      // }
       searchValue.push([item, itemValue].join("="));
     }
     url += searchValue.join("&");
@@ -392,11 +388,11 @@ export class Utility {
     const searchValue = [];
     for (const item in queryParams) {
       // in case date attribute we will get 2 items in array for others it will be 1
-      let itemValue = queryParams[item].length > 1 ? queryParams[item].join("&") : queryParams[item].toString();
-      if (config.data.displayFields.indexOf(item) > -1) {
-        // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
-        itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
-      }
+      const itemValue = queryParams[item].length > 1 ? queryParams[item].join("&" + item + "=") : queryParams[item].toString();
+      // if (config.data.displayFields.indexOf(item) > -1) {
+      //   // if attribute belongs to subject/patient/informationSource then it may have userprofile/id
+      //   itemValue = itemValue.indexOf("/") > -1 ? itemValue.split("/")[1] : itemValue;
+      // }
       searchValue.push([item, itemValue].join("="));
     }
     url += searchValue.join("&");
@@ -595,13 +591,13 @@ export class Utility {
     if (queryParams.limit) {
       limit = lodash.toNumber(queryParams.limit[0]);
       if (lodash.isNaN(limit) || !lodash.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided limit is invalid");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "limit");
       }
     }
     if (queryParams.offset) {
       offset = lodash.toNumber(queryParams.offset[0]);
       if (lodash.isNaN(offset) || offset < 0 || !lodash.isInteger(offset)) {
-        throw new BadRequestResult(errorCode.InvalidInput, "Provided offset is invalid");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + "offset");
       }
     }
     return {
@@ -624,5 +620,32 @@ export class Utility {
       default:
         return "=";
     }
+  }
+
+  /**
+   * Receives dateString and generates prefix object
+   * @param {string} date
+   * @example
+   * const input = 'lt20-10-1991'
+   * getPrefixDate(input) // {"prefix": "lt", "date": "20-10-1991"}
+   * @returns {object}
+   */
+  public static getSearchPrefixValue(inputData: string) {
+    let offset = 0;
+    const inputDataLength = inputData.length;
+    while (true) {
+      if (inputDataLength == offset) {
+        break;
+      } else {
+        if (!isNaN(parseInt(inputData[offset]))) {
+          break;
+        }
+      }
+      offset++;
+    }
+    return {
+      prefix: inputData.slice(0, offset),
+      data: inputData.slice(offset, inputDataLength)
+    };
   }
 }

@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as lodash from "lodash";
 import { Constants } from "../../common/constants/constants";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
 import {
   BadRequestResult,
@@ -13,13 +13,11 @@ import {
   UnAuthorizedResult,
   UnprocessableEntityResult
 } from "../../common/objects/custom-errors";
-import { responseType } from "../../common/objects/responseType";
-import { DataSource } from "../../dataSource";
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
-import { DataService } from "./dataService";
+import { DAOService } from "../dao/daoService";
 import { Utility } from "./Utility";
 
 const response = {
@@ -48,6 +46,7 @@ class ResponseBuilderService {
    */
 
   public static displayMap: any = {};
+  public static typeMap: any = {};
 
   public static async generateSuccessResponse(
     result: any,
@@ -77,6 +76,20 @@ class ResponseBuilderService {
   }
 
   /**
+   * Function to convert response from lambda service to appropriate API response based for delete endpoint.
+   * @param result Incoming response from service
+   *
+   * @return Updated response w.r.t Delete endpoint.
+   */
+  public static generateDeleteResponse(result) {
+    log.info("Entering ResponseBuilderService :: generateDeleteResponse()");
+    response.responseType = Constants.RESPONSE_TYPE_NO_CONTENT;
+    response.responseObject = result;
+    log.info("Exiting ResponseBuilderService :: generateDeleteResponse()");
+    return response;
+  }
+
+  /**
    * Function to convert response from lambda service to appropriate API error response based on incoming response type.
    * @param err Error object
    * @param errorLogRef error log reference
@@ -91,7 +104,7 @@ class ResponseBuilderService {
       result = err;
     } else {
       log.error("Internal error occurred :: " + err);
-      result = new BadRequestResult(errorCode.GeneralError, "Internal error occurred");
+      result = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
     result.errorLogRef = errorLogRef;
     result.clientRequestId = clientRequestId;
@@ -141,7 +154,15 @@ class ResponseBuilderService {
           if (serviceObj.resourceType.toLowerCase() === "userprofile") {
             displayValue = await this.getDisplayAttribute(serviceObj.id);
             eachResult[displayAttribute].display = displayValue;
+            eachResult[displayAttribute].type = ResponseBuilderService.typeMap[serviceObj.id];
           }
+        }
+      }
+      // Adding type value non display attributes
+      const nonDisplayAttributes = lodash.concat(config.data.nonUserDisplayFields, config.data.typeAttributeAdditionalFields);
+      for (const nonDisplayAttribute of nonDisplayAttributes) {
+        if (eachResult[nonDisplayAttribute]) {
+          eachResult[nonDisplayAttribute].type = eachResult.resourceType;
         }
       }
     }
@@ -161,11 +182,8 @@ class ResponseBuilderService {
     if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
       log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
       await ResponseBuilderService.initDisplayName(profileId);
-    } else {
-      log.debug("profileId exists in displayMap" + profileId);
     }
     const displayValue = ResponseBuilderService.displayMap[profileId];
-    log.info("displayValue=" + displayValue);
     return displayValue;
   }
 
@@ -178,14 +196,14 @@ class ResponseBuilderService {
    */
   public static async initDisplayName(profileId: string) {
     try {
-      DataSource.addModel(UserProfile);
-      const result = await DataService.fetchDatabaseRowStandard(profileId, UserProfile);
+      const result = await DAOService.fetchByPk(profileId, UserProfile);
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
       const familyName = result.name ? result.name.family || "" : "";
       const displayName = [familyName, givenName.join(" ")].join(", ");
       log.info("Initialized the displayMap with {profileId:" + profileId + ", displayName=" + displayName + "}");
       ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
+      ResponseBuilderService.typeMap[profileId] = [result.resourceType, result.type].join(".");
     } catch (e) {
       log.error("Error constructing display name for profileId=" + profileId);
     }
@@ -202,29 +220,29 @@ class ResponseBuilderService {
    */
   public static createResponseObject(objectArray: any, fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
-    const entryArray = [];
+    let entryArray = [];
     const links = [];
     let responseObject: any;
     if (fullUrl) {
       log.debug("fullUrl value: " + fullUrl);
       for (const eachObject of objectArray) {
         const entry: any = {};
-        entry.fullUrl = fullUrl + "/" + eachObject.id;
-        entry.search = { mode: "match" };
+        entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
+        entry.search = { mode: Constants.MATCH };
         entry.resource = eachObject;
         entryArray.push(Object.assign(new Entry(), entry));
       }
       const linkObj: Link = new Link();
-      linkObj.relation = "self";
+      linkObj.relation = Constants.SELF;
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
-      if (objectArray.length == objectArray.limit) {
-        entryArray.splice(-1, 1);
+      if (objectArray.length == queryParams.limit + 1) {
+        entryArray = entryArray.slice(0, entryArray.length - 1);
         const nextLinkObj: Link = new Link();
-        nextLinkObj.relation = "next";
-        queryParams.limit = objectArray.limit - 1;
-        queryParams.offset = objectArray.offset + objectArray.limit - 1;
+        nextLinkObj.relation = Constants.NEXT;
+        queryParams.limit = queryParams.limit;
+        queryParams.offset += queryParams.limit;
         nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);
         links.push(nextLinkObj);
       }
@@ -314,7 +332,20 @@ class ResponseBuilderService {
       if (errorResult.length > 1) {
         response.responseType = Constants.RESPONSE_TYPE_MULTI_STATUS;
       } else {
-        response.responseType = lodash.findKey(responseType, (item) => item.indexOf(errorResult[0].errorCode) !== -1);
+        if (errorResult[0] instanceof BadRequestResult) {
+          response.responseType = Constants.RESPONSE_TYPE_BAD_REQUEST;
+        } else if (errorResult[0] instanceof InternalServerErrorResult) {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+        } else if (errorResult[0] instanceof NotFoundResult) {
+          response.responseType = Constants.RESPONSE_TYPE_NOT_FOUND;
+        } else if (errorResult[0] instanceof ForbiddenResult || result instanceof InsufficientAccountPermissions) {
+          response.responseType = Constants.RESPONSE_TYPE_INSUFFICIENT_ACCOUNT_PERMISSIONS;
+        } else if (errorResult[0] instanceof UnAuthorizedResult) {
+          response.responseType = Constants.RESPONSE_TYPE_UNAUTHORIZED;
+        } else {
+          response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
+          response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+        }
       }
       response["responseObject"] = { errors: errorResult };
     } else if (result.savedRecords && result.savedRecords.length === 0 && result.errorRecords && result.errorRecords.length === 0) {
@@ -342,7 +373,7 @@ class ResponseBuilderService {
         response["responseObject"] = errorResult;
       } else {
         response.responseType = Constants.RESPONSE_TYPE_INTERNAL_SERVER_ERROR;
-        response["responseObject"] = new InternalServerErrorResult(errorCode.ResourceNotFound, "Error occoured during this operation");
+        response["responseObject"] = new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
     }
     return response;

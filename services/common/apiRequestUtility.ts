@@ -3,7 +3,7 @@ import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
 /**
  * Utility to help extracting request and context data from ApiEvent and ApiContext
  */
-export class GatewayUtility {
+export class APIRequestUtility {
   /**
    * Returns the value of query string if present in ApiEvent or else empty object.
    * If the ApiEvent itself is null or undefined it returns empty object
@@ -39,7 +39,7 @@ export class GatewayUtility {
    * @param {ApiEvent} apiEvent
    * @returns {object}
    */
-  public static getAuthorizerData(apiEvent: ApiEvent): object {
+  public static getAuthorizerData(apiEvent: ApiEvent) {
     let authorizerObj: any = {};
     // In case of id token apiEvent.requestContext.authorizer.claims contains profile info
     // In case of access token apiEvent.requestContext.authorizer contains profile info

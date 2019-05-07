@@ -5,49 +5,41 @@
 import * as log from "lambda-log";
 import * as lodash from "lodash";
 import * as moment from "moment";
-import { errorCode } from "../../common/constants/error-codes";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import * as config from "../../common/objects/config";
-import { BadRequestResult, UnprocessableEntityResult } from "../../common/objects/custom-errors";
-import { Utility } from "./Utility";
+import { BadRequestResult } from "../../common/objects/custom-errors";
+import { Utility } from "../common/Utility";
 
-class DataValidatorUtility {
+class AggregationValidatorUtility {
   public static validateStringAttributes(key, paramValue, isMultivalue) {
-    let error: string;
     // multiple value support is not there for string
     if (isMultivalue) {
-      error = "Failed for attribute: " + key + " as multivalue support is not there.";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
 
   public static validateBooleanAttributes(key, paramValue, isMultivalue) {
-    let error: string;
     // multiple value support is not there for boolean
     if (isMultivalue) {
-      error = "Failed for attribute: " + key + " as multivalue support is not there.";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     const boolStatus = ["true", "false"].indexOf(paramValue[0].toLowerCase());
     if (boolStatus === -1) {
-      error = "Failed for attribute: " + key + " as it is not a boolean value.";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
 
   public static validateNumberAttributes(key, paramValue, isMultivalue) {
-    let error: string;
     // multiple value support is not there for number
     if (isMultivalue) {
-      error = "Failed for attribute: " + key + " as multivalue support is not there.";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     paramValue = Utility.getPrefixDate(paramValue[0]).date;
     const numberStatus = lodash.isNaN(lodash.toNumber(paramValue));
     if (numberStatus) {
-      error = "Failed for attribute: " + key + " as it is not a number.";
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     return true;
   }
@@ -62,11 +54,10 @@ class DataValidatorUtility {
       5 - if no prefix present we assume it is "eq"
       6 - supported prefix: ["eq", "le", "lt", "ge", "gt"], we get from prefix
     */
-    let error: string;
     if (!isMultivalue) {
       paramValue = paramValue[0].split(",");
     } else {
-      DataValidatorUtility.validateMultiValueDateParams(key, paramValue);
+      AggregationValidatorUtility.validateMultiValueDateParams(key, paramValue);
     }
     for (const value of paramValue) {
       const dateObj: any = Utility.getPrefixDate(value);
@@ -79,13 +70,11 @@ class DataValidatorUtility {
       const isYearMonth = moment(dateObj.date, "YYYY-MM", true).isValid();
       const isYear = moment(dateObj.date, "YYYY", true).isValid();
       if (!(isdateTime || isDate || isYearMonth || isYear)) {
-        error = "Failed for attribute: " + key + " as it is not an ISOString.";
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
       }
       // error for invalid prefix
       if (config.data.validDatePrefixes.indexOf(dateObj.prefix) === -1) {
-        error = "Failed for attribute: " + key + " as it don't have valid prefix";
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
       }
     }
     return true;
@@ -97,21 +86,21 @@ class DataValidatorUtility {
    * @param {string[]} paramValue
    */
   public static validateMultiValueDateParams(key: string, dateValues: string[]) {
-    log.info("Inside DataValidatorUtility: validateMultiValueDateParams()");
+    log.info("Inside AggregationValidatorUtility: validateMultiValueDateParams()");
     if (dateValues.length > 2) {
       log.error("Failed for attribute: " + key + " as it has more than two values for MultiValue Date Param");
-      throw new BadRequestResult(errorCode.InvalidRequest, key + " with & cannot have more than 2 values");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     if (Utility.getPrefixDate(dateValues[0]).prefix.length === 0 || Utility.getPrefixDate(dateValues[1]).prefix.length === 0) {
       log.error("Failed for attribute: " + key + " as all input dates do not have prefixes.");
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, "All the input dates for " + key + " don't have prefixes");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
     if (
       Utility.getPrefixDate(dateValues[0]).prefix === Utility.getPrefixDate(dateValues[1]).prefix ||
       Utility.getPrefixDate(dateValues[0]).prefix.charAt(0) === Utility.getPrefixDate(dateValues[1]).prefix.charAt(0)
     ) {
       log.error("Failed for attribute: " + key + " as all input dates have same prefixes.");
-      throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, "All the input dates for " + key + " have same prefixes");
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
     }
   }
   /**
@@ -122,7 +111,6 @@ class DataValidatorUtility {
    * @returns {boolean}
    */
   public static validateQueryParams(queryParams: any, validParams: any) {
-    let error: string;
     /*
       input query: url?a=1&a=2&b=1&c=3,4
       o/p from gateway event : {a: ["1", "2"], b: ["1"], c: ["3,4"]}
@@ -131,34 +119,33 @@ class DataValidatorUtility {
     for (const key in queryParams) {
       const attrIdx = lodash.findIndex(validParams, (d: any) => d.map === key);
       if (attrIdx === -1) {
-        error = "InvalidQuery parameter : " + key;
-        throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+        // paramater is unsupported based on allowed config
+        throw new BadRequestResult(errorCodeMap.InvalidParameter.value, errorCodeMap.InvalidParameter.description + key);
       }
       const paramDataType = validParams[attrIdx]["type"];
       const paramValue = queryParams[key];
       for (const eachValue of paramValue) {
         if (eachValue.toString().trim().length === 0) {
-          error = "Failed for attribute: " + key + " as it contains blank value";
-          throw new UnprocessableEntityResult(errorCode.UnprocessableEntity, error);
+          throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
         }
         if (eachValue.toString().includes(",") && !validParams[attrIdx]["isMultiple"]) {
-          throw new BadRequestResult(errorCode.InvalidQueryParameterValue, key + " cannot have multiple values");
+          throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
         }
       }
       const isMultivalue = paramValue.length > 1;
       let validationStatus;
       switch (paramDataType) {
         case "date":
-          validationStatus = DataValidatorUtility.validateDateAttributes(key, paramValue, isMultivalue);
+          validationStatus = AggregationValidatorUtility.validateDateAttributes(key, paramValue, isMultivalue);
           break;
         case "number":
-          validationStatus = DataValidatorUtility.validateNumberAttributes(key, paramValue, isMultivalue);
+          validationStatus = AggregationValidatorUtility.validateNumberAttributes(key, paramValue, isMultivalue);
           break;
         case "boolean":
-          validationStatus = DataValidatorUtility.validateBooleanAttributes(key, paramValue, isMultivalue);
+          validationStatus = AggregationValidatorUtility.validateBooleanAttributes(key, paramValue, isMultivalue);
           break;
         default:
-          validationStatus = DataValidatorUtility.validateStringAttributes(key, paramValue, isMultivalue);
+          validationStatus = AggregationValidatorUtility.validateStringAttributes(key, paramValue, isMultivalue);
       }
       if (!validationStatus) {
         return false;
@@ -168,4 +155,4 @@ class DataValidatorUtility {
   }
 }
 
-export { DataValidatorUtility };
+export { AggregationValidatorUtility };
