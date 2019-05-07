@@ -65,6 +65,7 @@ class Constants {
   public static readonly POSIX_END = "\\M";
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
+  public static readonly S3ENCRYPTION = "aws:kms";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
   public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
