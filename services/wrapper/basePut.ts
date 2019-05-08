@@ -38,22 +38,23 @@ export class BasePut {
     referenceValidationModel?,
     referenceValidationElement?: string
   ): Promise<GenericResponse<T>> {
-    // We need modelDataResource to be passed for mapping request to data resource columns.
+    log.info("Inside updateClinicalResources ");
+    // validate request payload
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     const total = requestPayload.length;
-    log.info("Record Array created succesfully in :: updateResource()");
+    log.info("Record Array created successfully ");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(patientElement, []);
     keysToFetch.set(Constants.ID, []);
-    // validate information source key only if element is present and if its different from patient element
-    const validateInformationSourceElement: boolean = informationSourceElement && informationSourceElement !== patientElement;
-    if (validateInformationSourceElement) {
+    // validate informationSourceElement only if it is present and different from patient element
+    const isValidInformationSourceElement: boolean = informationSourceElement && informationSourceElement !== patientElement;
+    if (isValidInformationSourceElement) {
       keysToFetch.set(informationSourceElement, []);
     }
-    // validate reference element only if element is present
-    const validateReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
-    if (validateReferenceElement) {
+    // add referenceValidationElement in map only if element it is present
+    const isValidReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
+    if (isValidReferenceElement) {
       keysToFetch.set(referenceValidationElement, []);
     }
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
@@ -62,17 +63,17 @@ export class BasePut {
     // perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.debug("Devices [" + patientElement + "] validation is successful");
+    log.debug("Device validation is successful");
 
-    // perform user validation for owner reference
+    // perform user validation for patient reference
     const patientReferences = [...new Set(keysMap.get(patientElement))];
     RequestValidator.validateSingularUserReference(patientReferences);
     const patientReferenceValue = patientReferences[0];
     log.debug("PatientElement [" + patientElement + "] validation is successful");
 
-    // perform user validation for information source
+    // perform user validation for informationSource
     let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
-    if (validateInformationSourceElement) {
+    if (isValidInformationSourceElement) {
       const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
       RequestValidator.validateSingularUserReference(informationSourceIds);
       informationSourceReferenceValue = informationSourceIds[0];
@@ -80,7 +81,7 @@ export class BasePut {
     }
     log.info("Device and user validation is successful");
 
-    // fetch primaryKey of each record from request payload
+    // fetch primaryKey of each record from request payload and validate
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
     await RequestValidator.validateUniqueIDForPUT(primaryKeyIds, total);
     log.info("Primary keys are validated");
@@ -88,12 +89,14 @@ export class BasePut {
     await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
 
+    // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
-    if (validateReferenceElement) {
+    if (isValidReferenceElement) {
       uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationElement))].filter(Boolean);
       uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
         return referenceId.split("/")[1];
       });
+      log.debug("referenceIds length : " + uniquesReferenceIds.length);
     }
     const result = await BasePut.bulkUpdate(
       requestPayload,
@@ -129,17 +132,21 @@ export class BasePut {
     requestPrimaryIds: string[],
     model,
     modelDataResource,
-    referenceValidationModel,
-    referenceValidationAttribute: string,
-    uniquesReferenceIds
+    referenceValidationModel?,
+    referenceValidationAttribute?: string,
+    uniquesReferenceIds?
   ) {
-    log.info("In bulkUpdate() :: BasePut Class");
-    const validateReferences: boolean = referenceValidationModel && referenceValidationAttribute && uniquesReferenceIds;
+    log.info("Inside bulkUpdate() ");
+    // check if referenceAttribute validation is required
+    const isValidateReferences: boolean = referenceValidationModel && referenceValidationAttribute && uniquesReferenceIds;
     let validReferenceIds;
-    if (validateReferences) {
+    // validate uniqueReferenceIds against referenceValidationModel
+    if (isValidateReferences) {
+      // check if uniqueReferenceIds exists in DB
       validReferenceIds = await DataFetch.getValidIds(referenceValidationModel, uniquesReferenceIds);
       validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map((eachId) => eachId);
     }
+    // validate primaryKeys of all the records in request payload
     const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
@@ -157,8 +164,9 @@ export class BasePut {
           // We proceed with creation of metadata and adding record to be saved if its version ID is correct
           record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requesterProfileId, false);
           record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
+          // if isValidateReferences = true then only referenceValidationAttribute values are validated
           if (
-            validateReferences &&
+            isValidateReferences &&
             record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
             !validReferenceIds.includes(
               record.dataResource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1]
@@ -216,47 +224,52 @@ export class BasePut {
     referenceValidationModel?,
     referenceValidationElement?: string
   ): Promise<GenericResponse<T>> {
-    log.info("saveNonClinicalResources() started");
+    log.info("inside updateNonClinicalResources() ");
+    // validate request payload
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     const total = requestPayload.length;
-    log.info("Record Array created succesfully in :: saveResource()");
+    log.info("Record Array created successfully ");
 
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
     keysToFetch.set(ownerElement, []);
     keysToFetch.set(informationSourceElement, []);
-    // validate reference element only if referenceValidationElement is present
+    // add referenceValidationElement in map only if element it is present
     const validateReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
     if (validateReferenceElement) {
       keysToFetch.set(referenceValidationElement, []);
     }
 
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Device and User Keys retrieved successfully :: saveResource()");
+    log.info("All the retrieved successfully ");
     //  perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.debug("Device validation is successful");
     // perform owner reference validation
     const ownerReferences = [...new Set(keysMap.get(ownerElement))];
     RequestValidator.validateSingularUserReference(ownerReferences);
+    log.debug("OwnerElement [" + ownerElement + "] validation is successful");
     // perform infoSource reference validation
     const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
     RequestValidator.validateSingularUserReference(informationSourceReferences);
-    // primary key Ids
+    log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
+    // primary key Ids validation
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
     await RequestValidator.validateUniqueIDForPUT(primaryKeyIds, total);
     log.info("Primary keys are validated");
     // perform Authorization, not setting ownerType as we do not care if patient or any other.
     await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
-
+    // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (validateReferenceElement) {
       uniquesReferenceIds = [...new Set(keysMap.get(referenceValidationElement))].filter(Boolean);
       uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
         return referenceId.split("/")[1];
       });
+      log.debug("referenceIds length : " + uniquesReferenceIds.length);
     }
     const result = await BasePut.bulkUpdate(
       requestPayload,

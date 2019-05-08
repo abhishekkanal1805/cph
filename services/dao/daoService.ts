@@ -111,7 +111,6 @@ export class DAOService {
       return await model.update(record, { where: { id: record.id } }).then(() => {
         return record.dataResource;
       });
-
     } catch (err) {
       log.error("Error in updating record: " + err);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
