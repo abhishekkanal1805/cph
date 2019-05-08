@@ -100,14 +100,16 @@ export class S3Service {
       const params = {
         Bucket: bucket,
         Key: key,
-        Expires: expiry,
-        ServerSideEncryption: Constants.S3ENCRYPTION
+        Expires: expiry
       };
+      if (operation === Constants.PUT_OBJECT) {
+        params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
+      }
       const url = await s3.getSignedUrl(operation, params);
       log.info("Generated signedUrl successfully");
       return url;
     } catch (err) {
-      log.error("Error in generating signed url");
+      log.error("Error in generating signed url" + err.stack);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }
