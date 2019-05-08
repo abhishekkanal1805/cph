@@ -1,8 +1,8 @@
 import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { Constants } from '../../common/constants/constants';
 const s3 = new AWS.S3({ signatureVersion: "v4" });
 AWS.config.sslEnabled = true;
 

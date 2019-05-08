@@ -108,12 +108,11 @@ export class DAOService {
    */
   public static async update(model, record) {
     try {
-      return await model.update(record, { returning: true, where: { id: record.id } })
-        .then(([rowsUpdated, [updatedRow]]) => {
-          log.info("Update completed for [" + model.name + "] with id=" + record.id + ". rowsUpdated=" + rowsUpdated);
-          // QUESTION: should we return only dataResource instead of whole record and let the caller determine what to extract?
-          return updatedRow.dataResource;
-        });
+      return await model.update(record, { returning: true, where: { id: record.id } }).then(([rowsUpdated, [updatedRow]]) => {
+        log.info("Update completed for [" + model.name + "] with id=" + record.id + ". rowsUpdated=" + rowsUpdated);
+        // QUESTION: should we return only dataResource instead of whole record and let the caller determine what to extract?
+        return updatedRow.dataResource;
+      });
     } catch (err) {
       log.error("Error in updating record: " + err);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
