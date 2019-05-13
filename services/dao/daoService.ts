@@ -134,7 +134,7 @@ export class DAOService {
       const result = model.findAll(query);
       return result;
     } catch (err) {
-      log.error("Error while saving Record: " + err.stack);
+      log.error("Error while searching records: " + err.stack);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }
