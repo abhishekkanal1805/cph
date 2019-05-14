@@ -7,130 +7,71 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { cast, col, fn, json, literal, Op } from "sequelize";
-import * as uuid from "uuid";
-import { errorCode } from "../../common/constants/error-codes";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
-import { Utility } from "./Utility";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
+import * as config from "../../common/objects/config";
+import { BadRequestResult } from "../../common/objects/custom-errors";
+import { Utility } from "../common/Utility";
+import { AggregationValidatorUtility } from "./aggregationValidatorUtility";
 
-class DataHelperService {
-  /**
-   * Converts the raw payload/resource into typed Model that can be later used to make ORM calls.
-   * The provided record is convert to Model and additionally we set the ID and metadata if supported by the Model.
-   * @param {any[]} recordsToSave
-   * @param serviceModel Type of the Model class to convert to
-   * @param serviceDataResource If specified the converter will attempt to convert the entire record into this Type
-   * @param {string} userIdKey
-   * @returns {any[]} Array of Model created for ORM
-   */
-  public static convertAllToModelsForSave(recordsToSave: any[], serviceModel: any, serviceDataResource: any, userIdKey: string) {
-    log.info("Entering DataHelperService :: convertAllToModelsForSave()");
-    const models = [];
-    const metaObj = Utility.getRecordMeta(userIdKey, userIdKey);
-    for (const thisRecord of recordsToSave) {
-      // extracting the clientRequestID from the record if it was provided in request
-      const providedClientRequestId = thisRecord.meta && thisRecord.meta.clientRequestId ? thisRecord.meta.clientRequestId : " ";
-      const providedDeviceId = thisRecord.meta && thisRecord.meta.deviceId ? thisRecord.meta.deviceId : " ";
-      // add new meta data to the provided record
-      thisRecord.id = uuid();
-      if (thisRecord.meta) {
-        Object.assign(thisRecord.meta, metaObj);
-      } else {
-        thisRecord.meta = metaObj;
-      }
-      thisRecord.meta.clientRequestId = providedClientRequestId;
-      thisRecord.meta.deviceId = providedDeviceId;
-      // create a new Model instance with all the properties from record in payload
-      const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
-      models.push(recordAsModel.dataValues);
+class AggregationHelperService {
+  public static async searchRecords(
+    serviceModel: any,
+    authorizerData: any,
+    httpMethod: string,
+    searchAttributes: any,
+    queryParams: any,
+    mandatoryAttribute: string,
+    endPoint: string,
+    attributes: string[],
+    appendUserProfile?: boolean
+  ): Promise<object[]> {
+    log.info("Entering DataService :: searchRecords()");
+    // If no search parameter is specified then user should get all his data
+    if (!queryParams.hasOwnProperty(mandatoryAttribute)) {
+      log.debug("Mandatory attribute is added from Cognito");
+      queryParams[mandatoryAttribute] = [authorizerData.profile];
     }
-    log.info("Exiting DataHelperService :: convertAllToModelsForSave()");
-    return models;
-  }
+    AggregationValidatorUtility.validateQueryParams(queryParams, searchAttributes);
 
-  /**
-   * Fetch recordsToUpdate to be updated from DB and perform business validation
-   * @param {any[]} recordsToUpdate array of recordsToUpdate needs to be updated.
-   * @param {any} serviceModel serviceModel Sequelize model class of the target table.
-   * @param serviceDataResource If specified the converter will attempt to convert the entire record into this Type
-   * @param {string} userId user id
-   * @returns {Promise<any>}
-   */
-  public static async convertAllToModelsForUpdate(resource: any, serviceModel: any, serviceDataResource: any, userId: string) {
-    log.info("Entering DataHelperService :: convertAllToModelsForUpdate()");
-    const updatedRecords = [];
-    let records;
-    if (resource.savedRecords) {
-      const recordIds = _.map(resource.savedRecords, "id");
-      // fetching all the rows with matching ids
-      records = await this.fetchAllDatabaseRows(serviceModel, recordIds);
-      for (const thisRecord of resource.savedRecords) {
-        let clientRequestId = " ";
-        if (thisRecord.meta.clientRequestId) {
-          clientRequestId = thisRecord.meta.clientRequestId;
+    // add "UserProfile" as prefix to user attribute like informationSource/subject/patient
+    if (appendUserProfile) {
+      for (const displayAttribute of config.data.displayFields) {
+        if (queryParams[displayAttribute]) {
+          queryParams[displayAttribute] = [["UserProfile", queryParams[displayAttribute]].join("/")];
         }
-        // check first whether update is legal. Look for an existing record, check if its soft delete and then confirm correct version
-        let existingRecord: any;
-        if (serviceDataResource != null) {
-          existingRecord = _.result(_.find(records, { id: thisRecord.id }), "dataResource");
-        } else {
-          existingRecord = _.find(records, { id: thisRecord.id });
-        }
-        if (!existingRecord) {
-          const badRequest = new BadRequestResult(errorCode.InvalidId, "Missing or Invalid ID");
-          badRequest.clientRequestId = clientRequestId;
-          resource.errorRecords.push(badRequest);
-          continue;
-        }
-        if (existingRecord.meta && existingRecord.meta.isDeleted) {
-          const notFoundResult = new NotFoundResult(errorCode.ResourceNotFound, "Desired record does not exist in the table");
-          notFoundResult.clientRequestId = clientRequestId;
-          resource.errorRecords.push(notFoundResult);
-          continue;
-        }
-        if (thisRecord.meta.versionId != existingRecord.meta.versionId) {
-          const badRequest = new BadRequestResult(errorCode.VersionIdMismatch, existingRecord.meta.versionId);
-          badRequest.clientRequestId = clientRequestId;
-          resource.errorRecords.push(badRequest);
-          continue;
-        }
-        // update is legal, now prepare the Model
-        if (!thisRecord.meta.clientRequestId) {
-          clientRequestId = existingRecord.meta.clientRequestId;
-        }
-        existingRecord.meta.clientRequestId = clientRequestId;
-        if (thisRecord.meta.deviceId) {
-          existingRecord.meta.deviceId = thisRecord.meta.deviceId;
-        }
-        if (thisRecord.meta.isDeleted) {
-          existingRecord.meta.isDeleted = thisRecord.meta.isDeleted;
-        }
-        // if no error then update metadata
-        log.debug("Updating metadata information");
-        thisRecord.meta = Utility.getUpdateMetadata(existingRecord.meta, userId, false);
-        const recordAsModel = this.convertToModel(thisRecord, serviceModel, serviceDataResource);
-        updatedRecords.push(recordAsModel.dataValues);
       }
     }
-    log.info("Exiting DataHelperService :: convertAllToModelsForUpdate()");
-    return updatedRecords;
+    // check added to filter soft deleted records
+    if (!queryParams.hasOwnProperty("isDeleted")) {
+      queryParams["isDeleted"] = ["false"];
+    }
+    const paginationInfo: any = Utility.getPaginationInfo(queryParams);
+    const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
+    log.info("Exiting DataService :: searchRecords()");
+    return result;
   }
 
-  /**
-   * Converts raw record/payload into service model
-   * if a serviceDataResource type was provided and if the dataResource field is also present then setting
-   * @param record
-   * @param serviceModel
-   * @param serviceDataResource
-   * @returns {any}
-   */
-  public static convertToModel(record: any, serviceModel: any, serviceDataResource: any) {
-    const recordAsModel = Object.assign(new serviceModel(), record); // this makes sure all fields other than dataResource are copied
-    // if a serviceDataResource type was provided and if the dataResource field is also present then setting
-    if (serviceDataResource != null) {
-      log.debug("adding [dataResource] to the model");
-      recordAsModel.dataResource = Object.assign(new serviceDataResource(), record);
-    }
-    return recordAsModel;
+  public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
+    log.info("Entering BaseService :: getSearchDatabaseRows()");
+    log.debug("Start-DBCall: " + new Date().toISOString());
+    const queryObject: any = this.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
+    const result: any = await serviceModel.findAll(queryObject);
+    result.limit = queryObject.limit;
+    result.offset = queryObject.offset;
+    log.debug("End-DBCall: " + new Date().toISOString());
+    log.info("Number of records retrieved: " + result.length);
+    log.info("Exiting DataService :: getSearchDatabaseRows()");
+    /*
+      dataResource contains whole json object, if dataResource is there in attribute
+      then return dataResource else return data for all attributes
+    */
+
+    const res: any = _.map(result, (d) => {
+      return attributes.indexOf("dataResource") > -1 ? d.dataResource : d;
+    });
+    res.limit = result.limit;
+    res.offset = result.offset;
+    return res;
   }
 
   /**
@@ -190,18 +131,18 @@ class DataHelperService {
       dateValues["currentYear"] = moment(dateObject.date).format("YYYY");
       const operation = operatorMap[dateObject.prefix] ? operatorMap[dateObject.prefix] : Op.eq;
       if (isDateTime) {
-        DataHelperService.createDateTimeConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+        AggregationHelperService.createDateTimeConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else if (isDate) {
-        DataHelperService.createDateConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+        AggregationHelperService.createDateConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else if (isYearMonth) {
-        DataHelperService.createYearMonthConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+        AggregationHelperService.createYearMonthConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else if (isYear) {
-        DataHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
+        AggregationHelperService.createYearConditions(mappedAttribute, operatorMap, searchObject, condtionOperator, operation, dateValues);
       } else {
-        throw new BadRequestResult(errorCode.InvalidRequest, "Value for " + mappedAttribute.map + " is invalid.");
+        throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + mappedAttribute.map);
       }
     }
-    log.info("Exiting DataHelperService :: createDateSearchConditions()");
+    log.info("Exiting AggregationHelperService :: createDateSearchConditions()");
   }
 
   /**
@@ -1041,13 +982,37 @@ class DataHelperService {
             nestedAttributes = [nestedAttributes];
           }
           if (!searchObject[parentAttribute]) {
-            searchObject[parentAttribute] = {
-              [Op.or]: []
-            };
+            searchObject[parentAttribute] = {};
           }
-          searchObject[parentAttribute][Op.or].push({
-            [Op.contains]: nestedAttributes
-          });
+          if (mappedAttribute.arrayOperator) {
+            if (searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]]) {
+              searchObject[parentAttribute][Op[mappedAttribute.arrayOperator]].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op[mappedAttribute.arrayOperator]]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          } else {
+            if (searchObject[parentAttribute][Op.or]) {
+              searchObject[parentAttribute][Op.or].push({
+                [Op.contains]: nestedAttributes
+              });
+            } else {
+              searchObject[parentAttribute] = {
+                [Op.or]: [
+                  {
+                    [Op.contains]: nestedAttributes
+                  }
+                ]
+              };
+            }
+          }
         }
       } else {
         // comes here if mapped type is array but we match on attribute itself as nested properties are not present (like string)
@@ -1088,7 +1053,7 @@ class DataHelperService {
     for (const item of values) {
       const searchObjectSingle: any = {};
       for (const key in item) {
-        const mappedAttributeSingle: any = Utility.getMappedAttribute(key, "map", endPoint);
+        const mappedAttributeSingle: any = this.getMappedAttribute(key, "map", endPoint);
         const value = item[key];
         this.createGenericSearchConditions(mappedAttributeSingle, value[0], searchObjectSingle);
       }
@@ -1116,6 +1081,24 @@ class DataHelperService {
   }
 
   /**
+   * Retuns the Mapped attributes on basis of provided endpoints.
+   * @param attribute
+   * @param prop
+   * @param endpoint
+   * @returns {any}
+   */
+  public static getMappedAttribute(attribute, prop, endpoint) {
+    log.info("Inside Utility: getMappedAttribute()");
+    const mapped = config.settings[endpoint].searchAttributes;
+    const index = mapped.findIndex((x) => x[prop] == attribute);
+    if (index > -1) {
+      return mapped[index];
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Generates search query based on type of search required by considering all business logics.
    * @param searchRequest
    * @param {string} endpoint
@@ -1138,7 +1121,7 @@ class DataHelperService {
       if (["limit", "offset"].indexOf(key) > -1) {
         continue;
       }
-      const mappedAttribute: any = Utility.getMappedAttribute(key, "map", endPoint);
+      const mappedAttribute: any = this.getMappedAttribute(key, "map", endPoint);
       // if attribute not present then skip this attribute and move ahead
       if (!mappedAttribute) {
         continue;
@@ -1239,15 +1222,15 @@ class DataHelperService {
    * @param {any}searchRequest query parameters.
    * @param {string} endPoint Service name.
    * @param {object} attributes columns to be fetched.
-   * @param {any} config config attribute to look.
+   * @param {any} configuration config attribute to look.
    * @returns {string}
    */
-  public static generateAggregationSubQuery(searchRequest, endPoint, attributes: any, config: any): string {
+  public static generateAggregationSubQuery(searchRequest, endPoint, attributes: any, configuration: any): string {
     let rawQuery: string = `select ${_.join(attributes, ",")}`;
     rawQuery += ` from "${endPoint}" where `;
     const conditions: string[] = [];
     for (const key in searchRequest) {
-      const mappedAttribute: any = _.find(config, { map: key });
+      const mappedAttribute: any = _.find(configuration, { map: key });
       if (mappedAttribute === undefined) {
         continue;
       }
@@ -1279,7 +1262,7 @@ class DataHelperService {
    * @param {object} attributes columns to be fetched.
    * @param {string} subQuery generated subquery from generateAggregationSubQuery.
    * @param {string} alias alias to use for subquery.
-   * @param {any} config config attribute to look.
+   * @param {any} configuration config attribute to look.
    * @param {string[]} groupby columns to be used in group by.
    * @param {string[]} orderby columns to be used in order by.
    * @returns {string}
@@ -1289,7 +1272,7 @@ class DataHelperService {
     attributes: any,
     subQuery: string,
     alias: string,
-    config: any,
+    configuration: any,
     groupby: string[],
     orderby: string[]
   ): string {
@@ -1298,7 +1281,7 @@ class DataHelperService {
     const conditions: string[] = [];
     if (_.has(searchRequest, "component-code")) {
       const key: string = "component-code";
-      const mappedAttribute: any = _.find(config, { map: key });
+      const mappedAttribute: any = _.find(configuration, { map: key });
       conditions.push(`${mappedAttribute.to}`.replace("%arg%", searchRequest[key]));
     }
     if (conditions.length > 0) {
@@ -1327,4 +1310,4 @@ class DataHelperService {
   }
 }
 
-export { DataHelperService };
+export { AggregationHelperService };
