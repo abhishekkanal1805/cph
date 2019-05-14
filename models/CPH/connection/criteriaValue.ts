@@ -1,6 +1,6 @@
 interface CriteriaValue {
-  linkId: number;
-  field: string;
+  type: string;
+  element: string;
   operation: string;
   value: string;
 }

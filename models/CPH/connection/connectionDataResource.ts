@@ -13,7 +13,6 @@ class ConnectionDataResource {
   to: Reference;
   requestParameter: StringObject[];
   sharingRules: SharingRule[];
-  sharingRulesLogic: string;
   lastStatusChangeDateTime: string;
   meta: ResourceMetadata;
 }
