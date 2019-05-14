@@ -1,7 +1,9 @@
+import { ValueExpression } from "./valueExpression";
+
 interface CriteriaExpression {
-  linkId: number;
-  field: string;
+  type: string;
+  element: string;
   operation: string;
-  value: string;
+  valueExpression: ValueExpression;
 }
 export { CriteriaExpression };
