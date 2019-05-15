@@ -21,7 +21,7 @@ export class DAOService {
       }
     } catch (err) {
       log.error("fetchByPk() :: Error in fetching record for [" + model.name + "] for id=" + id + ". Message" + err.stack, err);
-      throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
 
     // it will come here if results were null
@@ -50,7 +50,7 @@ export class DAOService {
       }
     } catch (err) {
       log.error("fetchOne() :: Error in fetching record for [" + model.name + "]. Message" + err.stack, err);
-      throw new InternalServerErrorResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
 
     // it will come here if results were null
