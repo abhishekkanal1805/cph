@@ -70,6 +70,8 @@ export class DataFetch {
    * @memberof DataFetch
    */
   public static getValidIds(model, recordIds: string[]): Promise<any[]> {
+    // TODO: "id": recordIds would achieve the same
+    // TODO: Use type IFindOption<Model> for query
     const query = {
       where: {
         "id": {
@@ -90,13 +92,15 @@ export class DataFetch {
    * @return {Promise<any[]>}
    */
   public static getValidUserProfileIds(recordIds: string[]): Promise<any[]> {
+    // TODO: "id": recordIds would achieve the same
+    // TODO: Use type IFindOption<UserProfile> for query
     const query = {
       where: {
         "id": {
           [Op.or]: recordIds
         },
         "meta.isDeleted": false,
-        "status": Constants.ACTIVE
+        "status": UserProfile.STATUS_ACTIVE
       },
       attributes: ["id"]
     };
@@ -104,15 +108,13 @@ export class DataFetch {
   }
 
   /**
-   *
-   *
+   * TODO: Review if this is used anywhere, else remove
    * @static
    * @param {*} searchObject
    * @param {string} [requestExpirationDate]
    * @returns
    * @memberof DataFetch
    */
-
   public static async getConnections(searchObject: any, requestExpirationDate?: string) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
@@ -156,8 +158,8 @@ export class DataFetch {
   }
 
   /**
-   *
    * FIXME: Add documentation for this. perhaps this method should be re-used in other profile search in this class
+   * TODO: Review if this is used anywhere, else remove
    * @static
    * @param {*} searchObject
    * @returns
