@@ -13,7 +13,7 @@ import { DAOService } from "../dao/daoService";
 export class DataFetch {
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
-   * FIXME: rename to getUserProfiles. also this returned value is not really userProfile. it is a userAccessObj. we should define this as a class
+   * FIXME: rename this getUserAccess. Also define a class for the return
    * @static
    * @param {*} authorizerData
    * @returns {Promise<any>}
@@ -22,7 +22,7 @@ export class DataFetch {
   public static async getUserProfile(profiles: string[]): Promise<any> {
     log.info("Entering DataFetch :: getUserProfile()");
     const userAccessObj = {};
-    if (profiles.length < 1) {
+    if (!profiles || profiles.length < 1) {
       log.error("Error in DataFetch: profiles array is empty");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -36,7 +36,7 @@ export class DataFetch {
       }
     };
     const result = await DAOService.search(UserProfile, queryObject);
-    if (profiles.length != result.length) {
+    if (profiles.length !== result.length) {
       log.error("Error in DataFetch: Record doesn't exists for all requested profile ids");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
@@ -46,6 +46,7 @@ export class DataFetch {
         log.error("Error in DataFetch: UserProfile status is inactive for id : " + profile.id);
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      // TODO: This logic can be externalized to a function
       // if user is valid then set display attribute and profile status
       const givenName = profile.name ? profile.name.given || [] : [];
       const familyName = profile.name ? profile.name.family || Constants.EMPTY_VALUE : Constants.EMPTY_VALUE;
