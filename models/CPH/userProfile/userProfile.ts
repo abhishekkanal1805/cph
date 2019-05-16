@@ -25,46 +25,46 @@ class UserProfile extends Model<UserProfile> {
   @Column({ type: DataType.JSONB })
   dataResource: UserProfileDataResource;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   resourceType: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   email: string;
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   name: HumanName;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   race: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   ethnicity: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   gender: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   birthDate: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   status: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   type: string;
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   telecom: ContactPoint[];
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   address: Address;
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   preferences: Preference;
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   identifier: Identifier[];
 
-  @Column({ type: DataType.JSONB })
+  @Column({ type: DataType.JSONB, defaultValue: null })
   additionalAttributes: Additional[];
 
   /**

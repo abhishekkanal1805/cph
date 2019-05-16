@@ -15,7 +15,6 @@ const testInactiveProfileId = "000";
 const testInactiveProfile = { id: testInactiveProfileId, status: Constants.INACTIVE, type: "patient", name: { given: ["Ramsey"], family: "Bolton" } };
 
 describe("Test getUserProfile() - ", () => {
-
   it("Throw error if profiles provided is null", async (done) => {
     const profile = null;
     let result;
@@ -130,14 +129,12 @@ describe("Test getUserProfile() - ", () => {
     expect(result[testProfileId123].displayName).toContain(testProfile123.name.given[0]);
     done();
   });
-
 });
 
 describe("Test getValidIds() - ", () => {
-
   it("Query should match all provided ids and return if record is not deleted", async (done) => {
     const testRecordIds: string[] = [testProfileId123, testProfileId456];
-    const expectedSearchResults = [{id: testProfileId123, meta: {}}, {id: testProfileId456, meta: {}}];
+    const expectedSearchResults = [{ id: testProfileId123, meta: {} }, { id: testProfileId456, meta: {} }];
 
     let capturedQuery;
     spyOn(DAOService, "search").and.callFake((model, query) => {
@@ -167,14 +164,12 @@ describe("Test getValidIds() - ", () => {
     expect(result.message).toEqual(expectedErrorMessage);
     done();
   });
-
 });
 
 describe("Test getValidUserProfileIds() - ", () => {
-
   it("Query should match all provided ids and return if record is not deleted and status is active", async (done) => {
     const testRecordIds: string[] = [testProfileId123, testProfileId456];
-    const expectedSearchResults = [{id: testProfileId123, meta: {}}, testProfile456];
+    const expectedSearchResults = [{ id: testProfileId123, meta: {} }, testProfile456];
 
     let capturedQuery;
     let capturedModel;
@@ -207,5 +202,4 @@ describe("Test getValidUserProfileIds() - ", () => {
     expect(result.message).toEqual(expectedErrorMessage);
     done();
   });
-
 });
