@@ -36,6 +36,10 @@ class Constants {
   public static readonly CONNECTION_TYPE = "type";
   public static readonly STATUS = "status";
   public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
+  public static readonly META_ATTRIBUTE = "meta";
+  public static readonly DEVICE_ID_ATTRIBUTE = "deviceId";
+  public static readonly CLIENT_REQUEST_ID_ATTRIBUTE = "clientRequestId";
+  public static readonly SOURCE_ATTRIBUTE = "source";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
