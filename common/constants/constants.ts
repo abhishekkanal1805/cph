@@ -30,7 +30,7 @@ class Constants {
   public static readonly PATIENT_ATTRIBUTE = "patient";
   public static readonly CONSENTING_PARTY_ATTRIBUTE = "consentingParty";
   public static readonly CONNECTION_TYPE_PARTNER = "partner";
-  public static readonly CONNECTION_TYPE_DELIGATE = "deligate";
+  public static readonly CONNECTION_TYPE_DELIGATE = "delegate";
   public static readonly CONNECTION_TYPE_FRIEND = "friend";
   public static readonly CONNECTION_TO = "to";
   public static readonly CONNECTION_TYPE = "type";
