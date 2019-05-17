@@ -7,20 +7,21 @@ import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
 export class AuthService {
+
   /**
+   * TODO: Why do we need a reference when we need to extract id anyways.
    *  Wrapper class to perform all User access authentication
    * handles multiple scenarios, if requester is same as informationSource and patient, all access allowed except system user can't be information source
    * if requester is system user it can post data if it is not informationSource
    * if requester is not system user, a valid connection is expected between informationSource and patient
    * @static
-   * @param {string} profile profileId of logged in User
-   * @param {string[]} informationSourceIds User Id references in format UserProfile/123
-   * @param {string[]} patientIds patientId references in format UserProfile/123
+   * @param {string} requester profileId of logged in User
+   * @param {string} informationSourceReference Reference in format UserProfile/123 for the user who is the submittingor requesting the record
+   * @param {string} ownerReference Reference in format UserProfile/123 for the user who is the record owner
    * @param {string} ownerType optional. if provided can be used to enforce the profileType of ownerReference. Forbidden error is throw if
    * they dont matach. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
    */
-
   public static async authorizeRequest(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: performAuthorization()");
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
@@ -108,11 +109,10 @@ export class AuthService {
   }
 
   /**
-   *
    * checks if a connection exists between two users
    * @static
-   * @param {string} from profile ID in format UserProfile/123
-   * @param {string} to patient ID in format UserProfile/123
+   * @param {string} from profile is accepted in ID and reference format
+   * @param {string} to patient ID is accepted in ID and reference format
    * @returns/
    * @memberof AuthService
    */

@@ -9,14 +9,13 @@ import { AuthService } from "./authService";
 describe("Test hasConnectionBasedAccess() - ", () => {
 
   it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
-    const testProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
     // dataFetch can throw ForbiddenResult error when it invalidates the provided IDs
     const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     spyOn(DataFetch, "getUserProfile").and.callFake(() => {
       throw expectedError;
     });
     try {
-      await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id);
+      await AuthService.authorizeConnectionBased("any_id", "any_id");
     } catch (err) {
       expect(err).toEqual(expectedError);
       done();
@@ -26,11 +25,10 @@ describe("Test hasConnectionBasedAccess() - ", () => {
   });
 
   it("Do not allow access if DataFetch throws unexpected internal error", async (done) => {
-    const testProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
     const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
     spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
     try {
-      await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id);
+      await AuthService.authorizeConnectionBased("any_id", "any_id");
     } catch (err) {
       expect(err.message).toEqual(unexpectedInternalErrorMsg);
       done();
@@ -40,6 +38,7 @@ describe("Test hasConnectionBasedAccess() - ", () => {
   });
 
   it("Allow access if Requester & Requestee are valid profiles and both are the same person", async (done) => {
+    // any profile will do
     const testProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
     spyOn(DataFetch, "getUserProfile").and.callFake(() => {
       // does not matter what this returns as long as error is not thrown
@@ -109,6 +108,41 @@ describe("Test hasConnectionBasedAccess() - ", () => {
       return;
     }
     done.fail("Should have thrown a Forbidden error");
+  });
+
+});
+
+describe("Test authorizeRequest() - ", () => {
+
+  it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
+    // dataFetch can throw ForbiddenResult error when it invalidates the provided IDs
+    const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    spyOn(DataFetch, "getUserProfile").and.callFake(() => {
+      throw expectedError;
+    });
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz");
+    } catch (err) {
+      expect(err).toEqual(expectedError);
+      done();
+      return;
+    }
+    done.fail("Should have thrown a Forbidden error.");
+  });
+
+  it("Do not allow access if DataFetch throws unexpected internal error", async (done) => {
+    const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
+    spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz");
+    } catch (err) {
+      expect(err.message).toEqual(unexpectedInternalErrorMsg);
+      done();
+      return;
+    }
+    done.fail("Should have thrown an internal error.");
   });
 
 });
