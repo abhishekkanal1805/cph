@@ -80,26 +80,31 @@ export class AuthService {
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. is requester and requestee same users
+    // reaches here if requester and requestee are both valid profiles
+
+    // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return;
     }
-    // check 2. if requester and requestee are not same, a connection has to exist between them or requester should be system user
-    if (fetchedProfiles[requesterId].profileType.toLowerCase() !== Constants.SYSTEM_USER) {
-      log.info("requester is not a system user and now checking if there is a connection between requester and requestee");
-      const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
-      const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
-      if (isConnectionExist.length < 1) {
-        log.error("No connection found between from user and to user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
-    } else {
+
+    // check 2: if requester should be system user then allow access
+    if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
       return;
     }
-    log.info("Exiting AuthService :: hasConnectionBasedAccess");
+
+    // check 3. if we reached here then a connection has to exist between requester and requestee
+    log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
+    const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    const isConnectionExist = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+    if (isConnectionExist.length < 1) {
+      log.error("No connection found between from user and to user");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("Exiting AuthService, requester and requestee are connected  :: hasConnectionBasedAccess");
+    return;
   }
 
   /**
