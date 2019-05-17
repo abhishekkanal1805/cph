@@ -46,15 +46,15 @@ class AggregationHelperService {
       queryParams["isDeleted"] = ["false"];
     }
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
-    const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
+    const result = this.searchDatabaseRows(queryParams, serviceModel, searchAttributes, attributes, paginationInfo);
     log.info("Exiting DataService :: searchRecords()");
     return result;
   }
 
-  public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
+  public static async searchDatabaseRows(queryParams: any, serviceModel: any, searchAttributes: any, attributes: string[], paginationInfo?): Promise<object[]> {
     log.info("Entering BaseService :: getSearchDatabaseRows()");
     log.debug("Start-DBCall: " + new Date().toISOString());
-    const queryObject: any = this.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
+    const queryObject: any = this.prepareSearchQuery(queryParams, searchAttributes, attributes, paginationInfo);
     const result: any = await serviceModel.findAll(queryObject);
     result.limit = queryObject.limit;
     result.offset = queryObject.offset;
