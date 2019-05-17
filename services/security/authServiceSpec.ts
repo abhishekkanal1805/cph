@@ -1,4 +1,5 @@
 import "jasmine";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
@@ -139,6 +140,95 @@ describe("Test authorizeRequest() - ", () => {
       await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz");
     } catch (err) {
       expect(err.message).toEqual(unexpectedInternalErrorMsg);
+      done();
+      return;
+    }
+    done.fail("Should have thrown an internal error.");
+  });
+
+  it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only practitioner owner allowed", async (done) => {
+    const allowedOwnerType = Constants.PRACTITIONER_USER;
+    const testPatientOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+    const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
+    const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    spyOn(DataFetch, "getUserProfile").and.returnValues(DataFetchStub.getUserAccess(testPatientOwnerProfile), DataFetchStub.getUserAccess(testSystemOwnerProfile));
+    // test 1, Patient owner will be forbidden
+    let actualError;
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testPatientOwnerProfile.id, allowedOwnerType);
+    } catch (err) {
+      actualError = err;
+    }
+    expect(actualError).toEqual(expectedError);
+
+    // test 2, System owner will be forbidden
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+    } catch (err) {
+      expect(err).toEqual(expectedError);
+      done();
+      return;
+    }
+    done.fail("Should have thrown an internal error.");
+  });
+
+  it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only patient owner allowed", async (done) => {
+    const allowedOwnerType = Constants.PATIENT_USER;
+    const testPractitionerOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+    const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
+    const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    spyOn(DataFetch, "getUserProfile").and.returnValues(DataFetchStub.getUserAccess(testPractitionerOwnerProfile), DataFetchStub.getUserAccess(testSystemOwnerProfile));
+    // test 1, Practitioner owner will be forbidden
+    let actualError;
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testPractitionerOwnerProfile.id, allowedOwnerType);
+    } catch (err) {
+      actualError = err;
+    }
+    expect(actualError).toEqual(expectedError);
+
+    // test 2, System owner will be forbidden
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+    } catch (err) {
+      expect(err).toEqual(expectedError);
+      done();
+      return;
+    }
+    done.fail("Should have thrown an internal error.");
+  });
+
+  it("Allow access if the owner is submitting their own record", async (done) => {
+    const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+    spyOn(DataFetch, "getUserProfile").and.callFake(() => {
+      // the requester profile in access must be present
+      return DataFetchStub.getUserAccess(testOwnerProfile);
+    });
+
+    try {
+      await AuthService.authorizeRequest(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id);
+    } catch (err) {
+      done.fail("Unexpected error thrown: " + err.message);
+    }
+    done();
+  });
+
+  // TODO: review if this behavior is correct and expected
+  it("Do not allow access if provided profiles are valid, owner submitting his own record but owner's user type does not match the provided one", async (done) => {
+    const allowedOwnerType = Constants.PATIENT_USER;
+    const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+    const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile));
+
+    try {
+      // the provided args dont matter as we are mocking the DataFetch behavior
+      await AuthService.authorizeRequest(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, allowedOwnerType);
+    } catch (err) {
+      expect(err).toEqual(expectedError);
       done();
       return;
     }
