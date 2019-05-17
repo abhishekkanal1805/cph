@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { DataTransform } from "../utilities/dataTransform";
 import { BaseGet } from "./baseGet";
@@ -69,7 +69,7 @@ export class BaseDelete {
       await DAOService.softDelete(record.id, record, model);
     } else {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
-      throw new UnAuthorizedResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
     }
   }
 
@@ -101,7 +101,7 @@ export class BaseDelete {
       }
     } else {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
-      throw new UnAuthorizedResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
+      throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
     }
   }
 }
