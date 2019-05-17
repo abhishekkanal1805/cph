@@ -90,7 +90,7 @@ export class AuthService {
       log.info("requester is not a system user and now checking if there is a connection between requester and requestee");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await this.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+      const isConnectionExist = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
       if (isConnectionExist.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
