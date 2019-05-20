@@ -27,8 +27,8 @@ export class DataTransform {
     return metaDataObject;
   }
 
-  // TODO: no need to pass the record if already providing the old meta
-  public static getUpdateMetaData(record, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
+  // TODO: we dont need the entire record, only the updatedRecord.meta will do.
+  public static getUpdateMetaData(updateRecord, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
       versionId: existingRecordMetadata.versionId + 1,
@@ -39,9 +39,9 @@ export class DataTransform {
       isDeleted
     };
 
-    metaDataObject.clientRequestId = record.meta.clientRequestId ? record.meta.clientRequestId : existingRecordMetadata.clientRequestId;
-    metaDataObject.deviceId = record.meta.deviceId ? record.meta.deviceId : existingRecordMetadata.deviceId;
-    metaDataObject.source = record.meta.source ? record.meta.source : existingRecordMetadata.source;
+    metaDataObject.clientRequestId = updateRecord.meta.clientRequestId ? updateRecord.meta.clientRequestId : existingRecordMetadata.clientRequestId;
+    metaDataObject.deviceId = updateRecord.meta.deviceId ? updateRecord.meta.deviceId : existingRecordMetadata.deviceId;
+    metaDataObject.source = updateRecord.meta.source ? updateRecord.meta.source : existingRecordMetadata.source;
 
     return metaDataObject;
   }
