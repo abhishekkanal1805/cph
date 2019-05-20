@@ -56,6 +56,7 @@ export class AuthService {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+      // Maybe this can be moved to the top because if request is System user then it does not matter what the other variables are.
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid owner");
       return;

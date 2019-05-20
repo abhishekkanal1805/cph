@@ -1,7 +1,7 @@
 export class DataTransform {
   /**
    * Generates record's metadata as per information passed to it.
-   *
+   * TODO: this function is only used in the context of creating record as version 1 is assigned. it would help to rename this as such.
    * @static
    * @param {*} record
    * @param {string} createdByUser
@@ -27,6 +27,7 @@ export class DataTransform {
     return metaDataObject;
   }
 
+  // TODO: no need to pass the record if already providing the old meta
   public static getUpdateMetaData(record, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
