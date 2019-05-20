@@ -27,4 +27,10 @@ export class UserProfileRepositoryStub {
   public static readonly INACTIVE_SYSTEM_USER_PROFILES: any[] = [
     { id: "501", status: Constants.INACTIVE, type: Constants.SYSTEM_USER, name: { given: ["White"], family: "King" } }
   ];
+
+  public static readonly ACTIVE_CAREPARTNER_USER_PROFILES: any[] = [
+    { id: "501", status: Constants.ACTIVE, type: Constants.CAREPARTNER_USER, name: { given: ["Jamie"], family: "Lannister" } },
+    { id: "502", status: Constants.ACTIVE, type: Constants.CAREPARTNER_USER, name: { given: ["Jorah"], family: "Mormont" } }
+  ];
+
 }

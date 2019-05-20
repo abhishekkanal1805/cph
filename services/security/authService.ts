@@ -49,7 +49,8 @@ export class AuthService {
       log.info("requester is of type Practitioner or Care Partner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await this.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
+      const isConnectionExist = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
+      // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
       if (isConnectionExist.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -59,6 +60,7 @@ export class AuthService {
       log.info("requester is a system user and it is submitting request for a valid owner");
       return;
     } else {
+      // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
       log.error("Received a user of unknown profile type");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
