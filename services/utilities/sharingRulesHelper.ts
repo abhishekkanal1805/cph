@@ -5,7 +5,6 @@ import { Constants } from "../../common/constants/constants";
 import { SharingRule } from "../../models/CPH/connection/sharingRule";
 
 export class SharingRulesHelper {
-
   /**
    * @param queryObject
    * @param connection
@@ -43,16 +42,16 @@ export class SharingRulesHelper {
    */
   public static async getSharingRulesClause(sharingRules: SharingRule[], serviceName: string) {
     log.info("Entering SharingRulesHelper :: getSharingRulesClause()");
-    const criteriaClause = {};
-    criteriaClause[Op.or] = [];
-    for (const sharingRule of sharingRules) { // TODO: all sharing rules should be ORed. ORing code is yet to be added
-      if (sharingRule.resourceType.toLowerCase() ===  serviceName.toLowerCase() && sharingRule.criteria) {
+    const sharingRuleClause = {};
+    sharingRules[Op.or] = [];
+    for (const sharingRule of sharingRules) {
+      if (sharingRule.resourceType.toLowerCase() === serviceName.toLowerCase() && sharingRule.criteria) {
         const criteria = await SharingRulesHelper.getCriteriaClause(sharingRule.criteria);
-        criteriaClause[Op.or].push(criteria);
+        sharingRuleClause[Op.or].push(criteria);
       }
     }
     log.info("Exiting  SharingRulesHelper :: getSharingRulesClause()");
-    return criteriaClause;
+    return sharingRuleClause;
   }
 
   /**
@@ -97,11 +96,11 @@ export class SharingRulesHelper {
       lessThanOrEqual: Op.lte,
       equal: Op.eq
     };
-    const value = criterion.value ? criterion.value : await SharingRulesHelper.expressionEvaluator(criterion.valueExpression);
+    const value = criterion.value ? criterion.value : await SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
     const operation = operationMap[criterion.operation];
     return {
       [criterion.element]: {
-        [operation]:  value
+        [operation]: value
       }
     };
   }
