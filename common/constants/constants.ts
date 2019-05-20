@@ -178,6 +178,8 @@ class Constants {
   ];
   public static readonly TYPE_SINGLE = "single";
   public static readonly TYPE_GROUP = "group";
+  public static readonly ACCESS_READ = "read";
+  public static readonly ACCESS_EDIT = "edit";
 
   public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
   public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";

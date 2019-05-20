@@ -119,7 +119,7 @@ export class BaseGet {
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
     log.info(">>>" + JSON.stringify(connection)); /* TODO: To be removed */
     log.info("BEFORE" + (new Date().toISOString())); /* TODO: To be removed */
-    const whereClause: any = await SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model);
+    const whereClause: any = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
     log.info("AFTER" + (new Date().toISOString())); /* TODO: To be removed */
     if (whereClause === {}) {
       return [];

@@ -5,6 +5,7 @@ import { Constants } from "../../common/constants/constants";
 import { SharingRule } from "../../models/CPH/connection/sharingRule";
 
 export class SharingRulesHelper {
+
   /**
    * @param queryObject
    * @param connection
@@ -12,17 +13,17 @@ export class SharingRulesHelper {
    * @param model
    * @return {Promise<{}>}
    */
-  public static async addSharingRuleClause(queryObject, connection, model) {
+  public static addSharingRuleClause(queryObject, connection, model, accessLevel) {
     log.info("Entering SharingRulesHelper :: addSharingRuleClause()");
     let whereClause = {};
     const serviceName = model.getTableName();
-    if (connection !== {}) {
+    if (connection) {
       if (!connection.sharingRules || connection.sharingRules.length === 0) {
         if (serviceName === Constants.CONNECTION_SERVICE) {
           whereClause = queryObject;
         }
       } else {
-        const sharingRuleConditionClause: any = await SharingRulesHelper.getSharingRulesClause(connection.sharingRules, serviceName);
+        const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, serviceName, accessLevel);
         const andCondition = [];
         andCondition.push(queryObject);
         andCondition.push(sharingRuleConditionClause);
@@ -40,13 +41,13 @@ export class SharingRulesHelper {
    * @param {string} serviceName
    * @return {Promise<any>}
    */
-  public static async getSharingRulesClause(sharingRules: SharingRule[], serviceName: string) {
+  public static getSharingRulesClause(sharingRules: SharingRule[], serviceName: string, accessLevel: string) {
     log.info("Entering SharingRulesHelper :: getSharingRulesClause()");
     const sharingRuleClause = {};
     sharingRules[Op.or] = [];
     for (const sharingRule of sharingRules) {
-      if (sharingRule.resourceType.toLowerCase() === serviceName.toLowerCase() && sharingRule.criteria) {
-        const criteria = await SharingRulesHelper.getCriteriaClause(sharingRule.criteria);
+      if (sharingRule.resourceType.toLowerCase() === serviceName.toLowerCase() && sharingRule.accessLevel.toLowerCase() === accessLevel && sharingRule.criteria) {
+        const criteria = SharingRulesHelper.getCriteriaClause(sharingRule.criteria);
         sharingRuleClause[Op.or].push(criteria);
       }
     }
@@ -59,50 +60,34 @@ export class SharingRulesHelper {
    * @param operation
    * @return {Promise<{}>}
    */
-  public static async getCriteriaClause(criteria, operation?) {
-    const operationMap = {
-      OR: Op.or,
-      AND: Op.and
-    };
-    if (!operation) {
-      operation = operationMap[Constants.OPERATION_OR];
-    } else {
-      operation = operationMap[operation];
-    }
-    const conditionArray = {};
-    conditionArray[operation] = [];
-    for (const criterion of criteria) {
-      if (criterion.type === Constants.TYPE_SINGLE) {
-        const criterionCondition = await SharingRulesHelper.generateCriteriaClause(criterion);
-        conditionArray[operation].push(criterionCondition);
-      } else {
-        const criteriaGroupConditions: any = await SharingRulesHelper.getCriteriaClause(criterion.criteria, criterion.operator);
-        conditionArray[operation].push(criteriaGroupConditions);
-      }
-    }
-    return conditionArray;
-  }
-
-  /**
-   * @param criterion
-   * @return {Promise<{}>}
-   */
-  public static async generateCriteriaClause(criterion) {
-    /*const column = {columnHierarchy: criterion.element};*/
+  public static getCriteriaClause(criteria, operator?) {
     const operationMap = {
       greaterThan: Op.gt,
       greaterThanOrEqual: Op.gte,
       lessThan: Op.lt,
       lessThanOrEqual: Op.lte,
-      equal: Op.eq
+      equal: Op.eq,
+      notEqual: Op.ne
     };
-    const value = criterion.value ? criterion.value : await SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
-    const operation = operationMap[criterion.operation];
-    return {
-      [criterion.element]: {
-        [operation]: value
+    const operatorMap = { OR: Op.or, AND: Op.and };
+    operator = operator ? operatorMap[operator] : operatorMap[Constants.OPERATION_OR];
+    const conditionArray = {};
+    conditionArray[operator] = [];
+    for (const criterion of criteria) {
+      if (criterion.type === Constants.TYPE_SINGLE) {
+        const value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
+        const operation = operationMap[criterion.operation];
+        conditionArray[operator].push({
+          [criterion.element]: {
+            [operation]: value
+          }
+        });
+      } else {
+        const criteriaGroupConditions: any = SharingRulesHelper.getCriteriaClause(criterion.criteria, criterion.operator);
+        conditionArray[operator].push(criteriaGroupConditions);
       }
-    };
+    }
+    return conditionArray;
   }
 
   /**
@@ -111,7 +96,7 @@ export class SharingRulesHelper {
    * @param {string} expression : expression to be eveluated
    * @returns {string}
    */
-  public static async expressionEvaluator(expression: string) {
+  public static expressionEvaluator(expression: string) {
     const days: string[] = Constants.DAYS_IN_WEEK;
     const months: string[] = Constants.MONTHS_IN_YEAR;
     const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
