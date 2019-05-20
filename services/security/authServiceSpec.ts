@@ -2,6 +2,7 @@ import "jasmine";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { DAOService } from "../dao/daoService";
 import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataFetchStub } from "../utilities/dataFetchStub";
@@ -217,7 +218,6 @@ describe("Test authorizeRequest() - ", () => {
     done();
   });
 
-  // TODO: review if this behavior is correct and expected
   it("Do not allow access if provided profiles are valid, owner submitting his own record but owner's user type does not match the provided one", async (done) => {
     const allowedOwnerType = Constants.PATIENT_USER;
     const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
@@ -409,6 +409,80 @@ describe("Test authorizeRequest() - ", () => {
       await AuthService.authorizeRequest(testRequesterProfile.id,
         "UserProfile/" + testInformationSourceProfile.id,
         "UserProfile/" + testOwnerProfile.id);
+    } catch (err) {
+      done.fail("Unexpected error thrown: " + err.message);
+    }
+    done();
+  });
+});
+
+describe("Test hasConnection() - ", () => {
+  it("Should throw the error if the DAO does.", async (done) => {
+    const expectedErrorMessage = "any internal error";
+    spyOn(DAOService, "search").and.throwError(expectedErrorMessage);
+    try {
+      // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+      await AuthService.hasConnection("pqr", "UserProfile/abc", [], []);
+    } catch (err) {
+      expect(err.message).toEqual(expectedErrorMessage);
+      done();
+      return;
+    }
+    done.fail("Should have thrown a Forbidden error.");
+  });
+
+  it("Should accept the to and from as profile ids.", async (done) => {
+    const testToId = "anyprofilereference";
+    const testFromId = "anyprofilereference";
+    const testProfileTypes: string[] = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const testConnectionStatuses: string[] = [Constants.ACTIVE];
+    const expectedConnectionResource = {id: "1111", resourceType: "Connection", type: Constants.CAREPARTNER_USER}
+    const expectedSearchResult = [{dataResource: expectedConnectionResource}];
+
+    let capturedQueryOptions;
+    spyOn(DAOService, "search").and.callFake((model, queryOptions) => {
+      capturedQueryOptions = queryOptions;
+      return expectedSearchResult;
+    });
+
+    try {
+      // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+      const result = await AuthService.hasConnection(testToId, testFromId, testProfileTypes, testConnectionStatuses);
+      // verify that the provided params are used in query options
+      expect(capturedQueryOptions.where["to.reference"]).toBe(Constants.USERPROFILE_REFERENCE + testToId);
+      expect(capturedQueryOptions.where["from.reference"]).toBe(Constants.USERPROFILE_REFERENCE + testToId);
+      expect(capturedQueryOptions.where["type"]).toBe(testProfileTypes);
+      expect(capturedQueryOptions.where["status"]).toBe(testConnectionStatuses);
+      expect(result).toEqual([expectedConnectionResource]);
+    } catch (err) {
+      done.fail("Unexpected error thrown: " + err.message);
+    }
+    done();
+  });
+
+  it("Should accept the to and from as profile references.", async (done) => {
+    const testToReference = "UserProfile/anyprofilereference";
+    const testFromReference = "UserProfile/anyprofilereference";
+    const testProfileTypes: string[] = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const testConnectionStatuses: string[] = [Constants.ACTIVE];
+    const expectedConnectionResource = {id: "1111", resourceType: "Connection", type: Constants.CAREPARTNER_USER}
+    const expectedSearchResult = [{dataResource: expectedConnectionResource}];
+
+    let capturedQueryOptions;
+    spyOn(DAOService, "search").and.callFake((model, queryOptions) => {
+      capturedQueryOptions = queryOptions;
+      return expectedSearchResult;
+    });
+
+    try {
+      // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+      const result = await AuthService.hasConnection(testToReference, testFromReference, testProfileTypes, testConnectionStatuses);
+      // verify that the provided params are used in query options
+      expect(capturedQueryOptions.where["to.reference"]).toBe(testToReference);
+      expect(capturedQueryOptions.where["from.reference"]).toBe(testFromReference);
+      expect(capturedQueryOptions.where["type"]).toBe(testProfileTypes);
+      expect(capturedQueryOptions.where["status"]).toBe(testConnectionStatuses);
+      expect(result).toEqual([expectedConnectionResource]);
     } catch (err) {
       done.fail("Unexpected error thrown: " + err.message);
     }

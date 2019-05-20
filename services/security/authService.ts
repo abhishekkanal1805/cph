@@ -122,6 +122,7 @@ export class AuthService {
     // In connection we store from and to attribute in UserProfile/uuid
     from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
     to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
+    // TODO: use IFindOption<Connection>
     const queryOptions = {
       where: {
         "from.reference": from,
