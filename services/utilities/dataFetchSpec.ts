@@ -8,7 +8,6 @@ import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
 import { DataFetch } from "./dataFetch";
 
 describe("Test getUserProfile() - ", () => {
-
   it("Throw error if profiles provided is null", async (done) => {
     const profile = null;
     let result;
@@ -42,7 +41,10 @@ describe("Test getUserProfile() - ", () => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.getUserProfile([UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id]);
+      await DataFetch.getUserProfile([
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id
+      ]);
     } catch (err) {
       result = err;
     }
@@ -57,7 +59,10 @@ describe("Test getUserProfile() - ", () => {
     let result;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.getUserProfile([UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id]);
+      await DataFetch.getUserProfile([
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id
+      ]);
     } catch (err) {
       result = err;
     }
@@ -72,7 +77,10 @@ describe("Test getUserProfile() - ", () => {
     let result = null;
     const expected = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     try {
-      await DataFetch.getUserProfile([UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id]);
+      await DataFetch.getUserProfile([
+        UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id
+      ]);
     } catch (err) {
       result = err;
     }
@@ -85,7 +93,10 @@ describe("Test getUserProfile() - ", () => {
     spyOn(DAOService, "search").and.throwError(expectedErrorMessage);
     let result: Error = null;
     try {
-      await DataFetch.getUserProfile([UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id]);
+      await DataFetch.getUserProfile([
+        UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id
+      ]);
     } catch (err) {
       result = err;
     }
@@ -97,17 +108,36 @@ describe("Test getUserProfile() - ", () => {
     spyOn(DAOService, "search").and.callFake(() => {
       return [UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0], UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1]];
     });
-    const result = await DataFetch.getUserProfile([UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id]);
+    const result = await DataFetch.getUserProfile([
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id
+    ]);
     // verify profile 123
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileStatus).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].status);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileType).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].type);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.family);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.given[0]);
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileStatus).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].status
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileType).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].type
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.family
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.given[0]
+    );
     // verify profile 456
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].profileStatus).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].status);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].profileType).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].type);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].name.family);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].name.given[0]);
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].profileStatus).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].status
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].profileType).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].type
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].name.family
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].name.given[0]
+    );
     done();
   });
 
@@ -117,22 +147,31 @@ describe("Test getUserProfile() - ", () => {
     });
     const result = await DataFetch.getUserProfile([UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id]);
     // verify profile 123
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileStatus).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].status);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileType).toEqual(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].type);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.family);
-    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.given[0]);
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileStatus).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].status
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].profileType).toEqual(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].type
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.family
+    );
+    expect(result[UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id].displayName).toContain(
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].name.given[0]
+    );
     done();
   });
-
 });
 
 describe("Test getValidIds() - ", () => {
-
   it("Query should match all provided ids and return if record is not deleted", async (done) => {
-    const testRecordIds: string[] = [UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id];
+    const testRecordIds: string[] = [
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id
+    ];
     const expectedSearchResults = [
-      {id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, meta: {}},
-      {id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id, meta: {}}
+      { id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, meta: {} },
+      { id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id, meta: {} }
     ];
 
     let capturedQuery;
@@ -156,21 +195,28 @@ describe("Test getValidIds() - ", () => {
     spyOn(DAOService, "search").and.throwError(expectedErrorMessage);
     let result: Error = null;
     try {
-      await DataFetch.getValidIds({}, [UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id]);
+      await DataFetch.getValidIds({}, [
+        UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id
+      ]);
     } catch (err) {
       result = err;
     }
     expect(result.message).toEqual(expectedErrorMessage);
     done();
   });
-
 });
 
 describe("Test getValidUserProfileIds() - ", () => {
-
   it("Query should match all provided ids and return if record is not deleted and status is active", async (done) => {
-    const testRecordIds: string[] = [UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id];
-    const expectedSearchResults = [{id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, meta: {}}, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1]];
+    const testRecordIds: string[] = [
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1].id
+    ];
+    const expectedSearchResults = [
+      { id: UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id, meta: {} },
+      UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1]
+    ];
 
     let capturedQuery;
     let capturedModel;
@@ -196,12 +242,14 @@ describe("Test getValidUserProfileIds() - ", () => {
     spyOn(DAOService, "search").and.throwError(expectedErrorMessage);
     let result: Error = null;
     try {
-      await DataFetch.getValidUserProfileIds([UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id, UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id]);
+      await DataFetch.getValidUserProfileIds([
+        UserProfileRepositoryStub.INACTIVE_PATIENT_USER_PROFILES[0].id,
+        UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id
+      ]);
     } catch (err) {
       result = err;
     }
     expect(result.message).toEqual(expectedErrorMessage);
     done();
   });
-
 });

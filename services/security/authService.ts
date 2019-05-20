@@ -7,7 +7,6 @@ import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
 export class AuthService {
-
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
    *  Wrapper class to perform all User access authentication

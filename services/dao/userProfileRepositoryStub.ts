@@ -1,7 +1,6 @@
 import { Constants } from "../../common/constants/constants";
 
 export class UserProfileRepositoryStub {
-
   public static readonly ACTIVE_PATIENT_USER_PROFILES: any[] = [
     { id: "1", status: Constants.ACTIVE, type: Constants.PATIENT_USER, name: { given: ["Sandor"], family: "Clegane" } },
     { id: "2", status: Constants.ACTIVE, type: Constants.PATIENT_USER, name: { given: ["Bran"], family: "Stark" } }
@@ -28,5 +27,4 @@ export class UserProfileRepositoryStub {
   public static readonly INACTIVE_SYSTEM_USER_PROFILES: any[] = [
     { id: "501", status: Constants.INACTIVE, type: Constants.SYSTEM_USER, name: { given: ["White"], family: "King" } }
   ];
-
 }

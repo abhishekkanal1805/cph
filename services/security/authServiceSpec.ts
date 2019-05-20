@@ -8,7 +8,6 @@ import { DataFetchStub } from "../utilities/dataFetchStub";
 import { AuthService } from "./authService";
 
 describe("Test hasConnectionBasedAccess() - ", () => {
-
   it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
     // dataFetch can throw ForbiddenResult error when it invalidates the provided IDs
     const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -110,11 +109,9 @@ describe("Test hasConnectionBasedAccess() - ", () => {
     }
     done.fail("Should have thrown a Forbidden error");
   });
-
 });
 
 describe("Test authorizeRequest() - ", () => {
-
   it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
     // dataFetch can throw ForbiddenResult error when it invalidates the provided IDs
     const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -151,7 +148,10 @@ describe("Test authorizeRequest() - ", () => {
     const testPatientOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
     const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
     const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    spyOn(DataFetch, "getUserProfile").and.returnValues(DataFetchStub.getUserAccess(testPatientOwnerProfile), DataFetchStub.getUserAccess(testSystemOwnerProfile));
+    spyOn(DataFetch, "getUserProfile").and.returnValues(
+      DataFetchStub.getUserAccess(testPatientOwnerProfile),
+      DataFetchStub.getUserAccess(testSystemOwnerProfile)
+    );
     // test 1, Patient owner will be forbidden
     let actualError;
     try {
@@ -179,7 +179,10 @@ describe("Test authorizeRequest() - ", () => {
     const testPractitionerOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
     const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
     const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    spyOn(DataFetch, "getUserProfile").and.returnValues(DataFetchStub.getUserAccess(testPractitionerOwnerProfile), DataFetchStub.getUserAccess(testSystemOwnerProfile));
+    spyOn(DataFetch, "getUserProfile").and.returnValues(
+      DataFetchStub.getUserAccess(testPractitionerOwnerProfile),
+      DataFetchStub.getUserAccess(testSystemOwnerProfile)
+    );
     // test 1, Practitioner owner will be forbidden
     let actualError;
     try {
@@ -234,5 +237,4 @@ describe("Test authorizeRequest() - ", () => {
     }
     done.fail("Should have thrown an internal error.");
   });
-
 });
