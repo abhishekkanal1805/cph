@@ -29,7 +29,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
-    if (ownerType && (fetchedProfiles[ownerId].profileType != ownerType)) {
+    if (ownerType && fetchedProfiles[ownerId].profileType != ownerType) {
       log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }

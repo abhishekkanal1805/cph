@@ -37,6 +37,10 @@ class Constants {
   public static readonly CONNECTION_TYPE = "type";
   public static readonly STATUS = "status";
   public static readonly REQUEST_EXPIRATION_DATE = "requestExpirationDate";
+  public static readonly META_ATTRIBUTE = "meta";
+  public static readonly DEVICE_ID_ATTRIBUTE = "deviceId";
+  public static readonly CLIENT_REQUEST_ID_ATTRIBUTE = "clientRequestId";
+  public static readonly SOURCE_ATTRIBUTE = "source";
 
   public static readonly MEDICATION_PLAN_KEY = "medicationPlan.reference";
   public static readonly MEDICATION_PLAN_ATTRIBUTE = "medicationPlan";
@@ -69,6 +73,7 @@ class Constants {
   public static readonly OPENING_PARENTHESES = "(";
   public static readonly CLOSING_PARENTHESES = ")";
   public static readonly HYPHEN = "-";
+  public static readonly S3ENCRYPTION = "aws:kms";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
   public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
@@ -155,9 +160,22 @@ class Constants {
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
-  /*Sharing Rule Constants*/
+  /* Sharing Rule Constants */
   public static readonly DAYS_IN_WEEK = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-  public static readonly MONTHS_IN_YEAR = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+  public static readonly MONTHS_IN_YEAR = [
+    "JANUARY",
+    "FEBRUARY",
+    "MARCH",
+    "APRIL",
+    "MAY",
+    "JUNE",
+    "JULY",
+    "AUGUST",
+    "SEPTEMBER",
+    "OCTOBER",
+    "NOVEMBER",
+    "DECEMBER"
+  ];
   public static readonly TYPE_SINGLE = "single";
   public static readonly TYPE_GROUP = "group";
 
@@ -193,5 +211,4 @@ class Constants {
   public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
   public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
 }
-
 export { Constants };

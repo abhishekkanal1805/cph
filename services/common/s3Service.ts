@@ -1,8 +1,10 @@
 import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 const s3 = new AWS.S3({ signatureVersion: "v4" });
+AWS.config.sslEnabled = true;
 
 export class S3Service {
   /**
@@ -18,7 +20,8 @@ export class S3Service {
       Bucket: bucket,
       Key: key,
       Body: file,
-      ContentType: contentType
+      ContentType: contentType,
+      ServerSideEncryption: Constants.S3ENCRYPTION
     };
     return s3
       .upload(paramsToUploadObject)
@@ -99,11 +102,14 @@ export class S3Service {
         Key: key,
         Expires: expiry
       };
+      if (operation === Constants.PUT_OBJECT) {
+        params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
+      }
       const url = await s3.getSignedUrl(operation, params);
       log.info("Generated signedUrl successfully");
       return url;
     } catch (err) {
-      log.error("Error in generating signed url");
+      log.error("Error in generating signed url" + err.stack);
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }

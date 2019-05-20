@@ -25,9 +25,9 @@ export class ReferenceValidator {
       uniquesReferenceIds = uniquesReferenceIds.map((referenceId) => {
         return referenceId.split("/")[1];
       });
-
-      return RequestValidator.filterValidReferences(requestPayload, uniquesReferenceIds, referenceValidationModel, referenceValidationElement);
       log.info("Reference Keys validation completed for element:" + referenceValidationElement);
+      // returns { validResources: any[]; errorResults: any[] }
+      return RequestValidator.filterValidReferences(requestPayload, uniquesReferenceIds, referenceValidationModel, referenceValidationElement);
     } else {
       // if nothing to validate then all resources are valid
       log.debug("No references to validate, returning entire payload as valid.");
