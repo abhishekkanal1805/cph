@@ -7,6 +7,7 @@ interface SharingRule {
   description: string;
   accessLevel: string;
   resourceType: string;
+  operator: string;
   criteria: Array<CriteriaGroup | CriteriaValue | CriteriaExpression>;
 }
 export { SharingRule };

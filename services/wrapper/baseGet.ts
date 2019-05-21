@@ -75,14 +75,17 @@ export class BaseGet {
   ) {
     // Perform User validation
     let connection;
+    let isSharingRuleCheckRequired: boolean = true;
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, requestorProfileId);
+      isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
         log.debug("id is not present in queryParams");
         // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
+        isSharingRuleCheckRequired = false;
       }
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
     }
@@ -116,11 +119,13 @@ export class BaseGet {
     // Validate query parameter data type and value
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
+    let whereClause: any;
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
-    log.info(">>>" + JSON.stringify(connection)); /* TODO: To be removed */
-    log.info("BEFORE" + (new Date().toISOString())); /* TODO: To be removed */
-    const whereClause: any = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
-    log.info("AFTER" + (new Date().toISOString())); /* TODO: To be removed */
+    /*
+     * Below line of code calls SharingRuleHelper class function to generate
+     * and append SharingRule query clause along with queryObject
+     */
+    whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, isSharingRuleCheckRequired);
     if (whereClause === {}) {
       return [];
     }
