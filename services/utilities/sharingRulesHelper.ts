@@ -127,8 +127,8 @@ export class SharingRulesHelper {
     const datePattern =
       "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
     // All the criteria with type "single" are taken care in this block.
-    const value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
-    const operation = operationMap[criterion.operation][0];
+    let value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
+    let operation = operationMap[criterion.operation][0];
     if (value.match(datePattern) && criterion.operation !== "notEqual") {
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
       const dateCondition = {};
@@ -136,8 +136,22 @@ export class SharingRulesHelper {
       QueryGenerator.createDateSearchConditions(column, [operationMap[criterion.operation][1] + value], dateCondition);
       return dateCondition;
     } else {
+      const attributes = criterion.element.split(Constants.DOT_VALUE);
+      let parentAttribute = criterion.element;
+      const arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+      operation = (arrFlag) ? Op.contains : operation;
+      if (arrFlag) {
+        parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
+        if (attributes.length == 1) {
+          value = [value];
+        } else {
+          const nestedAttributes = {};
+          QueryGenerator.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
+          value = [nestedAttributes];
+        }
+      }
       return {
-        [criterion.element]: {
+        [parentAttribute]: {
           [operation]: value
         }
       };
