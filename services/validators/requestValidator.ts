@@ -66,19 +66,28 @@ export class RequestValidator {
   }
 
   /**
+   * @param {string[]} ids
+   * @param {number} length
+   * @returns {Promise<void>}
+   */
+  public static validateLength(ids: string[], length: number) {
+    log.info("In RequestValidator: validateLength()");
+    if (ids.length != length) {
+      log.error("Error: Duplicate primary Id's found in request");
+      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
+    }
+  }
+
+  /**
    * Validates that number of user reference in bundle should be 1
-   *
    * @static
    * @param {string[]} informationSourceIds
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
   public static validateSingularUserReference(informationSourceIds: string[]): void {
-    log.info("In RequestValidator: validateNumberOfUniqueUserReference()");
-    if (informationSourceIds.length != 1) {
-      log.error("Error: Multiple user Id's found in request");
-      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
-    }
+    log.info("In RequestValidator: validateSingularUserReference()");
+    return RequestValidator.validateLength(informationSourceIds, 1);
   }
 
   /**
@@ -94,14 +103,6 @@ export class RequestValidator {
     RequestValidator.validateSingularUserReference(informationSourceIds);
     RequestValidator.validateSingularUserReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
-  }
-
-  public static async validateUniqueIDForPUT(primaryIds: string[], length: number) {
-    log.info("In RequestValidator: validateUniqueIDForPUT()");
-    if (primaryIds.length != length) {
-      log.error("Error: Duplicate primary Id's found in request");
-      throw new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
-    }
   }
 
   /**
