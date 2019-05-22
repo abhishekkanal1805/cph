@@ -49,7 +49,8 @@ export class DataTransform {
   /**
    * Converts raw record/payload into service model
    * if a serviceDataResource type was provided and if the dataResource field is also present then setting
-   * @param record
+   * TODO: Use generics to enforce the type for serviceModel and serviceDataResource.
+   * @param record Caller is expected to provide record as object not JSON.
    * @param serviceModel
    * @param serviceDataResource
    * @returns {any}
