@@ -1,8 +1,8 @@
 import "jasmine";
 import { DataTransform } from "./dataTransform";
 
-describe("DataTransform:", () => {
-  describe("getRecordMetaData::", () => {
+describe("DataTransform", () => {
+  describe("#getRecordMetaData()", () => {
     it("Construct record meta data as per provided user details", async (done) => {
       const testCreatedByUserId = "1";
       const testUpdatedByUserId = "2";
@@ -45,7 +45,7 @@ describe("DataTransform:", () => {
     });
   });
 
-  describe("getUpdateMetaData::", () => {
+  describe("#getUpdateMetaData()", () => {
     it("Populate record meta data as per provided updated record", async (done) => {
       const updateRecordToBeDeleted = false;
       const newUpdatedByUserId = "user2";
