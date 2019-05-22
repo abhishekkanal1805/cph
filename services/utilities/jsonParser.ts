@@ -46,11 +46,14 @@ export class JsonParser {
   }
 
   /**
+   * @deprecated use findAllKeysAsMap
    * Find multiple value map against given set of search keys.
    * This function is an extentsion of findValuesForKey() where it supports multiple key search in single loop
    * @static
    * @param {any[]} records
-   * @param {Map<string, any[]>} searchKeys
+   * @param {Map<string, any[]>} searchKeys the Array size will be the same as the size of records passed.
+   * TODO: If not all records match the keypath, values filled will be null. See unit test for behavior. Is this something we need to fix?
+   * TODO: Only keys to be searched should be provided, and the Map should be constructed internally. see findAllKeysAsMap
    * @returns {Map<string, any[]>}
    * @memberof JsonParser
    */
