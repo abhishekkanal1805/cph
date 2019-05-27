@@ -1,5 +1,6 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
@@ -88,6 +89,8 @@ export class BaseGet {
         isSharingRuleCheckRequired = false;
       }
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
+      // For system user/ loggedin user we won't add sharing rules
+      isSharingRuleCheckRequired = connection.length > 0;
     }
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
@@ -126,7 +129,8 @@ export class BaseGet {
      * and append SharingRule query clause along with queryObject
      */
     whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, isSharingRuleCheckRequired);
-    if (whereClause === {}) {
+    if (isSharingRuleCheckRequired && _.isEmpty(whereClause[Op.and])) {
+      log.info("Sharing rules not present for requested user");
       return [];
     }
     // fetch data from db with all conditions

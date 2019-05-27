@@ -26,12 +26,14 @@ export class SharingRulesHelper {
     isSharingRuleCheckRequired: boolean
   ) {
     log.info("Entering SharingRulesHelper :: addSharingRuleClause()");
-    let whereClause = {};
     const serviceName = model.getTableName();
     if (!isSharingRuleCheckRequired) {
+      log.info("No Sharing rules added");
       // In case loggedIn user is searching for his/her own resource then SharingRule query clause not required.
-      whereClause = queryObject;
-    } else if (connection && connection.sharingRules && connection.sharingRules.length > 0) {
+      return queryObject;
+    }
+    const whereClause = {};
+    if (connection && connection.sharingRules && connection.sharingRules.length > 0) {
       /*
        * If SharingRules are present in connection then sharingRuleConditionClause is generated and
        * appended to the queryObject with logical AND operation.
@@ -138,17 +140,16 @@ export class SharingRulesHelper {
     } else {
       const attributes = criterion.element.split(Constants.DOT_VALUE);
       let parentAttribute = criterion.element;
-      const arrFlag = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
-      operation = (arrFlag) ? Op.contains : operation;
+      const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+      operation = arrFlag ? Op.contains : operation;
       if (arrFlag) {
-        parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
-        if (attributes.length == 1) {
-          value = [value];
-        } else {
+          parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
           const nestedAttributes = {};
           QueryGenerator.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
-          value = [nestedAttributes];
-        }
+          value = nestedAttributes;
+          if (attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+              value = [nestedAttributes];
+          }
       }
       return {
         [parentAttribute]: {
