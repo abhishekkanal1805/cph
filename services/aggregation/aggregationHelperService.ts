@@ -46,15 +46,15 @@ class AggregationHelperService {
       queryParams["isDeleted"] = ["false"];
     }
     const paginationInfo: any = Utility.getPaginationInfo(queryParams);
-    const result = this.searchDatabaseRows(queryParams, serviceModel, endPoint, attributes, paginationInfo);
+    const result = this.searchDatabaseRows(queryParams, serviceModel, searchAttributes, attributes, paginationInfo);
     log.info("Exiting DataService :: searchRecords()");
     return result;
   }
 
-  public static async searchDatabaseRows(queryParams: any, serviceModel: any, endPoint: string, attributes: string[], paginationInfo?): Promise<object[]> {
+  public static async searchDatabaseRows(queryParams: any, serviceModel: any, searchAttributes: any, attributes: string[], paginationInfo?): Promise<object[]> {
     log.info("Entering BaseService :: getSearchDatabaseRows()");
     log.debug("Start-DBCall: " + new Date().toISOString());
-    const queryObject: any = this.prepareSearchQuery(queryParams, endPoint, attributes, paginationInfo);
+    const queryObject: any = this.prepareSearchQuery(queryParams, searchAttributes, attributes, paginationInfo);
     const result: any = await serviceModel.findAll(queryObject);
     result.limit = queryObject.limit;
     result.offset = queryObject.offset;
@@ -1046,14 +1046,14 @@ class AggregationHelperService {
    * @param mappedAttribute
    * @param value
    * @param searchObject
-   * @param endPoint
+   * @param searchAttributes
    */
-  public static createMultiSearchConditions(mappedAttribute, values, searchObject, endPoint) {
+  public static createMultiSearchConditions(mappedAttribute, values, searchObject, searchAttributes: any) {
     searchObject[Op.or] = [];
     for (const item of values) {
       const searchObjectSingle: any = {};
       for (const key in item) {
-        const mappedAttributeSingle: any = this.getMappedAttribute(key, "map", endPoint);
+        const mappedAttributeSingle: any = this.getMappedAttribute(key, "map", searchAttributes);
         const value = item[key];
         this.createGenericSearchConditions(mappedAttributeSingle, value[0], searchObjectSingle);
       }
@@ -1087,12 +1087,12 @@ class AggregationHelperService {
    * @param endpoint
    * @returns {any}
    */
-  public static getMappedAttribute(attribute, prop, endpoint) {
+  public static getMappedAttribute(attribute, prop, searchAttributes: any) {
     log.info("Inside Utility: getMappedAttribute()");
-    const mapped = config.settings[endpoint].searchAttributes;
-    const index = mapped.findIndex((x) => x[prop] == attribute);
+    // const mapped = config.settings[endpoint].searchAttributes;
+    const index = searchAttributes.findIndex((x) => x[prop] == attribute);
     if (index > -1) {
-      return mapped[index];
+      return searchAttributes[index];
     } else {
       return null;
     }
@@ -1101,10 +1101,10 @@ class AggregationHelperService {
   /**
    * Generates search query based on type of search required by considering all business logics.
    * @param searchRequest
-   * @param {string} endpoint
+   * @param {any} searchAttributes
    * @returns {object}
    */
-  public static prepareSearchQuery(searchRequest, endPoint, attributes?: any, paginationInfo?: any, orderBy?: string[]): object {
+  public static prepareSearchQuery(searchRequest, searchAttributes, attributes?: any, paginationInfo?: any, orderBy?: string[]): object {
     log.info("Entering DataHelperService :: prepareSearchQuery()");
     const defaultOrderBy: string[][] = [["meta.lastUpdated", "DESC"]];
     const queryObject: any = {
@@ -1121,7 +1121,7 @@ class AggregationHelperService {
       if (["limit", "offset"].indexOf(key) > -1) {
         continue;
       }
-      const mappedAttribute: any = this.getMappedAttribute(key, "map", endPoint);
+      const mappedAttribute: any = this.getMappedAttribute(key, "map", searchAttributes);
       // if attribute not present then skip this attribute and move ahead
       if (!mappedAttribute) {
         continue;
@@ -1137,7 +1137,7 @@ class AggregationHelperService {
           this.createDateSearchConditions(mappedAttribute, value, searchObject);
           break;
         case "multicolumn":
-          this.createMultiSearchConditions(mappedAttribute, value, searchObject, endPoint);
+          this.createMultiSearchConditions(mappedAttribute, value, searchObject, searchAttributes);
           break;
         default:
           this.createGenericSearchConditions(mappedAttribute, value[0], searchObject);

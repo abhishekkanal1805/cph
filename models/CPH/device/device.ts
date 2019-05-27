@@ -19,10 +19,10 @@ export class Device extends Model<Device> {
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
-  @Column({ type: DataType.STRING, field: Constants.INFORMATION_SOURCE_ATTRIBUTE })
+  @Column({ type: DataType.STRING, field: Constants.INFORMATION_SOURCE_ATTRIBUTE, defaultValue: null })
   _informationSource: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, defaultValue: null })
   status: string;
 
   @Column({ type: DataType.JSONB })

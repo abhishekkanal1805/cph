@@ -1,7 +1,7 @@
 export class DataTransform {
   /**
    * Generates record's metadata as per information passed to it.
-   *
+   * TODO: this function is only used in the context of creating record as version 1 is assigned. it would help to rename this as such.
    * @static
    * @param {*} record
    * @param {string} createdByUser
@@ -27,7 +27,8 @@ export class DataTransform {
     return metaDataObject;
   }
 
-  public static getUpdateMetaData(record, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
+  // TODO: we dont need the entire record, only the updatedRecord.meta will do.
+  public static getUpdateMetaData(updateRecord, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
       versionId: existingRecordMetadata.versionId + 1,
@@ -38,9 +39,9 @@ export class DataTransform {
       isDeleted
     };
 
-    metaDataObject.clientRequestId = record.meta.clientRequestId ? record.meta.clientRequestId : existingRecordMetadata.clientRequestId;
-    metaDataObject.deviceId = record.meta.deviceId ? record.meta.deviceId : existingRecordMetadata.deviceId;
-    metaDataObject.source = record.meta.source ? record.meta.source : existingRecordMetadata.source;
+    metaDataObject.clientRequestId = updateRecord.meta.clientRequestId ? updateRecord.meta.clientRequestId : existingRecordMetadata.clientRequestId;
+    metaDataObject.deviceId = updateRecord.meta.deviceId ? updateRecord.meta.deviceId : existingRecordMetadata.deviceId;
+    metaDataObject.source = updateRecord.meta.source ? updateRecord.meta.source : existingRecordMetadata.source;
 
     return metaDataObject;
   }
@@ -48,7 +49,8 @@ export class DataTransform {
   /**
    * Converts raw record/payload into service model
    * if a serviceDataResource type was provided and if the dataResource field is also present then setting
-   * @param record
+   * TODO: Use generics to enforce the type for serviceModel and serviceDataResource.
+   * @param record Caller is expected to provide record as object not JSON.
    * @param serviceModel
    * @param serviceDataResource
    * @returns {any}

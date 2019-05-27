@@ -83,7 +83,7 @@ export class BasePut {
 
     // fetch primaryKey of each record from request payload and validate
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
-    await RequestValidator.validateUniqueIDForPUT(primaryKeyIds, total);
+    RequestValidator.validateLength(primaryKeyIds, total);
     log.info("Primary keys are validated");
 
     await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
@@ -257,7 +257,7 @@ export class BasePut {
     log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
     // primary key Ids validation
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
-    await RequestValidator.validateUniqueIDForPUT(primaryKeyIds, total);
+    RequestValidator.validateLength(primaryKeyIds, total);
     log.info("Primary keys are validated");
     // perform Authorization, not setting ownerType as we do not care if patient or any other.
     await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
