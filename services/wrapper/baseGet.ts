@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
@@ -26,12 +26,23 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
     log.info("In BaseGet :: getResource()");
-    const options = { where: { id, "meta.isDeleted": false } };
+    const queryObject = { id, "meta.isDeleted": false };
+    const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    const connection = await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, true);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
+    }
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }
@@ -89,7 +100,7 @@ export class BaseGet {
         isSharingRuleCheckRequired = false;
       }
       connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
-      // For system user/ loggedin user we won't add sharing rules
+      // For system user/ loggedin user to get his own record we won't add sharing rules
       isSharingRuleCheckRequired = connection.length > 0;
     }
     // if isDeleted attribute not present in query parameter then return active records

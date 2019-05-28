@@ -161,21 +161,50 @@ class Constants {
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
   /* Sharing Rule Constants */
-  public static readonly DAYS_IN_WEEK = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
-  public static readonly MONTHS_IN_YEAR = [
-    "JANUARY",
-    "FEBRUARY",
-    "MARCH",
-    "APRIL",
-    "MAY",
-    "JUNE",
-    "JULY",
-    "AUGUST",
-    "SEPTEMBER",
-    "OCTOBER",
-    "NOVEMBER",
-    "DECEMBER"
-  ];
+  public static readonly DATE_PATTERN =
+    "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
+  public static readonly NOT_EQUAL = "notEqual";
+  public static readonly DAYS_IN_WEEK = {
+    MON: 0,
+    MONDAY: 0,
+    TUES: 1,
+    TUESDAY: 1,
+    WED: 2,
+    WEDNESDAY: 2,
+    THUR: 3,
+    THURSDAY: 3,
+    FRI: 4,
+    FRIDAY: 4,
+    SAT: 5,
+    SATURDAY: 5,
+    SUN: 6,
+    SUNDAY: 6
+  };
+  public static readonly MONTHS_IN_YEAR = {
+    JANUARY: 0,
+    JAN: 0,
+    FEBRUARY: 1,
+    FEB: 1,
+    MARCH: 2,
+    MAR: 2,
+    APRIL: 3,
+    APR: 3,
+    MAY: 4,
+    JUNE: 5,
+    JUN: 5,
+    JULY: 6,
+    JUL: 6,
+    AUGUST: 7,
+    AUG: 7,
+    SEPTEMBER: 8,
+    SEP: 8,
+    OCTOBER: 9,
+    OCT: 9,
+    NOVEMBER: 10,
+    NOV: 10,
+    DECEMBER: 11,
+    DEC: 11
+  };
   public static readonly TYPE_SINGLE = "single";
   public static readonly TYPE_GROUP = "group";
   public static readonly ACCESS_READ = "read";

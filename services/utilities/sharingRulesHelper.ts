@@ -126,30 +126,28 @@ export class SharingRulesHelper {
    * @return {{}}
    */
   public static generateConditionForSingleCriteria(criterion: any, operationMap) {
-    const datePattern =
-      "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
     // All the criteria with type "single" are taken care in this block.
     let value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
     let operation = operationMap[criterion.operation][0];
-    if (value.match(datePattern) && criterion.operation !== "notEqual") {
+    let parentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
+    if (value.match(Constants.DATE_PATTERN) && criterion.operation !== Constants.NOT_EQUAL) {
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
       const dateCondition = {};
-      const column = { columnHierarchy: criterion.element };
+      const column = { columnHierarchy: parentAttribute };
       QueryGenerator.createDateSearchConditions(column, [operationMap[criterion.operation][1] + value], dateCondition);
       return dateCondition;
     } else {
       const attributes = criterion.element.split(Constants.DOT_VALUE);
-      let parentAttribute = criterion.element;
       const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       operation = arrFlag ? Op.contains : operation;
       if (arrFlag) {
-          parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
-          const nestedAttributes = {};
-          QueryGenerator.getNestedAttributes(attributes.slice(1), value, nestedAttributes, false);
-          value = nestedAttributes;
-          if (attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
-              value = [nestedAttributes];
-          }
+        parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
+        const nestedAttributes = {};
+        QueryGenerator.getNestedAttributes(attributes, value, nestedAttributes, false);
+        value = nestedAttributes;
+        if (attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+          value = [nestedAttributes];
+        }
       }
       return {
         [parentAttribute]: {
@@ -167,18 +165,18 @@ export class SharingRulesHelper {
    * @returns {string}
    */
   public static expressionEvaluator(expression: string) {
-    const days: string[] = Constants.DAYS_IN_WEEK;
-    const months: string[] = Constants.MONTHS_IN_YEAR;
+    const days: any = Constants.DAYS_IN_WEEK;
+    const months: any = Constants.MONTHS_IN_YEAR;
     const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
     const fin: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
     const value: string = expression.substr(init + 1, fin - init - 1);
     let evaluatedValue: string;
-    if (days.indexOf(value) > -1) {
+    if (days[value] > -1) {
       evaluatedValue = moment()
-        .weekday(days.indexOf(value) - 6)
+        .weekday(days[value] - 6)
         .format(Constants.DATE);
-    } else if (months.indexOf(value) > -1) {
-      const month = months.indexOf(value);
+    } else if (months[value] > -1) {
+      const month = months[value];
       const lastDate: number = moment()
         .month(month)
         .daysInMonth();

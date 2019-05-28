@@ -36,7 +36,7 @@ export class AuthService {
     // check 2. is Patient submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
-      return {};
+      return [];
     }
     // check 3. is Practitioner or Care Partner submitting request for owner
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
@@ -60,7 +60,7 @@ export class AuthService {
       // Maybe this can be moved to the top because if request is System user then it does not matter what the other variables are.
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid owner");
-      return {};
+      return [];
     } else {
       // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
       log.error("Received a user of unknown profile type");
@@ -89,13 +89,13 @@ export class AuthService {
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
-      return {};
+      return [];
     }
 
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
-      return {};
+      return [];
     }
 
     // check 3. if we reached here then a connection has to exist between requester and requestee
