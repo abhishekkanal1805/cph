@@ -112,7 +112,7 @@ export class AuthService {
   }
 
   /**
-   * It will perform authorization for get and search methods
+   * It will perform authorization for get and search methods with sharing rules
    * It will validate the profile ids and check connection between them
    *
    * @static
