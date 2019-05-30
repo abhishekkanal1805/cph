@@ -112,6 +112,49 @@ export class AuthService {
   }
 
   /**
+   * It will perform authorization for get and search methods
+   * It will validate the profile ids and check connection between them
+   *
+   * @static
+   * @param {string} to logged in profile ID in format 123
+   * @param {string} profileType logged in profile Type
+   * @param {string} from patient ID coming from request bundle in format 123
+   * @returns/
+   * @memberof AuthService
+   */
+  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeId: string) {
+    log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
+    const requestProfileIds = [requesterId, requesteeId];
+    // query userprofile for the unique profile ids
+    const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    // reaches here if requester and requestee are both valid profiles
+
+    // check 1. if requester and requestee are the same users then allow access
+    if (requesterId == requesteeId) {
+      log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
+      return [];
+    }
+
+    // check 2: if requester should be system user then allow access
+    if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
+      return [];
+    }
+
+    // check 3. if we reached here then a connection has to exist between requester and requestee
+    log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
+    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    const connection = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+    if (connection.length < 1) {
+      log.error("No connection found between from user and to user");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("Exiting AuthService, requester and requestee are connected  :: authorizeConnectionBasedSharingRules");
+    return connection;
+  }
+
+  /**
    * checks if a connection exists between two users
    * @static
    * @param {string} from profile is accepted in ID and reference format

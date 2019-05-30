@@ -32,7 +32,7 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    const connection = await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
       const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, true);
@@ -90,7 +90,7 @@ export class BaseGet {
     let isSharingRuleCheckRequired: boolean = true;
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
-      connection = await AuthService.authorizeConnectionBased(requestorProfileId, requestorProfileId);
+      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
       isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
@@ -99,7 +99,7 @@ export class BaseGet {
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
       }
-      connection = await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
+      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, queryParams[resourceOwnerElement][0]);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       isSharingRuleCheckRequired = connection.length > 0;
     }
