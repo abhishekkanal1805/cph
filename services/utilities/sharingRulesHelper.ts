@@ -143,11 +143,9 @@ export class SharingRulesHelper {
       if (arrFlag) {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
+        // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
         QueryGenerator.getNestedAttributes(attributes, value, nestedAttributes, false);
         value = nestedAttributes;
-        if (attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
-          value = [nestedAttributes];
-        }
       }
       return {
         [parentAttribute]: {
