@@ -88,6 +88,7 @@ export class BaseGet {
     // Perform User validation
     let connection;
     let isSharingRuleCheckRequired: boolean = true;
+    //ToDo move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
       connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
