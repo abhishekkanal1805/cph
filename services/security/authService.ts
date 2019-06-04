@@ -145,12 +145,14 @@ export class AuthService {
     log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
+    //ToDo hasConnection to getConnection
     const connection = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
     if (connection.length < 1) {
       log.error("No connection found between from user and to user");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("Exiting AuthService, requester and requestee are connected  :: authorizeConnectionBasedSharingRules");
+    // ToDo return only one connection instead of Array
     return connection;
   }
 
