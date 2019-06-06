@@ -35,7 +35,7 @@ export class BaseGet {
     const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, true);
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
         throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
@@ -88,7 +88,7 @@ export class BaseGet {
     // Perform User validation
     let connection;
     let isSharingRuleCheckRequired: boolean = true;
-    //ToDo move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
+    // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
       connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
@@ -140,7 +140,8 @@ export class BaseGet {
      * Below line of code calls SharingRuleHelper class function to generate
      * and append SharingRule query clause along with queryObject
      */
-    whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ, isSharingRuleCheckRequired);
+    log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
+    whereClause = isSharingRuleCheckRequired ? SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ) : queryObject;
     if (isSharingRuleCheckRequired && _.isEmpty(whereClause[Op.and])) {
       log.info("Sharing rules not present for requested user");
       return [];
