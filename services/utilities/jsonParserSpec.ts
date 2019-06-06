@@ -37,10 +37,7 @@ describe("JsonParser", () => {
     it("If searched keypath is present in all the records, no nulls should be found.", async (done) => {
       const testKeyPath = "b.c";
       const expectedValues = [1, 11, 111];
-      const testRecords = [
-        { a: 1000, b: { c: expectedValues[0] } },
-        { a: 100, b: { c: expectedValues[1] } },
-        { a: 1000, b: { c: expectedValues[2] } }];
+      const testRecords = [{ a: 1000, b: { c: expectedValues[0] } }, { a: 100, b: { c: expectedValues[1] } }, { a: 1000, b: { c: expectedValues[2] } }];
       const keyToValuesMap = new Map();
       keyToValuesMap.set(testKeyPath, []);
       const result: Map<string, any[]> = JsonParser.findAllKeysAsMap(testRecords, testKeyPath);
@@ -50,13 +47,14 @@ describe("JsonParser", () => {
 
     it("Key search can return values of any type - as long as values are truthy", async (done) => {
       const testKeyPath = "b.c";
-      const expectedValues = [1, "text values", true, {foo: "object value"}, ["array", "value"]];
+      const expectedValues = [1, "text values", true, { foo: "object value" }, ["array", "value"]];
       const testRecords = [
         { a: 10, b: { c: expectedValues[0] } },
         { a: 100, b: { c: expectedValues[1] } },
         { a: 1000, b: { c: expectedValues[2] } },
         { a: 10000, b: { c: expectedValues[3] } },
-      { a: 100000, b: { c: expectedValues[4] } }];
+        { a: 100000, b: { c: expectedValues[4] } }
+      ];
       const keyToValuesMap = new Map();
       keyToValuesMap.set(testKeyPath, []);
       const result: Map<string, any[]> = JsonParser.findAllKeysAsMap(testRecords, testKeyPath);
@@ -72,7 +70,8 @@ describe("JsonParser", () => {
         { a: 1000, b: { c: 0 } },
         { a: 100, b: { c: false } },
         { a: 1000, b: { c: null } },
-        { a: 10000, b: { c: undefined } }];
+        { a: 10000, b: { c: undefined } }
+      ];
       const keyToValuesMap = new Map();
       keyToValuesMap.set(testKeyPath, []);
       const result: Map<string, any[]> = JsonParser.findAllKeysAsMap(testRecords, testKeyPath);
@@ -83,11 +82,7 @@ describe("JsonParser", () => {
     it("Key search will return nulls if the keypath is not found", async (done) => {
       const testKeyPath = "z.c";
       const expectedValues = [null, null, null, null];
-      const testRecords = [
-        { a: 1, b: { c: 132 } },
-        { a: 10, b: { c: "bla" } },
-        { a: 1000, b: { c: true } },
-        { a: 10000, b: { c: {} } }];
+      const testRecords = [{ a: 1, b: { c: 132 } }, { a: 10, b: { c: "bla" } }, { a: 1000, b: { c: true } }, { a: 10000, b: { c: {} } }];
       const keyToValuesMap = new Map();
       keyToValuesMap.set(testKeyPath, []);
       const result: Map<string, any[]> = JsonParser.findAllKeysAsMap(testRecords, testKeyPath);
@@ -98,9 +93,7 @@ describe("JsonParser", () => {
     it("Key search will return values even if keypath is nested several layers", async (done) => {
       const testKeyPath = "b.c.z";
       const expectedValues = ["two level deep", 123];
-      const testRecords = [
-        { a: 1, b: { c: { z: expectedValues[0] } } },
-        { a: 10, b: { c: { z: expectedValues[1] } } }];
+      const testRecords = [{ a: 1, b: { c: { z: expectedValues[0] } } }, { a: 10, b: { c: { z: expectedValues[1] } } }];
       const keyToValuesMap = new Map();
       keyToValuesMap.set(testKeyPath, []);
       const result: Map<string, any[]> = JsonParser.findAllKeysAsMap(testRecords, testKeyPath);

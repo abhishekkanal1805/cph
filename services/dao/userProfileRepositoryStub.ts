@@ -32,5 +32,4 @@ export class UserProfileRepositoryStub {
     { id: "501", status: Constants.ACTIVE, type: Constants.CAREPARTNER_USER, name: { given: ["Jamie"], family: "Lannister" } },
     { id: "502", status: Constants.ACTIVE, type: Constants.CAREPARTNER_USER, name: { given: ["Jorah"], family: "Mormont" } }
   ];
-
 }

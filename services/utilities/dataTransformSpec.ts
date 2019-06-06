@@ -28,7 +28,7 @@ describe("DataTransform", () => {
       const testCreatedByUserId = "1";
       const testUpdatedByUserId = "2";
       const testProvidedMeta = { clientRequestId: "123", deviceId: "456", source: "mobile", created: "12235" };
-      const record = { meta: testProvidedMeta};
+      const record = { meta: testProvidedMeta };
       const result = DataTransform.getRecordMetaData(record, testCreatedByUserId, testUpdatedByUserId);
 
       // verifying the create meta
@@ -62,7 +62,7 @@ describe("DataTransform", () => {
         lastUpdatedBy: "prevUpdatedByUserId"
       };
       const updatedMeta = { clientRequestId: "222", deviceId: "22", source: "mobile", created: "2220222" };
-      const updatedRecord = { meta: updatedMeta};
+      const updatedRecord = { meta: updatedMeta };
 
       const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta, newUpdatedByUserId, updateRecordToBeDeleted);
 
@@ -95,7 +95,7 @@ describe("DataTransform", () => {
         lastUpdatedBy: "prevUpdatedByUserId"
       };
       const updatedMeta = {};
-      const updatedRecord = { meta: updatedMeta};
+      const updatedRecord = { meta: updatedMeta };
 
       const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta, newUpdatedByUserId, updateRecordToBeDeleted);
 

@@ -8,7 +8,6 @@ import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
 import { DataFetch } from "./dataFetch";
 
 describe("DataFetch", () => {
-
   describe("#getUserProfile()", () => {
     it("Throw error if profiles provided is null", async (done) => {
       const profile = null;
