@@ -2,6 +2,7 @@ import * as log from "lambda-log";
 import * as moment from "moment";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
+import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { ConnectionDataResource } from "../../models/CPH/connection/connectionDataResource";
 import { SharingRule } from "../../models/CPH/connection/sharingRule";
 import { QueryGenerator } from "./queryGenerator";
@@ -27,7 +28,7 @@ export class SharingRulesHelper {
        * If SharingRules are present in connection then sharingRuleConditionClause is generated and
        * appended to the queryObject with logical AND operation.
        */
-      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, serviceName, accessLevel);
+      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, tableNameToResourceTypeMapping[serviceName], accessLevel);
       whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
     }
     log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
