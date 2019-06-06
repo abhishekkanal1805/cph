@@ -94,7 +94,7 @@ export class S3Service {
    * @param {string} operation
    * @returns {Promise<S3.Body>}
    */
-  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, contentType?: string) {
+  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string) {
     log.info("Inside S3Service:  getSignedUrl()");
     try {
       const params = {
@@ -102,9 +102,6 @@ export class S3Service {
         Key: key,
         Expires: expiry
       };
-      if (contentType) {
-        params["ContentType"] = contentType;
-      }
       if (operation === Constants.PUT_OBJECT) {
         params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
       }
