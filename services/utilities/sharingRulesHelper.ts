@@ -18,20 +18,9 @@ export class SharingRulesHelper {
    * @param {string} accessLevel
    * @return {{}}
    */
-  public static addSharingRuleClause(
-    queryObject: any,
-    connection: ConnectionDataResource,
-    model: any,
-    accessLevel: string,
-    isSharingRuleCheckRequired: boolean
-  ) {
+  public static addSharingRuleClause(queryObject: any, connection: ConnectionDataResource, model: any, accessLevel: string) {
     log.info("Entering SharingRulesHelper :: addSharingRuleClause()");
     const serviceName = model.getTableName();
-    if (!isSharingRuleCheckRequired) {
-      log.info("No Sharing rules added");
-      // In case loggedIn user is searching for his/her own resource then SharingRule query clause not required.
-      return queryObject;
-    }
     const whereClause = {};
     if (connection && connection.sharingRules && connection.sharingRules.length > 0) {
       /*
@@ -39,10 +28,7 @@ export class SharingRulesHelper {
        * appended to the queryObject with logical AND operation.
        */
       const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, serviceName, accessLevel);
-      const andCondition = [];
-      andCondition.push(queryObject);
-      andCondition.push(sharingRuleConditionClause);
-      whereClause[Op.and] = andCondition;
+      whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
     }
     log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
     return whereClause;
@@ -71,11 +57,13 @@ export class SharingRulesHelper {
       ) {
         const operator = sharingRule.operator ? sharingRule.operator : Constants.OPERATION_OR;
         // Below line of code gets all the query clause for all criteria inside SharingRule.
+        log.info("Entering SharingRulesHelper :: getCriteriaClause()");
         const criteria = SharingRulesHelper.getCriteriaClause(sharingRule.criteria, operator);
+        log.info("Exiting SharingRulesHelper :: getCriteriaClause()");
         sharingRuleClause[Op.or].push(criteria);
       }
     }
-    log.info("Exiting  SharingRulesHelper :: getSharingRulesClause()");
+    log.info("Exiting SharingRulesHelper :: getSharingRulesClause()");
     return sharingRuleClause;
   }
 
@@ -165,9 +153,9 @@ export class SharingRulesHelper {
   public static expressionEvaluator(expression: string) {
     const days: any = Constants.DAYS_IN_WEEK;
     const months: any = Constants.MONTHS_IN_YEAR;
-    const init: number = expression.indexOf(Constants.OPENING_PARENTHESES);
-    const fin: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
-    const value: string = expression.substr(init + 1, fin - init - 1);
+    const parenthesesStart: number = expression.indexOf(Constants.OPENING_PARENTHESES);
+    const parenthesesEnd: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
+    const value: string = expression.substr(parenthesesStart + 1, parenthesesEnd - parenthesesStart - 1);
     let evaluatedValue: string;
     if (days[value] > -1) {
       evaluatedValue = moment()
