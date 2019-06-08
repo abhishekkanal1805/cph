@@ -33,10 +33,10 @@ export class AuthService {
       log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    // check 2. is Owner submitting its own request
+    // check 2. is Patient submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
-      log.info("Exiting AuthService, owner is submitting its own request :: hasConnectionBasedAccess()");
-      return;
+      log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
+      return [];
     }
     // check 3. is Practitioner or Care Partner submitting request for owner
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
@@ -49,17 +49,18 @@ export class AuthService {
       log.info("requester is of type Practitioner or Care Partner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
-      const isConnectionExist = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
+      const connection = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
       // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
-      if (isConnectionExist.length < 1) {
+      if (connection.length < 1) {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      return connection;
     } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       // Maybe this can be moved to the top because if request is System user then it does not matter what the other variables are.
       // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
       log.info("requester is a system user and it is submitting request for a valid owner");
-      return;
+      return [];
     } else {
       // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
       log.error("Received a user of unknown profile type");
@@ -88,26 +89,71 @@ export class AuthService {
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
-      return;
+      return [];
     }
 
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
-      return;
+      return [];
     }
 
     // check 3. if we reached here then a connection has to exist between requester and requestee
     log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
     const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
-    const isConnectionExist = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
-    if (isConnectionExist.length < 1) {
+    const connection = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+    if (connection.length < 1) {
       log.error("No connection found between from user and to user");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("Exiting AuthService, requester and requestee are connected  :: hasConnectionBasedAccess");
-    return;
+    return connection;
+  }
+
+  /**
+   * It will perform authorization for get and search methods with sharing rules
+   * It will validate the profile ids and check connection between them
+   *
+   * @static
+   * @param {string} to logged in profile ID in format 123
+   * @param {string} profileType logged in profile Type
+   * @param {string} from patient ID coming from request bundle in format 123
+   * @returns/
+   * @memberof AuthService
+   */
+  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeId: string) {
+    log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
+    const requestProfileIds = [requesterId, requesteeId];
+    // query userprofile for the unique profile ids
+    const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    // reaches here if requester and requestee are both valid profiles
+
+    // check 1. if requester and requestee are the same users then allow access
+    if (requesterId == requesteeId) {
+      log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
+      return [];
+    }
+
+    // check 2: if requester should be system user then allow access
+    if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
+      return [];
+    }
+
+    // check 3. if we reached here then a connection has to exist between requester and requestee
+    log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
+    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    //ToDo hasConnection to getConnection
+    const connection = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+    if (connection.length < 1) {
+      log.error("No connection found between from user and to user");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("Exiting AuthService, requester and requestee are connected  :: authorizeConnectionBasedSharingRules");
+    // ToDo return only one connection instead of Array
+    return connection;
   }
 
   /**

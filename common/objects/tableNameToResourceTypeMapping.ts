@@ -1,0 +1,21 @@
+export const tableNameToResourceTypeMapping = {
+  FHIRAllergyIntolerance: "AllergyIntolerance",
+  FHIRCondition: "Condition",
+  FHIRImmunization: "Immunization",
+  FHIRMedicationOrder: "MedicationOrder",
+  FHIRMedicationStatement: "MedicationStatement",
+  FHIRObservation: "Observation",
+  FHIRProcedure: "Procedure",
+  Appointment: "Appointment",
+  Consent: "Consent",
+  Connection: "Connection",
+  Device: "Device",
+  MedicationActivity: "MedicationActivity",
+  MedicationPlan: "MedicationPlan",
+  Observation: "Observation",
+  Questionnaire: "Questionnaire",
+  QuestionnaireResponse: "QuestionnaireResponse",
+  UserProfile: "UserProfile",
+  Notification: "Notification",
+  Invitation: "Invitation"
+};

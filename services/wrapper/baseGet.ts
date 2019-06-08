@@ -1,12 +1,14 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { QueryValidator } from "../validators/queryValidator";
 
 export class BaseGet {
@@ -24,12 +26,23 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
     log.info("In BaseGet :: getResource()");
-    const options = { where: { id, "meta.isDeleted": false } };
+    const queryObject = { id, "meta.isDeleted": false };
+    const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+      }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
+    }
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }
@@ -73,18 +86,24 @@ export class BaseGet {
     attributesToRetrieve?: string[]
   ) {
     // Perform User validation
+    let connection;
+    let isSharingRuleCheckRequired: boolean = true;
+    // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
-      await AuthService.authorizeConnectionBased(requestorProfileId, requestorProfileId);
+      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
+      isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
         log.debug("id is not present in queryParams");
         // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
+        isSharingRuleCheckRequired = false;
       }
-      await AuthService.authorizeConnectionBased(requestorProfileId, queryParams[resourceOwnerElement][0]);
+      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, queryParams[resourceOwnerElement][0]);
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      isSharingRuleCheckRequired = connection.length > 0;
     }
-
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
@@ -115,10 +134,21 @@ export class BaseGet {
     // Validate query parameter data type and value
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
+    let whereClause: any;
     const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+    /*
+     * Below line of code calls SharingRuleHelper class function to generate
+     * and append SharingRule query clause along with queryObject
+     */
+    log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
+    whereClause = isSharingRuleCheckRequired ? SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ) : queryObject;
+    if (isSharingRuleCheckRequired && _.isEmpty(whereClause[Op.and])) {
+      log.info("Sharing rules not present for requested user");
+      return [];
+    }
     // fetch data from db with all conditions
     const searchQuery = {
-      where: queryObject,
+      where: whereClause,
       attributes: attributesToRetrieve && attributesToRetrieve.length > 0 ? attributesToRetrieve : [Constants.DEFAULT_SEARCH_ATTRIBUTES],
       limit: limit + 1,
       offset,

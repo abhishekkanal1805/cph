@@ -18,6 +18,7 @@ class Constants {
 
   public static readonly BOUNDSPERIOD_LIMIT = 90;
   public static readonly DEVICE_REFERENCE_KEY = "meta.deviceId";
+  public static readonly META_IS_DELETED_KEY = "meta.isDeleted";
   public static readonly INFORMATION_SOURCE_REFERENCE_KEY = "informationSource.reference";
   public static readonly FROM_REFERENCE_KEY = "from.reference";
   public static readonly TO_REFERENCE_KEY = "to.reference";
@@ -69,6 +70,9 @@ class Constants {
   public static readonly POSIX_END = "\\M";
   public static readonly POSIX_ILIKE_OPERATOR = "~*";
   public static readonly ILIKE_OPERATOR = "ilike";
+  public static readonly OPENING_PARENTHESES = "(";
+  public static readonly CLOSING_PARENTHESES = ")";
+  public static readonly HYPHEN = "-";
   public static readonly S3ENCRYPTION = "aws:kms";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
@@ -133,6 +137,8 @@ class Constants {
   public static readonly PREFIX_LESS_THAN = "lt";
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
+  public static readonly OPERATION_OR = "OR";
+  public static readonly OPERATION_AND = "AND";
 
   public static readonly GREATER_THAN = ">";
   public static readonly GREATER_THAN_EQUAL = ">=";
@@ -154,6 +160,56 @@ class Constants {
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
+  /* Sharing Rule Constants */
+  public static readonly DATE_PATTERN =
+    "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
+  public static readonly NOT_EQUAL = "notEqual";
+  public static readonly DAYS_IN_WEEK = {
+    MON: 0,
+    MONDAY: 0,
+    TUES: 1,
+    TUESDAY: 1,
+    WED: 2,
+    WEDNESDAY: 2,
+    THUR: 3,
+    THURSDAY: 3,
+    FRI: 4,
+    FRIDAY: 4,
+    SAT: 5,
+    SATURDAY: 5,
+    SUN: 6,
+    SUNDAY: 6
+  };
+  public static readonly MONTHS_IN_YEAR = {
+    JANUARY: 0,
+    JAN: 0,
+    FEBRUARY: 1,
+    FEB: 1,
+    MARCH: 2,
+    MAR: 2,
+    APRIL: 3,
+    APR: 3,
+    MAY: 4,
+    JUNE: 5,
+    JUN: 5,
+    JULY: 6,
+    JUL: 6,
+    AUGUST: 7,
+    AUG: 7,
+    SEPTEMBER: 8,
+    SEP: 8,
+    OCTOBER: 9,
+    OCT: 9,
+    NOVEMBER: 10,
+    NOV: 10,
+    DECEMBER: 11,
+    DEC: 11
+  };
+  public static readonly TYPE_SINGLE = "single";
+  public static readonly TYPE_GROUP = "group";
+  public static readonly ACCESS_READ = "read";
+  public static readonly ACCESS_EDIT = "edit";
+
   public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
   public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";
   public static readonly TITLE_IMAGE_CREATION = "creation";
@@ -168,6 +224,7 @@ class Constants {
   public static readonly FHIR_PROCEDURE = "FhirProcedure";
   public static readonly DEVICE = "Device";
   public static readonly APPOINTMENT = "Appointment";
+  public static readonly CONNECTION_SERVICE = "Connection";
   public static readonly PERMANENT = "permanent";
   public static readonly TRUE = true;
   public static readonly USER_PROFILE = "UserProfile";
@@ -185,5 +242,4 @@ class Constants {
   public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
   public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
 }
-
 export { Constants };
