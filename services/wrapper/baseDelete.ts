@@ -3,7 +3,9 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
+import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
+import { JsonParser } from "../utilities/jsonParser";
 import { BaseGet } from "./baseGet";
 
 export class BaseDelete {
@@ -25,7 +27,12 @@ export class BaseDelete {
   public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
     log.info("In BaseDelete :: deleteResource()");
     // getResource will always return the record. if nothing found it throws NotFound error.
-    const record = await BaseGet.getResource(id, model, requesterProfileId, patientElement);
+    const options = { where: { id, "meta.isDeleted": false } };
+    let record = await DAOService.fetchOne(model, options);
+    record = record.dataResource;
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
+    await AuthService.authorizeConnectionBased(requesterProfileId, patientId);
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 
