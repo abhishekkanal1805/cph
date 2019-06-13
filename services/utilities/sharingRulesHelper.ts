@@ -119,7 +119,7 @@ export class SharingRulesHelper {
     let value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
     let operation = operationMap[criterion.operation][0];
     let parentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
-    if (value.match(Constants.DATE_PATTERN) && criterion.operation !== Constants.NOT_EQUAL) {
+    if ((typeof value) !== Constants.TYPE_NUMBER && value.match(Constants.DATE_PATTERN) && criterion.operation !== Constants.NOT_EQUAL) {
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
       const dateCondition = {};
       const column = { columnHierarchy: parentAttribute };
