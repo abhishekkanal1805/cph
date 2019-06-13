@@ -130,6 +130,8 @@ export class SharingRulesHelper {
       QueryGenerator.createDateSearchConditions(column, [operationMap[criterion.operation][1] + value], dateCondition);
       return dateCondition;
     } else {
+      // For empty string value we will perfoem is null operation
+      value = value.toString().length < 1 ? null : value;
       const attributes = criterion.element.split(Constants.DOT_VALUE);
       const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       operation = arrFlag ? Op.contains : operation;
