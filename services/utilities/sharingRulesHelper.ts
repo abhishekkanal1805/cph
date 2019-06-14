@@ -28,7 +28,11 @@ export class SharingRulesHelper {
        * If SharingRules are present in connection then sharingRuleConditionClause is generated and
        * appended to the queryObject with logical AND operation.
        */
-      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, tableNameToResourceTypeMapping[serviceName], accessLevel);
+      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(
+        connection.sharingRules,
+        tableNameToResourceTypeMapping[serviceName],
+        accessLevel
+      );
       whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
     }
     log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
@@ -119,9 +123,10 @@ export class SharingRulesHelper {
     let value = criterion.hasOwnProperty("value") ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
     let operation = operationMap[criterion.operation][0];
     let parentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
-    if ((typeof value) == Constants.TYPE_STRING
-      && ( moment(value, Constants.DATE_TIME, true).isValid() || moment(value, Constants.DATE, true).isValid())
-      && criterion.operation !== Constants.NOT_EQUAL
+    if (
+      typeof value == Constants.TYPE_STRING &&
+      (moment(value, Constants.DATE_TIME, true).isValid() || moment(value, Constants.DATE, true).isValid()) &&
+      criterion.operation !== Constants.NOT_EQUAL
     ) {
       // validate for date & datetime pattern
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
