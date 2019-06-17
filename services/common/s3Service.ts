@@ -97,10 +97,11 @@ export class S3Service {
   public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string) {
     log.info("Inside S3Service:  getSignedUrl()");
     try {
+      const expiryTime = parseInt(expiry);
       const params = {
         Bucket: bucket,
         Key: key,
-        Expires: expiry
+        Expires: expiryTime
       };
       if (operation === Constants.PUT_OBJECT) {
         params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
