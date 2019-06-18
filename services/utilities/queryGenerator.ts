@@ -43,7 +43,7 @@ class QueryGenerator {
       gt: Constants.GREATER_THAN,
       lt: Constants.LESS_THAN,
       eq: Constants.EQUAL,
-      ne: Constants.NOT_EQUAL_OPERATOR,
+      ne: Constants.NOT_EQUAL_OPERATOR
     };
     return operatorMap[operation] || Constants.EQUAL;
   }
