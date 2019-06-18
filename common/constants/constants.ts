@@ -137,6 +137,7 @@ class Constants {
   public static readonly PREFIX_LESS_THAN = "lt";
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
+  public static readonly PREFIX_NOT_EQUAL = "ne";
   public static readonly OPERATION_OR = "OR";
   public static readonly OPERATION_AND = "AND";
 
@@ -145,6 +146,7 @@ class Constants {
   public static readonly LESS_THAN = "<";
   public static readonly LESS_THAN_EQUAL = "<=";
   public static readonly EQUAL = "=";
+  public static readonly NOT_EQUAL_OPERATOR = "!=";
 
   public static readonly OPERATION_LIKE = "like";
   public static readonly OPERATION_STARTS_WITH = "startsWith";
