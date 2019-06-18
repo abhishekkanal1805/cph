@@ -23,7 +23,8 @@ class QueryGenerator {
       le: Op.lte,
       gt: Op.gt,
       lt: Op.lt,
-      eq: Op.eq
+      eq: Op.eq,
+      ne: Op.ne
     };
     return operatorMap[operation] || Op.eq;
   }
@@ -41,7 +42,8 @@ class QueryGenerator {
       le: Constants.LESS_THAN_EQUAL,
       gt: Constants.GREATER_THAN,
       lt: Constants.LESS_THAN,
-      eq: Constants.EQUAL
+      eq: Constants.EQUAL,
+      ne: Constants.NOT_EQUAL_OPERATOR
     };
     return operatorMap[operation] || Constants.EQUAL;
   }
@@ -77,6 +79,8 @@ class QueryGenerator {
       case Constants.OPERATION_WORD_MATCH:
         value = isRawQuery ? Constants.POSIX_START + value + Constants.POSIX_END : value;
         break;
+      default:
+        value = quoteValue + value + quoteValue;
     }
     return value;
   }
@@ -466,7 +470,7 @@ class QueryGenerator {
    * @returns
    * @memberof QueryGenerator
    */
-  public static createParitalSearchConditions(column: any, values: string[], queryObject: any) {
+  public static createParitalSearchConditions(column: any, values: string[], queryObject: any, operator?: string) {
     /*
       it will generate like query for below scenarios
       channels[*]
@@ -481,7 +485,7 @@ class QueryGenerator {
     let idx = 1;
     let isParrentArray = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
     let parentIdx = 0;
-    const expression = [[parentAttribute]];
+    const expression = [[Constants.DOUBLE_QUOTE + parentAttribute + Constants.DOUBLE_QUOTE]];
     let multilevelObject = [];
     while (idx < attributes.length) {
       let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
@@ -519,7 +523,11 @@ class QueryGenerator {
         rawSql = unnestSql;
       }
     }
-    const operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
+    if (!operator) {
+      operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
+    } else {
+      operator = this.getNumericSymbol(operator);
+    }
     const searchQuery = [];
     if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
       _.each(values, (eachValue: any) => {
