@@ -465,7 +465,7 @@ class QueryGenerator {
    *
    * @static
    * @param {*} column Column object from config file
-   * @param {string[]} values Input values for search
+   * @param {any[]} values Input values for search
    * @param {*} queryObject Query object which stores all search conditions
    * @param {string} [operator] optional parameter for operator like ne/eq/le etc
    * @param {boolean} [isDate] boolean flag date condition
