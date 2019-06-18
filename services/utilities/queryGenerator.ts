@@ -465,12 +465,14 @@ class QueryGenerator {
    *
    * @static
    * @param {*} column Column object from config file
-   * @param {string[]} values Input values for search
+   * @param {any[]} values Input values for search
    * @param {*} queryObject Query object which stores all search conditions
+   * @param {string} [operator] optional parameter for operator like ne/eq/le etc
+   * @param {boolean} [isDate] boolean flag date condition
    * @returns
    * @memberof QueryGenerator
    */
-  public static createParitalSearchConditions(column: any, values: string[], queryObject: any, operator?: string) {
+  public static createParitalSearchConditions(column: any, values: any[], queryObject: any, operator?: string, isDate?: boolean) {
     /*
       it will generate like query for below scenarios
       channels[*]
@@ -523,10 +525,29 @@ class QueryGenerator {
         rawSql = unnestSql;
       }
     }
+    let existsValue = "exists";
+    let originalOperator = "";
     if (!operator) {
       operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
     } else {
-      operator = this.getNumericSymbol(operator);
+      // Set operator for numeric value
+      originalOperator = operator;
+      if (isDate) {
+        // In case of date, for NOT_EQUAL operation, we will use exists operation and operator will be not equal inside
+        operator = this.getNumericSymbol(operator);
+      } else {
+        // In case of string, for NOT_EQUAL operation, we will use not exists operation and operator will be equal inside
+        existsValue = (operator == Constants.PREFIX_NOT_EQUAL) ? "not exists" : "exists";
+        operator = (operator == Constants.PREFIX_NOT_EQUAL) ? Constants.PREFIX_EQUAL : operator;
+        operator = this.getNumericSymbol(operator);
+      }
+    }
+    // Added for sharing rules nested search, if input is number then we have to cast it
+    if (typeof values[0] === Constants.TYPE_NUMBER) {
+      existsValue = "exists";
+      // In case of number, for NOT_EQUAL operation, we will use exists operation and operator will be not equal inside
+      values = [originalOperator + values[0].toString()]
+      column.operation = Constants.OPERATION_NUMERIC_MATCH;
     }
     const searchQuery = [];
     if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
@@ -534,12 +555,12 @@ class QueryGenerator {
         const numberObject = Utility.getSearchPrefixValue(eachValue);
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
       });
     } else {
       _.each(values, (eachValue: any) => {
         eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
       });
     }
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));

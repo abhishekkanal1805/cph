@@ -113,8 +113,12 @@ export class SharingRulesHelper {
   }
 
   /**
-   * It will create addtional filter condtion for date
-   *
+   * It will create addtional filter condtion for date based on date pattern
+   * If input is 2019-03-12T07:32:18.279Z, then as per FHIR it should match for 2019, 2019-03, 2019-03-12
+   * if dateObject is of type datetime then add condition for data, year-month, year
+   * if dateObject is of type date then add condition for year-month, year
+   * if dateObject is of type year-month then add condition for year
+   * if dateObject is of type year then don't add any condition
    * @static
    * @param {*} column Column object which contains column Hireachy
    * @param {*} value Input date value
@@ -129,11 +133,11 @@ export class SharingRulesHelper {
     const dateMomentObject = moment(value, currentDatePattern);
     switch (currentDatePattern) {
       case Constants.DATE_TIME:
-        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.DATE)], condition, Constants.PREFIX_EQUAL);
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.DATE)], condition, Constants.PREFIX_EQUAL, true);
       case Constants.DATE:
-        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR_MONTH)], condition, Constants.PREFIX_EQUAL);
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR_MONTH)], condition, Constants.PREFIX_EQUAL, true);
       case Constants.YEAR_MONTH:
-        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR)], condition, Constants.PREFIX_EQUAL);
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR)], condition, Constants.PREFIX_EQUAL, true);
       default:
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
         break;
@@ -157,7 +161,11 @@ export class SharingRulesHelper {
     }
     let datePattern = Constants.DATE_TIME;
     if (moment(value, Constants.DATE_TIME, true).isValid()) {
-      QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator);
+      if (!dateOperator) {
+        // if dateOperator is empty then assume it as equal operation
+        dateOperator = Constants.PREFIX_EQUAL;
+      }
+      QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
       dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
     } else {
       datePattern = Constants.DATE;
@@ -169,22 +177,25 @@ export class SharingRulesHelper {
       }
       if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
         // for Not equal
-        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN);
-        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL);
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
       } else if (dateOperator) {
-        QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator);
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
       } else {
         // for equal
-        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_GREATER_THAN_EQUAL);
-        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_LESS_THAN);
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_LESS_THAN, true);
         dateCondition[Op.or].push({
           [Op.and]: condition[Op.or]
         });
       }
     }
-    SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
+    if (dateOperator != Constants.PREFIX_NOT_EQUAL) {
+      // for not equal operation we will not additional filter
+      SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
+    }
   }
 
   /**
@@ -223,7 +234,16 @@ export class SharingRulesHelper {
       if (arrFlag) {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
-        // as we are adding dataResource so  getNestedAttributes will take care of array of object pattern
+        // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
+        const dateOperator = operationMap[criterion.operation][1];
+        if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
+          const column = { columnHierarchy: parentAttribute };
+          const condition: any = {
+            [Op.or]: []
+          };
+          QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, false);
+          return condition;
+        }
         QueryGenerator.getNestedAttributes(attributes, value, nestedAttributes, false);
         value = nestedAttributes;
       }
