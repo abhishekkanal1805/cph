@@ -47,6 +47,19 @@ export class BaseGet {
     return record;
   }
 
+  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement) {
+    log.info("In BaseGet :: getResourceWithoutSharingRules()");
+    const options = { where: { id, "meta.isDeleted": false } };
+    let record = await DAOService.fetchOne(model, options);
+    record = record.dataResource;
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
+    await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
+    return record;
+  }
+
+
   /**
    * Wrapper function to perform GET for record without authorization
    * @static
