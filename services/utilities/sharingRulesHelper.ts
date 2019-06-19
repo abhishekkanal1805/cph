@@ -228,7 +228,6 @@ export class SharingRulesHelper {
     } else {
       const attributes = criterion.element.split(Constants.DOT_VALUE);
       operation = arrFlag ? Op.contains : operation;
-      log.info("HHEHEHE", [])
       if (arrFlag) {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
