@@ -128,7 +128,7 @@ export class SharingRulesHelper {
    */
   public static getAddtionalDateFilters(column: any, value: any, dateCondition: any, currentDatePattern: string) {
     const condition: any = {
-      [Op.or] : []
+      [Op.or]: []
     };
     const dateMomentObject = moment(value, currentDatePattern);
     switch (currentDatePattern) {
@@ -210,10 +210,7 @@ export class SharingRulesHelper {
     let operation = operationMap[criterion.operation][0];
     let parentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
     const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
-    if (
-      typeof value == Constants.TYPE_STRING &&
-      (moment(value, Constants.DATE_TIME, true).isValid() || moment(value, Constants.DATE, true).isValid())
-    ) {
+    if (typeof value == Constants.TYPE_STRING && (moment(value, Constants.DATE_TIME, true).isValid() || moment(value, Constants.DATE, true).isValid())) {
       // validate for date & datetime pattern
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
       const dateOperation = operationMap[criterion.operation][1];
@@ -235,12 +232,16 @@ export class SharingRulesHelper {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
-        const dateOperator = operationMap[criterion.operation][1];
+        let dateOperator = operationMap[criterion.operation][1];
         if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
           const column = { columnHierarchy: parentAttribute };
           const condition: any = {
             [Op.or]: []
           };
+          if (!dateOperator) {
+            // if dateOperator is empty then assume it as equal operation
+            dateOperator = Constants.PREFIX_EQUAL;
+          }
           QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, false);
           return condition;
         }
@@ -270,9 +271,11 @@ export class SharingRulesHelper {
     const value: string = expression.substr(parenthesesStart + 1, parenthesesEnd - parenthesesStart - 1);
     let evaluatedValue: string;
     if (days[value] > -1) {
+      const daydiff = (moment().day() <= days[value]) ? days[value] - 7 : days[value] ;
       evaluatedValue = moment()
-        .weekday(days[value] - 6)
-        .format(Constants.DATE);
+      .day(daydiff)
+      .format(Constants.DATE);
+      log.debug("evaluatedValue: ", [moment().day(), days[value], evaluatedValue]);
     } else if (months[value] > -1) {
       const month = months[value];
       const lastDate: number = moment()

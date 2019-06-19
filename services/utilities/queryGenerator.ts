@@ -546,8 +546,11 @@ class QueryGenerator {
     if (typeof values[0] === Constants.TYPE_NUMBER) {
       existsValue = "exists";
       // In case of number, for NOT_EQUAL operation, we will use exists operation and operator will be not equal inside
-      values = [originalOperator + values[0].toString()]
+      values = [originalOperator + values[0].toString()];
       column.operation = Constants.OPERATION_NUMERIC_MATCH;
+    }
+    if (typeof values[0] === Constants.TYPE_BOOLEAN) {
+      column.operation = Constants.TYPE_BOOLEAN;
     }
     const searchQuery = [];
     if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
@@ -556,6 +559,10 @@ class QueryGenerator {
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
         searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+      });
+    } else if (column.operation === Constants.TYPE_BOOLEAN) {
+      _.each(values, (eachValue: any) => {
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
       });
     } else {
       _.each(values, (eachValue: any) => {

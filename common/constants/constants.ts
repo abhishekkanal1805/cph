@@ -167,20 +167,20 @@ class Constants {
     "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
   public static readonly NOT_EQUAL = "notEqual";
   public static readonly DAYS_IN_WEEK = {
-    MON: 0,
-    MONDAY: 0,
-    TUES: 1,
-    TUESDAY: 1,
-    WED: 2,
-    WEDNESDAY: 2,
-    THUR: 3,
-    THURSDAY: 3,
-    FRI: 4,
-    FRIDAY: 4,
-    SAT: 5,
-    SATURDAY: 5,
-    SUN: 6,
-    SUNDAY: 6
+    MON: 1,
+    MONDAY: 1,
+    TUES: 2,
+    TUESDAY: 2,
+    WED: 3,
+    WEDNESDAY: 3,
+    THUR: 4,
+    THURSDAY: 4,
+    FRI: 5,
+    FRIDAY: 5,
+    SAT: 6,
+    SATURDAY: 6,
+    SUN: 0,
+    SUNDAY: 0
   };
   public static readonly MONTHS_IN_YEAR = {
     JANUARY: 0,
