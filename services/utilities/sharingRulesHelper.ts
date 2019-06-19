@@ -234,7 +234,8 @@ export class SharingRulesHelper {
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
         let dateOperator = operationMap[criterion.operation][1];
         if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
-          const column = { columnHierarchy: parentAttribute };
+          const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
+          const column = { columnHierarchy: notEqualParentAttribute };
           const condition: any = {
             [Op.or]: []
           };
