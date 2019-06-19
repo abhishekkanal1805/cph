@@ -235,12 +235,16 @@ export class SharingRulesHelper {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
-        const dateOperator = operationMap[criterion.operation][1];
+        let dateOperator = operationMap[criterion.operation][1];
         if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
           const column = { columnHierarchy: parentAttribute };
           const condition: any = {
             [Op.or]: []
           };
+          if (!dateOperator) {
+            // if dateOperator is empty then assume it as equal operation
+            dateOperator = Constants.PREFIX_EQUAL;
+          }
           QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, false);
           return condition;
         }
