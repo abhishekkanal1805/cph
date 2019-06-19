@@ -174,13 +174,14 @@ export class SharingRulesHelper {
       const nextDate = moment(dateMomentObject.add({ [Constants.PERIOD_DAYS]: 1 })).format(Constants.DATE);
       if ([Constants.PREFIX_GREATER_THAN, Constants.PREFIX_LESS_THAN_EQUAL].indexOf(dateOperator) > -1) {
         value = nextDate;
+        // As date is a string we have to consider current date also in query
+        const operatorMapping = {
+          [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
+          [Constants.PREFIX_LESS_THAN_EQUAL]: Constants.PREFIX_LESS_THAN
+        };
+        dateOperator = operatorMapping[dateOperator] ? operatorMapping[dateOperator] : dateOperator;
       }
-      if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
-        // for Not equal
-        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN, true);
-        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
-        dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
-      } else if (dateOperator) {
+      if (dateOperator) {
         QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
       } else {
@@ -233,16 +234,16 @@ export class SharingRulesHelper {
         const nestedAttributes = {};
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
         let dateOperator = operationMap[criterion.operation][1];
-        if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
+        if (!dateOperator) {
+          // if dateOperator is empty then assume it as equal operation
+          dateOperator = Constants.PREFIX_EQUAL;
+        }
+        if (dateOperator != Constants.PREFIX_EQUAL) {
           const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
           const column = { columnHierarchy: notEqualParentAttribute };
           const condition: any = {
             [Op.or]: []
           };
-          if (!dateOperator) {
-            // if dateOperator is empty then assume it as equal operation
-            dateOperator = Constants.PREFIX_EQUAL;
-          }
           QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, false);
           return condition;
         }
@@ -272,10 +273,10 @@ export class SharingRulesHelper {
     const value: string = expression.substr(parenthesesStart + 1, parenthesesEnd - parenthesesStart - 1);
     let evaluatedValue: string;
     if (days[value] > -1) {
-      const daydiff = (moment().day() <= days[value]) ? days[value] - 7 : days[value] ;
+      const daydiff = moment().day() <= days[value] ? days[value] - 7 : days[value];
       evaluatedValue = moment()
-      .day(daydiff)
-      .format(Constants.DATE);
+        .day(daydiff)
+        .format(Constants.DATE);
       log.debug("evaluatedValue: ", [moment().day(), days[value], evaluatedValue]);
     } else if (months[value] > -1) {
       const month = months[value];

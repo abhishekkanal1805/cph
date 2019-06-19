@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
@@ -38,7 +38,7 @@ export class BaseGet {
       const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
-        throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
@@ -58,7 +58,6 @@ export class BaseGet {
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     return record;
   }
-
 
   /**
    * Wrapper function to perform GET for record without authorization
