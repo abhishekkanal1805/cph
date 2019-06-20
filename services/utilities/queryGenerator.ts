@@ -236,7 +236,8 @@ class QueryGenerator {
         case Constants.PREFIX_NOT_EQUAL:
           dateQuery = {
             [column.columnHierarchy]: {
-              [operation]: dateObject.data
+              [this.getOperator(Constants.PREFIX_LESS_THAN)]: dateObject.data,
+              [this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL)]: nextDate
             }
           };
           break;
@@ -256,7 +257,8 @@ class QueryGenerator {
         this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
       } else {
         // For Not Equal operation we will return records where attribute doesn't exists or != to request value
-        this.createParitalSearchConditions(column, [dateObject.data], queryObject, Constants.PREFIX_NOT_EQUAL, false);
+        QueryGenerator.createParitalSearchConditions(column, [dateObject.data], queryObject, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], queryObject, Constants.PREFIX_GREATER_THAN_EQUAL, true);
       }
     }
   }

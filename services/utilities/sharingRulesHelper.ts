@@ -181,7 +181,14 @@ export class SharingRulesHelper {
         };
         dateOperator = operatorMapping[dateOperator] ? operatorMapping[dateOperator] : dateOperator;
       }
-      if (dateOperator) {
+      if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
+        // for Not equal
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+        dateCondition[Op.or].push({
+          [Op.and]: condition[Op.or]
+        });
+      } else if (dateOperator) {
         QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
       } else {
@@ -196,6 +203,9 @@ export class SharingRulesHelper {
     if (dateOperator != Constants.PREFIX_NOT_EQUAL) {
       // for not equal operation we will not additional filter
       SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
+    } else {
+      // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+      QueryGenerator.createParitalSearchConditions(column, [value], dateCondition, Constants.PREFIX_NOT_EQUAL, true);
     }
   }
 
