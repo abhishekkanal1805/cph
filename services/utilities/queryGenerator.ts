@@ -233,6 +233,14 @@ class QueryGenerator {
             }
           };
           break;
+        case Constants.PREFIX_NOT_EQUAL:
+          dateQuery = {
+            [column.columnHierarchy]: {
+              [this.getOperator(Constants.PREFIX_LESS_THAN)]: dateObject.data,
+              [this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL)]: nextDate
+            }
+          };
+          break;
         default:
           dateQuery = {
             [Op.and]: {
@@ -244,7 +252,14 @@ class QueryGenerator {
           };
       }
       queryObject[condtionOperator].push(dateQuery);
-      this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      if (dateObject.prefix != Constants.PREFIX_NOT_EQUAL) {
+        // for not equal operation we will not additional filter
+        this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      } else {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        QueryGenerator.createParitalSearchConditions(column, [dateObject.data], queryObject, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], queryObject, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+      }
     }
   }
 
@@ -271,7 +286,13 @@ class QueryGenerator {
           [operation]: dateObject.data
         }
       });
-      this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      if (dateObject.prefix != Constants.PREFIX_NOT_EQUAL) {
+        // for not equal operation we will not additional filter
+        this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      } else {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        this.createParitalSearchConditions(column, [dateObject.data], queryObject, Constants.PREFIX_NOT_EQUAL, false);
+      }
     }
   }
 
@@ -294,13 +315,17 @@ class QueryGenerator {
       values = values[0].split(Constants.COMMA_VALUE);
     }
     for (const eachNumber of values) {
-      const numberObject = Utility.getSearchPrefixValue(eachNumber);
+      const numberObject: any = Utility.getSearchPrefixValue(eachNumber);
       const operation = this.getOperator(numberObject.prefix);
       queryObject[condtionOperator].push({
         [column.columnHierarchy]: {
           [operation]: numberObject.data
         }
       });
+      if (numberObject.prefix == Constants.PREFIX_NOT_EQUAL) {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        this.createParitalSearchConditions(column, [numberObject.data], queryObject, Constants.PREFIX_NOT_EQUAL, false);
+      }
     }
   }
 
@@ -515,7 +540,11 @@ class QueryGenerator {
     let expression2 = Constants.EMPTY_VALUE;
     let rawSql = Constants.EMPTY_VALUE;
     if (expression.length == 1) {
-      rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+      if (column.columnHierarchy.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+        rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+      } else {
+        rawSql = `unnest(array(select jsonb_array_elements(jsonb_build_array(${expression1})) ))`;
+      }
     } else {
       while (index < expression.length) {
         expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;

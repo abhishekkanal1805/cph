@@ -181,7 +181,14 @@ export class SharingRulesHelper {
         };
         dateOperator = operatorMapping[dateOperator] ? operatorMapping[dateOperator] : dateOperator;
       }
-      if (dateOperator) {
+      if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
+        // for Not equal
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+        dateCondition[Op.or].push({
+          [Op.and]: condition[Op.or]
+        });
+      } else if (dateOperator) {
         QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
         dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
       } else {
@@ -196,6 +203,9 @@ export class SharingRulesHelper {
     if (dateOperator != Constants.PREFIX_NOT_EQUAL) {
       // for not equal operation we will not additional filter
       SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
+    } else {
+      // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+      QueryGenerator.createParitalSearchConditions(column, [value], dateCondition, Constants.PREFIX_NOT_EQUAL, true);
     }
   }
 
@@ -229,32 +239,45 @@ export class SharingRulesHelper {
     } else {
       const attributes = criterion.element.split(Constants.DOT_VALUE);
       operation = arrFlag ? Op.contains : operation;
+      const condition: any = {
+        [Op.or]: []
+      };
+      let compareOperator = operationMap[criterion.operation][1];
+      if (!compareOperator) {
+        // if dateOperator is empty then assume it as equal operation
+        compareOperator = Constants.PREFIX_EQUAL;
+      }
       if (arrFlag) {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
-        let dateOperator = operationMap[criterion.operation][1];
-        if (!dateOperator) {
-          // if dateOperator is empty then assume it as equal operation
-          dateOperator = Constants.PREFIX_EQUAL;
-        }
-        if (dateOperator != Constants.PREFIX_EQUAL) {
+        if (compareOperator != Constants.PREFIX_EQUAL) {
           const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
           const column = { columnHierarchy: notEqualParentAttribute };
-          const condition: any = {
-            [Op.or]: []
-          };
-          QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, false);
+          QueryGenerator.createParitalSearchConditions(column, [value], condition, compareOperator, false);
           return condition;
         }
         QueryGenerator.getNestedAttributes(attributes, value, nestedAttributes, false);
         value = nestedAttributes;
-      }
-      return {
-        [parentAttribute]: {
-          [operation]: value
+        return {
+          [parentAttribute]: {
+            [operation]: value
+          }
+        };
+      } else {
+        condition[Op.or].push({
+          [parentAttribute]: {
+            [operation]: value
+          }
+        });
+        if (compareOperator == Constants.PREFIX_NOT_EQUAL) {
+          // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+          const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
+          const column = { columnHierarchy: notEqualParentAttribute };
+          QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_NOT_EQUAL, false);
         }
-      };
+        return condition;
+      }
     }
   }
 
