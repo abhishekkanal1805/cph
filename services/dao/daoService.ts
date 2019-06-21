@@ -135,7 +135,7 @@ export class DAOService {
   public static async search(model, query): Promise<any> {
     log.info("Entering DAOService :: search()");
     try {
-      const result = model.findAll(query);
+      const result = await model.findAll(query);
       return result;
     } catch (err) {
       log.error("Error while searching records: " + err.stack);
