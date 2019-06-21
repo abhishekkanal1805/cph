@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 
 export class DAOService {
   /**
@@ -135,6 +136,9 @@ export class DAOService {
       return result;
     } catch (err) {
       log.error("Error while searching records: " + err.stack);
+      if (err.name === Constants.SEQUELIZE_DATABASE_ERROR) {
+        throw new BadRequestResult(errorCodeMap.QueryGenerationFailed.value, errorCodeMap.QueryGenerationFailed.description);
+      }
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }
