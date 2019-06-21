@@ -1,6 +1,7 @@
 import "jasmine";
 import * as moment from "moment";
 import { Op } from "sequelize";
+import { Constants } from "../../common/constants/constants";
 import { SharingRulesHelper } from "./sharingRulesHelper";
 
 describe("SharingRulesHelper", () => {
@@ -14,8 +15,13 @@ describe("SharingRulesHelper", () => {
     });
     it("Returns date if only day is present in expression", (done) => {
       const expression = "(MONDAY)";
+      const days: any = Constants.DAYS_IN_WEEK;
+      const parenthesesStart: number = expression.indexOf(Constants.OPENING_PARENTHESES);
+      const parenthesesEnd: number = expression.indexOf(Constants.CLOSING_PARENTHESES);
+      const value: string = expression.substr(parenthesesStart + 1, parenthesesEnd - parenthesesStart - 1);
+      const daydiff = moment().day() <= days[value] ? days[value] - 7 : days[value];
       const expected = moment()
-        .weekday(-6)
+        .day(daydiff)
         .format("YYYY-MM-DD");
       const result = SharingRulesHelper.expressionEvaluator(expression);
       expect(result).toEqual(expected);
