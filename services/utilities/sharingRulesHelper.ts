@@ -159,6 +159,8 @@ export class SharingRulesHelper {
     if (!dateCondition[Op.or]) {
       dateCondition[Op.or] = [];
     }
+    const dateMomentObject = moment(value, Constants.DATE);
+    const nextDate = moment(dateMomentObject.add({ [Constants.PERIOD_DAYS]: 1 })).format(Constants.DATE);
     let datePattern = Constants.DATE_TIME;
     if (moment(value, Constants.DATE_TIME, true).isValid()) {
       if (!dateOperator) {
@@ -170,8 +172,6 @@ export class SharingRulesHelper {
     } else {
       datePattern = Constants.DATE;
       // If pattern is DATE
-      const dateMomentObject = moment(value, Constants.DATE);
-      const nextDate = moment(dateMomentObject.add({ [Constants.PERIOD_DAYS]: 1 })).format(Constants.DATE);
       if ([Constants.PREFIX_GREATER_THAN, Constants.PREFIX_LESS_THAN_EQUAL].indexOf(dateOperator) > -1) {
         value = nextDate;
         // As date is a string we have to consider current date also in query
@@ -204,8 +204,12 @@ export class SharingRulesHelper {
       // for not equal operation we will not additional filter
       SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
     } else {
+      condition[Op.or] = [];
       // For Not Equal operation we will return records where attribute doesn't exists or != to request value
-      QueryGenerator.createParitalSearchConditions(column, [value], dateCondition, Constants.PREFIX_NOT_EQUAL, true);
+      QueryGenerator.createDateNotEqualSearchConditions(column, [value, nextDate], condition);
+      dateCondition[Op.or].push({
+        [Op.or]: condition[Op.or]
+      });
     }
   }
 
