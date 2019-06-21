@@ -656,7 +656,7 @@ class QueryGenerator {
     const searchQuery = [];
     _.each(values, (eachValue: any, valIdx: any) => {
       eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-      const operator = valIdx === 0 ? Constants.GREATER_THAN : Constants.LESS_THAN;
+      const operator = valIdx === 0 ? Constants.GREATER_THAN_EQUAL : Constants.LESS_THAN;
       searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
     });
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));
