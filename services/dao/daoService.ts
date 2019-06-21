@@ -51,6 +51,9 @@ export class DAOService {
       }
     } catch (err) {
       log.error("fetchOne() :: Error in fetching record for [" + model.name + "]. Message" + err.stack, err);
+      if (err.name === Constants.SEQUELIZE_DATABASE_ERROR) {
+        throw new BadRequestResult(errorCodeMap.QueryGenerationFailed.value, errorCodeMap.QueryGenerationFailed.description);
+      }
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
 
