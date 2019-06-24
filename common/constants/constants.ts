@@ -11,6 +11,7 @@ class Constants {
   public static readonly RESPONSE_TYPE_UNAUTHORIZED = "unauthorized";
   public static readonly RESPONSE_TYPE_MULTI_STATUS = "multistatus";
   public static readonly RESPONSE_TYPE_NO_CONTENT = "nocontent";
+  public static readonly SEQUELIZE_DATABASE_ERROR = "SequelizeDatabaseError";
 
   public static readonly FETCH_LIMIT = 2000;
   public static readonly POST_LIMIT = 500;
@@ -137,6 +138,7 @@ class Constants {
   public static readonly PREFIX_LESS_THAN = "lt";
   public static readonly PREFIX_LESS_THAN_EQUAL = "le";
   public static readonly PREFIX_EQUAL = "eq";
+  public static readonly PREFIX_NOT_EQUAL = "ne";
   public static readonly OPERATION_OR = "OR";
   public static readonly OPERATION_AND = "AND";
 
@@ -145,6 +147,7 @@ class Constants {
   public static readonly LESS_THAN = "<";
   public static readonly LESS_THAN_EQUAL = "<=";
   public static readonly EQUAL = "=";
+  public static readonly NOT_EQUAL_OPERATOR = "!=";
 
   public static readonly OPERATION_LIKE = "like";
   public static readonly OPERATION_STARTS_WITH = "startsWith";
@@ -165,20 +168,20 @@ class Constants {
     "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
   public static readonly NOT_EQUAL = "notEqual";
   public static readonly DAYS_IN_WEEK = {
-    MON: 0,
-    MONDAY: 0,
-    TUES: 1,
-    TUESDAY: 1,
-    WED: 2,
-    WEDNESDAY: 2,
-    THUR: 3,
-    THURSDAY: 3,
-    FRI: 4,
-    FRIDAY: 4,
-    SAT: 5,
-    SATURDAY: 5,
-    SUN: 6,
-    SUNDAY: 6
+    MON: 1,
+    MONDAY: 1,
+    TUES: 2,
+    TUESDAY: 2,
+    WED: 3,
+    WEDNESDAY: 3,
+    THUR: 4,
+    THURSDAY: 4,
+    FRI: 5,
+    FRIDAY: 5,
+    SAT: 6,
+    SATURDAY: 6,
+    SUN: 0,
+    SUNDAY: 0
   };
   public static readonly MONTHS_IN_YEAR = {
     JANUARY: 0,

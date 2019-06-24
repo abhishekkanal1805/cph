@@ -28,7 +28,11 @@ export class SharingRulesHelper {
        * If SharingRules are present in connection then sharingRuleConditionClause is generated and
        * appended to the queryObject with logical AND operation.
        */
-      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(connection.sharingRules, tableNameToResourceTypeMapping[serviceName], accessLevel);
+      const sharingRuleConditionClause: any = SharingRulesHelper.getSharingRulesClause(
+        connection.sharingRules,
+        tableNameToResourceTypeMapping[serviceName],
+        accessLevel
+      );
       whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
     }
     log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
@@ -86,7 +90,7 @@ export class SharingRulesHelper {
       lessThan: [Op.lt, "lt"],
       lessThanOrEqual: [Op.lte, "le"],
       equal: [Op.eq, ""],
-      notEqual: [Op.ne, ""]
+      notEqual: [Op.ne, "ne"]
     };
     const operatorMap = { OR: Op.or, AND: Op.and };
     /*
@@ -109,6 +113,107 @@ export class SharingRulesHelper {
   }
 
   /**
+   * It will create addtional filter condtion for date based on date pattern
+   * If input is 2019-03-12T07:32:18.279Z, then as per FHIR it should match for 2019, 2019-03, 2019-03-12
+   * if dateObject is of type datetime then add condition for data, year-month, year
+   * if dateObject is of type date then add condition for year-month, year
+   * if dateObject is of type year-month then add condition for year
+   * if dateObject is of type year then don't add any condition
+   * @static
+   * @param {*} column Column object which contains column Hireachy
+   * @param {*} value Input date value
+   * @param {*} dateCondition DateCondtion object which stores all search conditions
+   * @param {string} currentDatePattern Date pattern of input dateObject
+   * @memberof SharingRulesHelper
+   */
+  public static getAddtionalDateFilters(column: any, value: any, dateCondition: any, currentDatePattern: string) {
+    const condition: any = {
+      [Op.or]: []
+    };
+    const dateMomentObject = moment(value, currentDatePattern);
+    switch (currentDatePattern) {
+      case Constants.DATE_TIME:
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.DATE)], condition, Constants.PREFIX_EQUAL, true);
+      case Constants.DATE:
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR_MONTH)], condition, Constants.PREFIX_EQUAL, true);
+      case Constants.YEAR_MONTH:
+        QueryGenerator.createParitalSearchConditions(column, [dateMomentObject.format(Constants.YEAR)], condition, Constants.PREFIX_EQUAL, true);
+      default:
+        dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
+        break;
+    }
+  }
+
+  /**
+   * This function takes date as input created sequelize query clause for nested array.
+   * @param {*} column Column object which contains column Hireachy
+   * @param {string} dateOperator it specifies operation type on date
+   * @param {string} value Input date value
+   * @param {*} dateCondition DateCondtion object which stores all search conditions
+   * @memberof SharingRulesHelper
+   */
+  public static generateConditionForNestedDate(column: any, dateOperator: string, value: string, dateCondition: any) {
+    const condition: any = {
+      [Op.or]: []
+    };
+    if (!dateCondition[Op.or]) {
+      dateCondition[Op.or] = [];
+    }
+    const dateMomentObject = moment(value, Constants.DATE);
+    const nextDate = moment(dateMomentObject.add({ [Constants.PERIOD_DAYS]: 1 })).format(Constants.DATE);
+    let datePattern = Constants.DATE_TIME;
+    if (moment(value, Constants.DATE_TIME, true).isValid()) {
+      if (!dateOperator) {
+        // if dateOperator is empty then assume it as equal operation
+        dateOperator = Constants.PREFIX_EQUAL;
+      }
+      QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
+      dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
+    } else {
+      datePattern = Constants.DATE;
+      // If pattern is DATE
+      if ([Constants.PREFIX_GREATER_THAN, Constants.PREFIX_LESS_THAN_EQUAL].indexOf(dateOperator) > -1) {
+        value = nextDate;
+        // As date is a string we have to consider current date also in query
+        const operatorMapping = {
+          [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
+          [Constants.PREFIX_LESS_THAN_EQUAL]: Constants.PREFIX_LESS_THAN
+        };
+        dateOperator = operatorMapping[dateOperator] ? operatorMapping[dateOperator] : dateOperator;
+      }
+      if (dateOperator === Constants.PREFIX_NOT_EQUAL) {
+        // for Not equal
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_LESS_THAN, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+        dateCondition[Op.or].push({
+          [Op.and]: condition[Op.or]
+        });
+      } else if (dateOperator) {
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, dateOperator, true);
+        dateCondition[Op.or] = dateCondition[Op.or].concat(condition[Op.or]);
+      } else {
+        // for equal
+        QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_GREATER_THAN_EQUAL, true);
+        QueryGenerator.createParitalSearchConditions(column, [nextDate], condition, Constants.PREFIX_LESS_THAN, true);
+        dateCondition[Op.or].push({
+          [Op.and]: condition[Op.or]
+        });
+      }
+    }
+    if (dateOperator != Constants.PREFIX_NOT_EQUAL) {
+      // for not equal operation we will not additional filter
+      SharingRulesHelper.getAddtionalDateFilters(column, value, dateCondition, datePattern);
+    } else {
+      condition[Op.or] = [];
+      // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+      QueryGenerator.createDateNotEqualSearchConditions(column, [value, nextDate], condition);
+      dateCondition[Op.or].push({
+        [Op.or]: condition[Op.or]
+      });
+    }
+  }
+
+  /**
    * Generates criteria condition for criteria of single type.
    * @param criterion
    * @param operationMap
@@ -116,31 +221,67 @@ export class SharingRulesHelper {
    */
   public static generateConditionForSingleCriteria(criterion: any, operationMap) {
     // All the criteria with type "single" are taken care in this block.
-    let value = criterion.value ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
+    let value = criterion.hasOwnProperty("value") ? criterion.value : SharingRulesHelper.expressionEvaluator(criterion.valueExpression.expression);
     let operation = operationMap[criterion.operation][0];
     let parentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
-    if ((typeof value) !== Constants.TYPE_NUMBER && value.match(Constants.DATE_PATTERN) && criterion.operation !== Constants.NOT_EQUAL) {
+    const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+    if (typeof value == Constants.TYPE_STRING && (moment(value, Constants.DATE_TIME, true).isValid() || moment(value, Constants.DATE, true).isValid())) {
+      // validate for date & datetime pattern
       // This block takes care of generating Date type conditions where year, year-month etc formats considered.
-      const dateCondition = {};
+      const dateOperation = operationMap[criterion.operation][1];
+      const dateCondition: any = {
+        [Op.or]: []
+      };
       const column = { columnHierarchy: parentAttribute };
-      QueryGenerator.createDateSearchConditions(column, [operationMap[criterion.operation][1] + value], dateCondition);
+      if (arrFlag) {
+        // If date present in array of objects
+        SharingRulesHelper.generateConditionForNestedDate(column, dateOperation, value, dateCondition);
+      } else {
+        QueryGenerator.createDateSearchConditions(column, [dateOperation + value], dateCondition);
+      }
       return dateCondition;
     } else {
       const attributes = criterion.element.split(Constants.DOT_VALUE);
-      const arrFlag = parentAttribute.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
       operation = arrFlag ? Op.contains : operation;
+      const condition: any = {
+        [Op.or]: []
+      };
+      let compareOperator = operationMap[criterion.operation][1];
+      if (!compareOperator) {
+        // if dateOperator is empty then assume it as equal operation
+        compareOperator = Constants.PREFIX_EQUAL;
+      }
       if (arrFlag) {
         parentAttribute = Constants.DEFAULT_SEARCH_ATTRIBUTES;
         const nestedAttributes = {};
         // as we are adding dataResource so getNestedAttributes will take care of array of object pattern
+        if (compareOperator != Constants.PREFIX_EQUAL) {
+          const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
+          const column = { columnHierarchy: notEqualParentAttribute };
+          QueryGenerator.createParitalSearchConditions(column, [value], condition, compareOperator, false);
+          return condition;
+        }
         QueryGenerator.getNestedAttributes(attributes, value, nestedAttributes, false);
         value = nestedAttributes;
-      }
-      return {
-        [parentAttribute]: {
-          [operation]: value
+        return {
+          [parentAttribute]: {
+            [operation]: value
+          }
+        };
+      } else {
+        condition[Op.or].push({
+          [parentAttribute]: {
+            [operation]: value
+          }
+        });
+        if (compareOperator == Constants.PREFIX_NOT_EQUAL) {
+          // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+          const notEqualParentAttribute = [Constants.DEFAULT_SEARCH_ATTRIBUTES, criterion.element].join(Constants.DOT_VALUE);
+          const column = { columnHierarchy: notEqualParentAttribute };
+          QueryGenerator.createParitalSearchConditions(column, [value], condition, Constants.PREFIX_NOT_EQUAL, false);
         }
-      };
+        return condition;
+      }
     }
   }
 
@@ -159,9 +300,11 @@ export class SharingRulesHelper {
     const value: string = expression.substr(parenthesesStart + 1, parenthesesEnd - parenthesesStart - 1);
     let evaluatedValue: string;
     if (days[value] > -1) {
+      const daydiff = moment().day() <= days[value] ? days[value] - 7 : days[value];
       evaluatedValue = moment()
-        .weekday(days[value] - 6)
+        .day(daydiff)
         .format(Constants.DATE);
+      log.debug("evaluatedValue: ", [moment().day(), days[value], evaluatedValue]);
     } else if (months[value] > -1) {
       const month = months[value];
       const lastDate: number = moment()

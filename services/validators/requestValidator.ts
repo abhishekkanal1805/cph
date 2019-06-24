@@ -131,7 +131,7 @@ export class RequestValidator {
               type: sequelize.QueryTypes.SELECT
             })
             .then((results) => {
-              if (results[0].count != 1) {
+              if (results[0].count != [...new Set(resourceIds)].length) {
                 throw new UnAuthorizedResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description);
               }
             });

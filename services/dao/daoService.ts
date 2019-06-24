@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
 
 export class DAOService {
   /**
@@ -50,6 +51,9 @@ export class DAOService {
       }
     } catch (err) {
       log.error("fetchOne() :: Error in fetching record for [" + model.name + "]. Message" + err.stack, err);
+      if (err.name === Constants.SEQUELIZE_DATABASE_ERROR) {
+        throw new BadRequestResult(errorCodeMap.QueryGenerationFailed.value, errorCodeMap.QueryGenerationFailed.description);
+      }
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
 
@@ -131,10 +135,13 @@ export class DAOService {
   public static async search(model, query): Promise<any> {
     log.info("Entering DAOService :: search()");
     try {
-      const result = model.findAll(query);
+      const result = await model.findAll(query);
       return result;
     } catch (err) {
       log.error("Error while searching records: " + err.stack);
+      if (err.name === Constants.SEQUELIZE_DATABASE_ERROR) {
+        throw new BadRequestResult(errorCodeMap.QueryGenerationFailed.value, errorCodeMap.QueryGenerationFailed.description);
+      }
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }

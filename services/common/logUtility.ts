@@ -17,7 +17,7 @@ export class LogUtility {
       [gatewayRequestId, lambdaRequestId].join(".") +
       ", " +
       "userId:" +
-      APIRequestUtility.getCurrentUserId(apiEvent)
+      APIRequestUtility.getAuthorizerData(apiEvent).profile
     );
   }
 

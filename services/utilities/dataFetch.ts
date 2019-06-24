@@ -146,6 +146,11 @@ export class DataFetch {
           [Constants.REQUEST_EXPIRATION_DATE]: {
             [Op.eq]: null
           }
+        },
+        {
+          [Constants.STATUS]: {
+            [Op.eq]: Constants.ACTIVE
+          }
         }
       );
     }

@@ -23,7 +23,8 @@ class QueryGenerator {
       le: Op.lte,
       gt: Op.gt,
       lt: Op.lt,
-      eq: Op.eq
+      eq: Op.eq,
+      ne: Op.ne
     };
     return operatorMap[operation] || Op.eq;
   }
@@ -41,7 +42,8 @@ class QueryGenerator {
       le: Constants.LESS_THAN_EQUAL,
       gt: Constants.GREATER_THAN,
       lt: Constants.LESS_THAN,
-      eq: Constants.EQUAL
+      eq: Constants.EQUAL,
+      ne: Constants.NOT_EQUAL_OPERATOR
     };
     return operatorMap[operation] || Constants.EQUAL;
   }
@@ -77,6 +79,8 @@ class QueryGenerator {
       case Constants.OPERATION_WORD_MATCH:
         value = isRawQuery ? Constants.POSIX_START + value + Constants.POSIX_END : value;
         break;
+      default:
+        value = quoteValue + value + quoteValue;
     }
     return value;
   }
@@ -229,6 +233,14 @@ class QueryGenerator {
             }
           };
           break;
+        case Constants.PREFIX_NOT_EQUAL:
+          dateQuery = {
+            [column.columnHierarchy]: {
+              [this.getOperator(Constants.PREFIX_LESS_THAN)]: dateObject.data,
+              [this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL)]: nextDate
+            }
+          };
+          break;
         default:
           dateQuery = {
             [Op.and]: {
@@ -240,7 +252,19 @@ class QueryGenerator {
           };
       }
       queryObject[condtionOperator].push(dateQuery);
-      this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      if (dateObject.prefix != Constants.PREFIX_NOT_EQUAL) {
+        // for not equal operation we will not additional filter
+        this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      } else {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        const condition: any = {
+          [Op.or]: []
+        };
+        QueryGenerator.createDateNotEqualSearchConditions(column, [dateObject.data, nextDate], condition);
+        queryObject[Op.or].push({
+          [Op.or]: condition[Op.or]
+        });
+      }
     }
   }
 
@@ -267,7 +291,13 @@ class QueryGenerator {
           [operation]: dateObject.data
         }
       });
-      this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      if (dateObject.prefix != Constants.PREFIX_NOT_EQUAL) {
+        // for not equal operation we will not additional filter
+        this.getAddtionalDateFilters(column.columnHierarchy, dateMomentObject, queryObject, datePattern);
+      } else {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        this.createParitalSearchConditions(column, [dateObject.data], queryObject, Constants.PREFIX_NOT_EQUAL, false);
+      }
     }
   }
 
@@ -290,13 +320,17 @@ class QueryGenerator {
       values = values[0].split(Constants.COMMA_VALUE);
     }
     for (const eachNumber of values) {
-      const numberObject = Utility.getSearchPrefixValue(eachNumber);
+      const numberObject: any = Utility.getSearchPrefixValue(eachNumber);
       const operation = this.getOperator(numberObject.prefix);
       queryObject[condtionOperator].push({
         [column.columnHierarchy]: {
           [operation]: numberObject.data
         }
       });
+      if (numberObject.prefix == Constants.PREFIX_NOT_EQUAL) {
+        // For Not Equal operation we will return records where attribute doesn't exists or != to request value
+        this.createParitalSearchConditions(column, [numberObject.data], queryObject, Constants.PREFIX_NOT_EQUAL, false);
+      }
     }
   }
 
@@ -461,12 +495,14 @@ class QueryGenerator {
    *
    * @static
    * @param {*} column Column object from config file
-   * @param {string[]} values Input values for search
+   * @param {any[]} values Input values for search
    * @param {*} queryObject Query object which stores all search conditions
+   * @param {string} [operator] optional parameter for operator like ne/eq/le etc
+   * @param {boolean} [isDate] boolean flag date condition
    * @returns
    * @memberof QueryGenerator
    */
-  public static createParitalSearchConditions(column: any, values: string[], queryObject: any) {
+  public static createParitalSearchConditions(column: any, values: any[], queryObject: any, operator?: string, isDate?: boolean) {
     /*
       it will generate like query for below scenarios
       channels[*]
@@ -481,7 +517,7 @@ class QueryGenerator {
     let idx = 1;
     let isParrentArray = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
     let parentIdx = 0;
-    const expression = [[parentAttribute]];
+    const expression = [[Constants.DOUBLE_QUOTE + parentAttribute + Constants.DOUBLE_QUOTE]];
     let multilevelObject = [];
     while (idx < attributes.length) {
       let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
@@ -509,7 +545,11 @@ class QueryGenerator {
     let expression2 = Constants.EMPTY_VALUE;
     let rawSql = Constants.EMPTY_VALUE;
     if (expression.length == 1) {
-      rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+      if (column.columnHierarchy.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+        rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+      } else {
+        rawSql = `unnest(array(select jsonb_array_elements(jsonb_build_array(${expression1})) ))`;
+      }
     } else {
       while (index < expression.length) {
         expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
@@ -519,21 +559,106 @@ class QueryGenerator {
         rawSql = unnestSql;
       }
     }
-    const operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
+    let existsValue = "exists";
+    let originalOperator = "";
+    if (!operator) {
+      operator = column.operation === Constants.OPERATION_WORD_MATCH ? Constants.POSIX_ILIKE_OPERATOR : Constants.ILIKE_OPERATOR;
+    } else {
+      // Set originalOperator for numeric value
+      originalOperator = operator;
+      existsValue = operator == Constants.PREFIX_NOT_EQUAL ? "not exists" : "exists";
+      operator = operator == Constants.PREFIX_NOT_EQUAL ? Constants.PREFIX_EQUAL : operator;
+      operator = this.getNumericSymbol(operator);
+    }
+    if (isDate && originalOperator == Constants.PREFIX_NOT_EQUAL) {
+      existsValue = "not exists";
+    }
+    // Added for sharing rules nested search, if input is number then we have to cast it
+    if (typeof values[0] === Constants.TYPE_NUMBER) {
+      // In case of number, for NOT_EQUAL operation, we will use exists operation and operator will be not equal inside
+      originalOperator = originalOperator == Constants.PREFIX_NOT_EQUAL ? Constants.PREFIX_EQUAL : originalOperator;
+      values = [originalOperator + values[0].toString()];
+      column.operation = Constants.OPERATION_NUMERIC_MATCH;
+    }
+    if (typeof values[0] === Constants.TYPE_BOOLEAN) {
+      column.operation = Constants.TYPE_BOOLEAN;
+    }
     const searchQuery = [];
     if (column.operation === Constants.OPERATION_NUMERIC_MATCH) {
       _.each(values, (eachValue: any) => {
         const numberObject = Utility.getSearchPrefixValue(eachValue);
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+      });
+    } else if (column.operation === Constants.TYPE_BOOLEAN) {
+      _.each(values, (eachValue: any) => {
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
       });
     } else {
       _.each(values, (eachValue: any) => {
         eachValue = this.getUpdatedSearchValue(eachValue, column, true);
-        searchQuery.push(`exists (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
+        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
       });
     }
+    queryObject[Op.or].push(literal(searchQuery.join(" or ")));
+  }
+
+  public static createDateNotEqualSearchConditions(column: any, values: any[], queryObject: any) {
+    const attributes = column.columnHierarchy.split(Constants.DOT_VALUE);
+    const parentAttribute = attributes[0].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
+    let idx = 1;
+    let isParrentArray = attributes[0].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+    let parentIdx = 0;
+    const expression = [[Constants.DOUBLE_QUOTE + parentAttribute + Constants.DOUBLE_QUOTE]];
+    let multilevelObject = [];
+    while (idx < attributes.length) {
+      let childValue = attributes[idx].replace(Constants.ARRAY_SEARCH_SYMBOL, Constants.EMPTY_VALUE);
+      if (attributes[idx + 1] && attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) == -1) {
+        multilevelObject.push(childValue);
+        idx++;
+        continue;
+      }
+      if (isParrentArray) {
+        parentIdx++;
+        expression.push([]);
+      }
+      if (!attributes[idx + 1] && attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+        expression.push([]);
+        // added for scenario like address[*].line[*]
+      }
+      childValue = multilevelObject.concat(childValue).join(Constants.COMMA_VALUE);
+      expression[parentIdx] = expression[parentIdx].concat(["#>", `'{${childValue}}'`]);
+      multilevelObject = [];
+      isParrentArray = attributes[idx].indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1;
+      idx++;
+    }
+    let index = 1;
+    let expression1 = expression[0].join(Constants.SPACE_VALUE);
+    let expression2 = Constants.EMPTY_VALUE;
+    let rawSql = Constants.EMPTY_VALUE;
+    if (expression.length == 1) {
+      if (column.columnHierarchy.indexOf(Constants.ARRAY_SEARCH_SYMBOL) > -1) {
+        rawSql = `unnest(array(select jsonb_array_elements(${expression1}) ))`;
+      } else {
+        rawSql = `unnest(array(select jsonb_array_elements(jsonb_build_array(${expression1})) ))`;
+      }
+    } else {
+      while (index < expression.length) {
+        expression2 = expression[index] ? expression[index].join(Constants.SPACE_VALUE) : Constants.SPACE_VALUE;
+        const unnestSql = `unnest(array(select jsonb_array_elements(${expression1}) ${expression2}))`;
+        index += 1;
+        expression1 = unnestSql;
+        rawSql = unnestSql;
+      }
+    }
+    const existsValue = "not exists";
+    const searchQuery = [];
+    _.each(values, (eachValue: any, valIdx: any) => {
+      eachValue = this.getUpdatedSearchValue(eachValue, column, true);
+      const operator = valIdx === 0 ? Constants.GREATER_THAN_EQUAL : Constants.LESS_THAN;
+      searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text ${operator} '${eachValue}')`);
+    });
     queryObject[Op.or].push(literal(searchQuery.join(" or ")));
   }
 
