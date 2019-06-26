@@ -101,23 +101,19 @@ export class AggregationUtils {
   static groupRecordsByInterval(records: any[], intervals: string[]): any {
     log.info("Entering AggregationUtils :: groupRecordsByInterval");
     const groupedRecords = {};
-    do {
-      const startDate = intervals.shift();
-      if (intervals.length > 0) {
-        const idx = lodash.findIndex(records, (obj) => {
-          return moment(obj.dt).isSameOrAfter(moment(intervals[0]));
-        });
-
-        if (idx > 0) {
-          const periodRecords = records.slice(0, idx);
-          records = records.slice(idx);
-          groupedRecords[startDate] = periodRecords;
+    let intervalCount = 0;
+    for (const interval of intervals) {
+      log.info("interval:" + interval);
+      const intervalRecords: any[] = lodash.map(records, (record) => {
+        if (record.dt >= interval && record.dt < intervals[intervalCount + 1]) {
+          return record;
         }
-      } else {
-        groupedRecords[startDate] = records;
+      }).filter(Boolean);
+      if (intervalRecords && intervalRecords.length > 0) {
+        groupedRecords[interval] = intervalRecords;
       }
-    } while (intervals.length > 0);
-
+      intervalCount++;
+    }
     log.info("Entering AggregationUtils :: groupRecordsByInterval");
     return groupedRecords;
   }
