@@ -1174,12 +1174,16 @@ class AggregationHelperService {
         if (functions) {
           // columns on which specific functions need to be applied
           functions.forEach((func) => {
-            if (tableCast) {
-              projections.push([fn(func, cast(json(tableCol), tableCast)), alias ? alias : func]);
-            } else if (convertTo) {
-              projections.push([fn(func, json(tableCol)), alias ? alias : func]);
+            if (func === "to_date") {
+              projections.push([fn(func, col(tableCol), "YYYY-MM-DD"), alias ? alias : func]);
             } else {
-              projections.push([fn(func, col(tableCol)), alias ? alias : func]);
+              if (tableCast) {
+                projections.push([fn(func, cast(json(tableCol), tableCast)), alias ? alias : func]);
+              } else if (convertTo) {
+                projections.push([fn(func, json(tableCol)), alias ? alias : func]);
+              } else {
+                projections.push([fn(func, col(tableCol)), alias ? alias : func]);
+              }
             }
           });
         } else {
