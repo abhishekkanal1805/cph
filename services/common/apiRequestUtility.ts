@@ -1,3 +1,4 @@
+import { Constants } from "../../common/constants/constants";
 import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
 
 /**
@@ -116,6 +117,20 @@ export class APIRequestUtility {
       }
     }
     return "";
+  }
+
+  /**
+   * It will return accept language from Event headers section
+   * @static
+   * @param {ApiEvent} apiEvent
+   * @returns {string}
+   * @memberof APIRequestUtility
+   */
+  public static getAcceptLanguage(apiEvent: ApiEvent): string {
+    if (!apiEvent) {
+      return "*";
+    }
+    return apiEvent.headers[Constants.ACCEPT_LANGUAGE] ? apiEvent.headers[Constants.ACCEPT_LANGUAGE].toLowerCase() : "en-us";
   }
 
   public static createApiEvent(body?: string, queryParams?: string, pathParams?: string, context?: string, header?: string): ApiEvent {

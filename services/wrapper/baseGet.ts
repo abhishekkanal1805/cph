@@ -5,6 +5,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
+import { I18N } from "../i18n/i18n";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
@@ -24,7 +25,7 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResource(id: string, model, requestorProfileId: string, patientElement: string, language?: string) {
     log.info("In BaseGet :: getResource()");
     const queryObject = { id, "meta.isDeleted": false };
     const options = { where: queryObject };
@@ -43,11 +44,12 @@ export class BaseGet {
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
     }
+    record = await I18N.filterResource(record, language);
     log.info("getResource() :: Record retrieved successfully");
     return record;
   }
 
-  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, language?: string) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
@@ -56,6 +58,7 @@ export class BaseGet {
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
+    record = await I18N.filterResource(record, language);
     return record;
   }
 
@@ -95,7 +98,8 @@ export class BaseGet {
     resourceOwnerElement: string,
     requestorProfileId: string,
     attributesMapping: any,
-    attributesToRetrieve?: string[]
+    attributesToRetrieve?: string[],
+    language?: string
   ) {
     // Perform User validation
     let connection;
@@ -172,6 +176,7 @@ export class BaseGet {
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
+    result = await I18N.filterResource(result, language);
     queryParams.limit = limit;
     queryParams.offset = offset;
     return result;
