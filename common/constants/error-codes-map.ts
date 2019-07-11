@@ -1,5 +1,8 @@
 export const errorCodeMap = {
-  QueryGenerationFailed: { value: "QueryGenerationFailed", description: "Query to process request failed due to malformed request parameters or data sharing criteria" },
+  QueryGenerationFailed: {
+    value: "QueryGenerationFailed",
+    description: "Query to process request failed due to malformed request parameters or data sharing criteria"
+  },
   MissingElement: { value: "MissingElement", description: "The request is missing element " },
   InvalidElementValue: { value: "InvalidElementValue", description: "The resource contains an invalid value of element " },
   InvalidRequest: { value: "InvalidRequest", description: "The request payload is invalid and does not adhere to specification" },
