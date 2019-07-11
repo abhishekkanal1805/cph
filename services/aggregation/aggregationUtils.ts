@@ -104,11 +104,13 @@ export class AggregationUtils {
     let intervalCount = 0;
     for (const interval of intervals) {
       log.info("interval:" + interval);
-      const intervalRecords: any[] = lodash.map(records, (record) => {
-        if (record.dt >= interval && record.dt < intervals[intervalCount + 1]) {
-          return record;
-        }
-      }).filter(Boolean);
+      const intervalRecords: any[] = lodash
+        .map(records, (record) => {
+          if (record.dt >= interval && record.dt < intervals[intervalCount + 1]) {
+            return record;
+          }
+        })
+        .filter(Boolean);
       if (intervalRecords && intervalRecords.length > 0) {
         groupedRecords[interval] = intervalRecords;
       }
