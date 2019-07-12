@@ -1,20 +1,20 @@
-import { Address } from "../address";
-import { CodeableConcept } from "../codeableConcept";
-import { ContactDetail } from "../contactDetail";
-import { ContactPoint } from "../contactPoint";
-import { Duration } from "../duration";
-import { HumanName } from "../humanName";
-import { Identifier } from "../identifier";
-import { Period } from "../period";
-import { Range } from "../range";
-import { Ratio } from "../ratio";
-import { Reference } from "../reference";
-import { ResourceMetadata } from "../resourceMetadata";
-import { SampleData } from "../sampleData";
-import { SimpleQuantity } from "../simpleQuantity";
-import { Attachment } from "./../attachment";
-import { Coding } from "./../coding";
-import { Quantity } from "./../quantity";
+import { Address } from "./address";
+import { Attachment } from "./attachment";
+import { CodeableConcept } from "./codeableConcept";
+import { Coding } from "./coding";
+import { ContactDetail } from "./contactDetail";
+import { ContactPoint } from "./contactPoint";
+import { Duration } from "./duration";
+import { HumanName } from "./humanName";
+import { Identifier } from "./identifier";
+import { Period } from "./period";
+import { Quantity } from "./quantity";
+import { Range } from "./range";
+import { Ratio } from "./ratio";
+import { Reference } from "./reference";
+import { ResourceMetadata } from "./resourceMetadata";
+import { SampleData } from "./sampleData";
+import { SimpleQuantity } from "./simpleQuantity";
 
 /**
  * Every element in a resource or data type includes an optional "extension" child element that may be present any number of times.

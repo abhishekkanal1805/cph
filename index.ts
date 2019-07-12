@@ -51,8 +51,7 @@ export * from "./models/common/sampleData";
 export * from "./models/common/search";
 export * from "./models/common/simpleQuantity";
 export * from "./models/common/subject";
-export * from "./models/common/extension/extension";
-export * from "./models/common/extension/translationExtension";
+export * from "./models/common/extension";
 
 export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
