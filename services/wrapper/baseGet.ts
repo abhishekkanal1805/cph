@@ -44,9 +44,10 @@ export class BaseGet {
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
     }
-    record = await I18N.filterResource(record, language);
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    return translatedRecord;
   }
 
   public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, language?: string) {
@@ -57,9 +58,15 @@ export class BaseGet {
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
-    log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     record = await I18N.filterResource(record, language);
-    return record;
+    const startDate: any = new Date();
+    const endDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
+    log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
+    return translatedRecord;
   }
 
   /**
@@ -73,13 +80,15 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResourceWithoutAuthorization(id: string, model: any) {
+  public static async getResourceWithoutAuthorization(id: string, model: any, language?: string) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    return translatedRecord;
   }
 
   /** Wrapper function to perform search for CPH users

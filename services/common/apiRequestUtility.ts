@@ -130,7 +130,7 @@ export class APIRequestUtility {
     if (!apiEvent) {
       return "*";
     }
-    return apiEvent.headers[Constants.ACCEPT_LANGUAGE] ? apiEvent.headers[Constants.ACCEPT_LANGUAGE].toLowerCase() : "en-us";
+    return apiEvent.headers[Constants.ACCEPT_LANGUAGE] ? apiEvent.headers[Constants.ACCEPT_LANGUAGE].toLowerCase() : "*";
   }
 
   public static createApiEvent(body?: string, queryParams?: string, pathParams?: string, context?: string, header?: string): ApiEvent {
