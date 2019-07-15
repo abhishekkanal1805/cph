@@ -44,8 +44,12 @@ export class BaseGet {
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
     }
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
     const translatedRecord = {};
     await I18N.translateResource(record, translatedRecord, language);
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
   }
@@ -60,11 +64,11 @@ export class BaseGet {
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     record = await I18N.filterResource(record, language);
     const startDate: any = new Date();
-    const endDate: any = new Date();
     log.info("Start Date: ", startDate);
     const translatedRecord = {};
     await I18N.translateResource(record, translatedRecord, language);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
+    const endDate: any = new Date();
     log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
     return translatedRecord;
   }
@@ -85,9 +89,13 @@ export class BaseGet {
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
     const translatedRecord = {};
     await I18N.translateResource(record, translatedRecord, language);
     log.info("getResource() :: Record retrieved successfully");
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
     return translatedRecord;
   }
 
