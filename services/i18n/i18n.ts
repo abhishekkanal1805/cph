@@ -1,4 +1,4 @@
-import * as log from "lambda-log";
+// import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 

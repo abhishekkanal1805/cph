@@ -109,6 +109,7 @@ export class BaseGet {
    * @returns
    * @memberof BaseSearch
    */
+
   public static async searchResource(
     model: any,
     queryParams: any,
@@ -124,7 +125,7 @@ export class BaseGet {
     // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
-      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
+      // connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
       isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
@@ -193,7 +194,19 @@ export class BaseGet {
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
-    result = await I18N.filterResource(result, language);
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecords = [];
+    const allPromise = [];
+    _.each(result, (eachResult) => {
+      const translatedRecord = {};
+      const resultPromise = I18N.translateResource(eachResult, translatedRecord, language);
+      translatedRecords.push(translatedRecord);
+      allPromise.push(resultPromise);
+    });
+    await Promise.all(allPromise);
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
     queryParams.limit = limit;
     queryParams.offset = offset;
     return result;
