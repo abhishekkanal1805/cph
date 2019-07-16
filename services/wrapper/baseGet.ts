@@ -206,9 +206,9 @@ export class BaseGet {
     });
     await Promise.all(allPromise);
     const endDate: any = new Date();
-    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
+    log.info("Start Date & end Date & diff: ", [startDate, endDate, (endDate - startDate) / 1000]);
     queryParams.limit = limit;
     queryParams.offset = offset;
-    return result;
+    return translatedRecords;
   }
 }
