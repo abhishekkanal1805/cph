@@ -5,6 +5,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
+import { I18N } from "../i18n/i18n";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
@@ -24,7 +25,7 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResource(id: string, model, requestorProfileId: string, patientElement: string, language?: string) {
     log.info("In BaseGet :: getResource()");
     const queryObject = { id, "meta.isDeleted": false };
     const options = { where: queryObject };
@@ -43,11 +44,17 @@ export class BaseGet {
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
     }
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    return translatedRecord;
   }
 
-  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, language?: string) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
@@ -55,8 +62,15 @@ export class BaseGet {
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    record = await I18N.filterResource(record, language);
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
-    return record;
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
+    return translatedRecord;
   }
 
   /**
@@ -70,13 +84,19 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResourceWithoutAuthorization(id: string, model: any) {
+  public static async getResourceWithoutAuthorization(id: string, model: any, language?: string) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecord = {};
+    await I18N.translateResource(record, translatedRecord, language);
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    const endDate: any = new Date();
+    log.info("end Date & diff: ", [endDate, (endDate - startDate) / 1000]);
+    return translatedRecord;
   }
 
   /** Wrapper function to perform search for CPH users
@@ -89,13 +109,15 @@ export class BaseGet {
    * @returns
    * @memberof BaseSearch
    */
+
   public static async searchResource(
     model: any,
     queryParams: any,
     resourceOwnerElement: string,
     requestorProfileId: string,
     attributesMapping: any,
-    attributesToRetrieve?: string[]
+    attributesToRetrieve?: string[],
+    language?: string
   ) {
     // Perform User validation
     let connection;
@@ -103,7 +125,7 @@ export class BaseGet {
     // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
       log.info("Search for resource accessible to all: " + model.name);
-      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
+      // connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
       isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
@@ -172,8 +194,21 @@ export class BaseGet {
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
+    const startDate: any = new Date();
+    log.info("Start Date: ", startDate);
+    const translatedRecords = [];
+    const allPromise = [];
+    _.each(result, (eachResult) => {
+      const translatedRecord = {};
+      const resultPromise = I18N.translateResource(eachResult, translatedRecord, language);
+      translatedRecords.push(translatedRecord);
+      allPromise.push(resultPromise);
+    });
+    await Promise.all(allPromise);
+    const endDate: any = new Date();
+    log.info("Start Date & end Date & diff: ", [startDate, endDate, (endDate - startDate) / 1000]);
     queryParams.limit = limit;
     queryParams.offset = offset;
-    return result;
+    return translatedRecords;
   }
 }
