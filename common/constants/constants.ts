@@ -75,6 +75,7 @@ class Constants {
   public static readonly CLOSING_PARENTHESES = ")";
   public static readonly HYPHEN = "-";
   public static readonly S3ENCRYPTION = "aws:kms";
+  public static readonly DEFALULT_ACCEPT_LANGUAGE = "*";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
   public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
