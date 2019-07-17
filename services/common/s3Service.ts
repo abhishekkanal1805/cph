@@ -13,6 +13,7 @@ export class S3Service {
    * @param {string} key
    * @param {*} file
    * @param {string} contentType
+   * @param {string} kmsKeyId
    */
   public static async upload(bucket: string, key: string, file: any, contentType: string, kmsKeyId?: string) {
     log.info("Entering s3Service :: upload()");
@@ -95,6 +96,7 @@ export class S3Service {
    * @param {string} key
    * @param {string} expiry
    * @param {string} operation
+   * @param {string} kmsKeyId
    * @returns {Promise<S3.Body>}
    */
   public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, kmsKeyId?: string) {
