@@ -3,6 +3,13 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 
 export class I18N {
+  public static getLocale() {
+    return I18N.locale;
+  }
+
+  public static setLocale(locale: string) {
+    I18N.locale = locale;
+  }
   /**
    * If Accept-Language present then it will filter out the results based on the language
    *
@@ -34,7 +41,6 @@ export class I18N {
    * @memberof I18N
    */
   public static getTranslatedValue(translateObject: any, originalValue: any, language: string) {
-    // log.info("Entering i18n :: getTranslatedValue()");
     let value = originalValue;
     if (!translateObject) {
       // No translation available so return original value
@@ -56,7 +62,6 @@ export class I18N {
         return;
       }
     });
-    // log.info("Entering i18n :: getTranslatedValue()");
     return value;
   }
 
@@ -70,8 +75,7 @@ export class I18N {
    * @memberof I18N
    */
   public static async translateResource(resource: any, translatedResource: any, language: string) {
-    // log.info("Entering i18n :: translateResource()");
-    if (language === "*") {
+    if (Constants.DEFALULT_ACCEPT_LANGUAGE === language) {
       // No need to translate, return existing resource
       Object.assign(translatedResource, resource);
       return;
@@ -97,6 +101,7 @@ export class I18N {
       }
       this.translateResource(translatedValue, translatedResource[attribute], language);
     }
-    // log.info("Exiting i18n :: translateResource()");
   }
+
+  private static locale: string = "*";
 }
