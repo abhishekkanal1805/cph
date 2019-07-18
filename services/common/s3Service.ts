@@ -15,18 +15,16 @@ export class S3Service {
    * @param {string} contentType
    * @param {string} kmsKeyId
    */
-  public static async upload(bucket: string, key: string, file: any, contentType: string, kmsKeyId?: string) {
+  public static async upload(bucket: string, key: string, file: any, contentType: string, kmsKeyId: string) {
     log.info("Entering s3Service :: upload()");
     const paramsToUploadObject = {
       Bucket: bucket,
       Key: key,
       Body: file,
       ContentType: contentType,
-      ServerSideEncryption: Constants.S3ENCRYPTION
+      ServerSideEncryption: Constants.S3ENCRYPTION,
+      SSEKMSKeyId: kmsKeyId
     };
-    if (kmsKeyId) {
-      paramsToUploadObject["SSEKMSKeyId"] = kmsKeyId;
-    }
     return s3
       .upload(paramsToUploadObject)
       .promise()
@@ -99,7 +97,7 @@ export class S3Service {
    * @param {string} kmsKeyId
    * @returns {Promise<S3.Body>}
    */
-  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, kmsKeyId?: string) {
+  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, kmsKeyId: string) {
     log.info("Inside S3Service:  getSignedUrl()");
     try {
       const expiryTime = parseInt(expiry);
@@ -110,9 +108,7 @@ export class S3Service {
       };
       if (operation === Constants.PUT_OBJECT) {
         params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
-        if (kmsKeyId) {
-          params["SSEKMSKeyId"] = kmsKeyId;
-        }
+        params["SSEKMSKeyId"] = kmsKeyId;
       }
       const url = await s3.getSignedUrl(operation, params);
       log.info("Generated signedUrl successfully");
