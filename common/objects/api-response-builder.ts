@@ -1,4 +1,5 @@
 import * as HttpStatusCode from "http-status-codes";
+import { I18N } from "../../services/i18n/i18n";
 import { Constants } from "../constants/constants";
 import { ApiCallback, ApiResponse } from "./api-interfaces";
 import * as config from "./config";
@@ -25,6 +26,11 @@ export class APIResponseBuilder {
   }
   public static setBase64Encoding(flag: boolean) {
     APIResponseBuilder.base64Encoding = flag;
+  }
+
+  public static setContentLanguage() {
+    APIResponseBuilder.defaultHeaders[Constants.CONTENT_LANGUAGE] = I18N.getContentLanguage();
+    I18N.resetContentLanguage();
   }
 
   public static badRequest(errorResult: BadRequestResult, callback: ApiCallback): void {
@@ -70,9 +76,11 @@ export class APIResponseBuilder {
     [Constants.HEADER_X_XSS_PROTECTION]: Constants.HEADER_X_XSS_PROTECTION_VALUE,
     [Constants.HEADER_REFERRER_POLICY]: Constants.HEADER_REFERRER_POLICY_VALUE
   };
+
   private static base64Encoding: boolean = false;
 
   private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback): void {
+    APIResponseBuilder.setContentLanguage();
     let bodyObject: any;
     if (result instanceof ErrorResult) {
       bodyObject = { errors: [result] };

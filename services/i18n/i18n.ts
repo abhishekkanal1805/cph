@@ -1,32 +1,21 @@
-// import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 
 export class I18N {
-  public static getLocale() {
-    return I18N.locale;
+  public static getContentLanguage() {
+    return [...new Set(this.contentLanguages)].filter(Boolean).join(Constants.COMMA_SPACE_VALUE);
   }
 
-  public static setLocale(locale: string) {
-    I18N.locale = locale;
+  public static setContentLanguage(language) {
+    this.contentLanguages.push(language);
   }
-  /**
-   * If Accept-Language present then it will filter out the results based on the language
-   *
-   * @param {*} resource Record present in data base
-   * @param {string} language language specified in Header
-   * @memberof I18N
-   */
-  public static async filterResource(resource: any, language: string) {
-    const translate = resource.translation || {};
-    // If translation attribute not present then return original object
-    if (_.isEmpty(translate)) {
-      return resource;
-    }
-    // If No translation present for requested attribute, return base language
-    Object.assign(resource, translate[language] || {});
-    delete resource.translation;
-    return resource;
+
+  public static isResourceTranslated() {
+    return this.isTranslated;
+  }
+
+  public static resetContentLanguage() {
+    this.contentLanguages = [];
   }
 
   /**
@@ -56,6 +45,7 @@ export class I18N {
       if (idx > -1) {
         const translateValue: any = _.find(eachExtension, { url: "content" });
         if (translateValue) {
+          this.isTranslated = true;
           value = translateValue.valueString;
         }
         // Got translation value so break
@@ -103,5 +93,6 @@ export class I18N {
     }
   }
 
-  private static locale: string = "*";
+  private static contentLanguages: string[] = [];
+  private static isTranslated: boolean = false;
 }
