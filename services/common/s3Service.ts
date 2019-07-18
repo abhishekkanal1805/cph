@@ -97,7 +97,7 @@ export class S3Service {
    * @param {string} kmsKeyId
    * @returns {Promise<S3.Body>}
    */
-  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, kmsKeyId: string) {
+  public static async getSignedUrl(bucket: string, key: string, expiry: string, operation: string, kmsKeyId?: string) {
     log.info("Inside S3Service:  getSignedUrl()");
     try {
       const expiryTime = parseInt(expiry);
@@ -108,7 +108,9 @@ export class S3Service {
       };
       if (operation === Constants.PUT_OBJECT) {
         params["ServerSideEncryption"] = Constants.S3ENCRYPTION;
-        params["SSEKMSKeyId"] = kmsKeyId;
+        if (kmsKeyId) {
+          params["SSEKMSKeyId"] = kmsKeyId;
+        }
       }
       const url = await s3.getSignedUrl(operation, params);
       log.info("Generated signedUrl successfully");
