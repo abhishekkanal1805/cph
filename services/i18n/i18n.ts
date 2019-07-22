@@ -25,11 +25,11 @@ export class I18N {
    * @static
    * @param {*} translateObject contains translation for an attribute
    * @param {*} originalValue original value of an attribute
-   * @param {string} language requested language
+   * @param {*} translateExtension requested Extension for translation or conversion
    * @returns
    * @memberof I18N
    */
-  public static getTranslatedValue(translateObject: any, originalValue: any, language: string) {
+  public static getTranslatedValue(translateObject: any, originalValue: any, translateExtension: any) {
     let value = originalValue;
     if (!translateObject) {
       // No translation available so return original value
@@ -41,12 +41,12 @@ export class I18N {
     }
     const extensionValue = _.map(translateObject.extension, "extension");
     _.each(extensionValue, (eachExtension) => {
-      const idx = _.findIndex(eachExtension, { url: "lang", valueCode: language });
+      const idx = _.findIndex(eachExtension, translateExtension);
       if (idx > -1) {
         const translateValue: any = _.find(eachExtension, { url: "content" });
         if (translateValue) {
           this.isTranslated = true;
-          value = translateValue.valueString;
+          value = translateValue.valueString || translateValue.valueMarkdown;
         }
         // Got translation value so break
         return;
@@ -65,6 +65,7 @@ export class I18N {
    * @memberof I18N
    */
   public static async translateResource(resource: any, translatedResource: any, language: string) {
+    const translateExtension: any = { url: "lang", valueCode: language };
     if (Constants.DEFALULT_ACCEPT_LANGUAGE === language) {
       // No need to translate, return existing resource
       Object.assign(translatedResource, resource);
@@ -79,7 +80,9 @@ export class I18N {
       }
       const translateAttribute = Constants.UNDERSCORE_VALUE + attribute;
       const originalValue = resource[attribute];
-      const translatedValue = resource[translateAttribute] ? this.getTranslatedValue(resource[translateAttribute], originalValue, language) : originalValue;
+      const translatedValue = resource[translateAttribute]
+        ? this.getTranslatedValue(resource[translateAttribute], originalValue, translateExtension)
+        : originalValue;
       if (typeof translatedValue != "object") {
         // if value is not an object then no need search recursively
         translatedResource[attribute] = translatedValue;

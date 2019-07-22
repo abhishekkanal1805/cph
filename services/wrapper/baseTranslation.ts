@@ -41,7 +41,7 @@ export class BaseTranslation {
     await Promise.all(allPromise);
     // If translation present then add it to content response
     // If accept-language is * and base language preset, then return base language
-    if ((translationLanguage != Constants.DEFALULT_ACCEPT_LANGUAGE) && I18N.isResourceTranslated()) {
+    if (translationLanguage != Constants.DEFALULT_ACCEPT_LANGUAGE && I18N.isResourceTranslated()) {
       I18N.setContentLanguage(translationLanguage);
     }
     const endDate: any = new Date();
