@@ -92,7 +92,7 @@ export class BasePut {
     // Sharing rules validation here
     const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
-    const queryObject = { where: { id: primaryKeyIds }, attributes: ["id"] };
+    const queryObject = { where: { id: primaryKeyIds }, attributes: [Constants.ID] };
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
       const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
@@ -280,7 +280,7 @@ export class BasePut {
     // Sharing rules validation here
     const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
-    const queryObject = { where: { id: primaryKeyIds }, attributes: ["id"] };
+    const queryObject = { where: { id: primaryKeyIds }, attributes: [Constants.ID] };
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
       const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
