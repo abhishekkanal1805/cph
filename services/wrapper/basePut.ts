@@ -92,18 +92,21 @@ export class BasePut {
     // Sharing rules validation here
     const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
-    const queryObject = { where: { id: primaryKeyIds }, attributes: [Constants.ID] };
+    const queryObject = { id: primaryKeyIds };
+    let whereClause = {};
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
 
+    const options = { where: whereClause, attributes: [Constants.ID] };
     // Get validIds after sharing rules
-    const filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, queryObject);
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (isValidReferenceElement) {
@@ -280,19 +283,21 @@ export class BasePut {
     // Sharing rules validation here
     const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
-    const queryObject = { where: { id: primaryKeyIds }, attributes: [Constants.ID] };
+    const queryObject = { id: primaryKeyIds };
+    let whereClause = {};
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
 
+    const options = { where: whereClause, attributes: [Constants.ID] };
     // Get validIds after sharing rules
-    const filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, queryObject);
-
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (validateReferenceElement) {
