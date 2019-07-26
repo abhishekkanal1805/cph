@@ -127,4 +127,17 @@ export class APIRequestUtility {
     event.headers = JSON.parse(header);
     return event as ApiEvent;
   }
+
+  /**
+   * This function is used to convert headers name into lower case
+   * @param headers name which needs to be converted into lower case
+   * @returns {any}
+   */
+  public static lowerCaseHeaders(headers: any) {
+    const requestHeaders = Object.keys(headers).reduce((result, key) => {
+      result[key.toLowerCase()] = headers[key];
+      return result;
+    }, {});
+    return requestHeaders;
+  }
 }
