@@ -33,7 +33,10 @@ export class SharingRulesHelper {
         tableNameToResourceTypeMapping[serviceName],
         accessLevel
       );
-      whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
+      // If sharing rules present then add to where clause
+      if (sharingRuleConditionClause[Op.or].length) {
+        whereClause[Op.and] = [queryObject, sharingRuleConditionClause];
+      }
     }
     log.info("Exiting SharingRulesHelper :: addSharingRuleClause()");
     return whereClause;

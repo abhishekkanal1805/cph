@@ -1,7 +1,9 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
@@ -9,6 +11,7 @@ import { AuthService } from "../security/authService";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePut {
@@ -86,9 +89,24 @@ export class BasePut {
     RequestValidator.validateLength(primaryKeyIds, total);
     log.info("Primary keys are validated");
 
-    await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
+    // Sharing rules validation here
+    const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
+    const queryObject = { id: primaryKeyIds };
+    let whereClause = {};
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+    }
 
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get validIds after sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (isValidReferenceElement) {
@@ -101,7 +119,7 @@ export class BasePut {
     const result = await BasePut.bulkUpdate(
       requestPayload,
       requesterProfileId,
-      primaryKeyIds,
+      filteredPrimaryKeyIds,
       payloadModel,
       payloadDataResourceModel,
       referenceValidationModel,
@@ -261,7 +279,25 @@ export class BasePut {
     log.info("Primary keys are validated");
     // perform Authorization, not setting ownerType as we do not care if patient or any other.
     await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
+
+    // Sharing rules validation here
+    const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
+    const queryObject = { id: primaryKeyIds };
+    let whereClause = {};
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+    }
+
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get validIds after sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (validateReferenceElement) {
@@ -274,7 +310,7 @@ export class BasePut {
     const result = await BasePut.bulkUpdate(
       requestPayload,
       requesterProfileId,
-      primaryKeyIds,
+      filteredPrimaryKeyIds,
       payloadModel,
       payloadDataResourceModel,
       referenceValidationModel,
