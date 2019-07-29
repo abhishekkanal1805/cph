@@ -133,7 +133,7 @@ export class APIRequestUtility {
    * @param headers name which needs to be converted into lower case
    * @returns {any}
    */
-  public static lowerCaseHeaders(headers: any) {
+  public static convertHeadersToLowerCase(headers: any) {
     const requestHeaders = Object.keys(headers).reduce((result, key) => {
       result[key.toLowerCase()] = headers[key];
       return result;
