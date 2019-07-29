@@ -39,14 +39,31 @@ export class I18N {
       // No extension present inside translation so return original value
       return value;
     }
-    const extensionValue = _.map(translateObject.extension, "extension");
+    const extensionValue = _.map(translateObject.extension, Constants.EXTENSION);
     _.each(extensionValue, (eachExtension) => {
-      const idx = _.findIndex(eachExtension, translateExtension);
+      // eachExtension: [
+      //   {
+      //       "url": "lang",
+      //       "valueCode": "de"
+      //   },
+      //   {
+      //       "url": "content",
+      //       "valueString": "Wohlbefinden"
+      //   }
+      // ]
+      // translateExtension = [
+      //   { url: "lang", valueCode: "en_US" },
+      //   { url: "lang", valueCode: "en" }
+      // ];
+      let idx = -1 ;
+      _.each(translateExtension, (eachTranslateExtension) => {
+        idx = _.findIndex(eachExtension, eachTranslateExtension);
+      });
       if (idx > -1) {
-        const translateValue: any = _.find(eachExtension, { url: "content" });
+        const translateValue: any = _.find(eachExtension, { url: Constants.CONTENT });
         if (translateValue) {
           this.isTranslated = true;
-          value = translateValue.valueString || translateValue.valueMarkdown;
+          value = translateValue.valueString;
         }
         // Got translation value so break
         return;
@@ -65,7 +82,12 @@ export class I18N {
    * @memberof I18N
    */
   public static async translateResource(resource: any, translatedResource: any, language: string) {
-    const translateExtension: any = { url: "lang", valueCode: language };
+    const translateExtension: any[] = [{ url: Constants.LANGUAGE, valueCode: language }];
+    // If accept-language is en_US, then search for en_US, if not found search for en
+    if (language.indexOf(Constants.UNDERSCORE_VALUE) > -1) {
+      const parentLanguage = language.split(Constants.UNDERSCORE_VALUE)[0];
+      translateExtension.push({ url: Constants.LANGUAGE, valueCode: parentLanguage });
+    }
     if (Constants.DEFALULT_ACCEPT_LANGUAGE === language) {
       // No need to translate, return existing resource
       Object.assign(translatedResource, resource);
@@ -80,10 +102,8 @@ export class I18N {
       }
       const translateAttribute = Constants.UNDERSCORE_VALUE + attribute;
       const originalValue = resource[attribute];
-      const translatedValue = resource[translateAttribute]
-        ? this.getTranslatedValue(resource[translateAttribute], originalValue, translateExtension)
-        : originalValue;
-      if (typeof translatedValue != "object") {
+      const translatedValue = this.getTranslatedValue(resource[translateAttribute], originalValue, translateExtension);
+      if (typeof translatedValue != Constants.OBJECT) {
         // if value is not an object then no need search recursively
         translatedResource[attribute] = translatedValue;
         continue;

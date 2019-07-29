@@ -23,7 +23,6 @@ import { SimpleQuantity } from "./simpleQuantity";
  * https://www.hl7.org/fhir/extensibility.html
  */
 class Extension {
-
   url: string;
   id?: string;
 

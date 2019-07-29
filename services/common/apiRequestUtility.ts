@@ -1,5 +1,7 @@
 import { Constants } from "../../common/constants/constants";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 
 /**
  * Utility to help extracting request and context data from ApiEvent and ApiContext
@@ -127,10 +129,16 @@ export class APIRequestUtility {
    * @memberof APIRequestUtility
    */
   public static getAcceptLanguage(apiEvent: ApiEvent): string {
+    let acceptLanguage =  Constants.DEFALULT_ACCEPT_LANGUAGE;
     if (!apiEvent) {
-      return "*";
+      return acceptLanguage;
     }
-    return apiEvent.headers[Constants.ACCEPT_LANGUAGE] ? apiEvent.headers[Constants.ACCEPT_LANGUAGE] : "*";
+    acceptLanguage = apiEvent.headers[Constants.ACCEPT_LANGUAGE] ? apiEvent.headers[Constants.ACCEPT_LANGUAGE] : Constants.DEFALULT_ACCEPT_LANGUAGE;
+    if (acceptLanguage.indexOf(Constants.COMMA_VALUE) > 1) {
+      // If more then 1 accept language is there, then it will be an error
+      throw new BadRequestResult(errorCodeMap.InvalidAcceptLanguage.value, errorCodeMap.InvalidAcceptLanguage.description);
+    }
+    return acceptLanguage;
   }
 
   public static createApiEvent(body?: string, queryParams?: string, pathParams?: string, context?: string, header?: string): ApiEvent {
