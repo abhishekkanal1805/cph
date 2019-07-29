@@ -106,6 +106,10 @@ class Constants {
   public static readonly SELF = "self";
   public static readonly NEXT = "next";
   public static readonly MATCH = "match";
+  public static readonly EXTENSION = "extension";
+  public static readonly CONTENT = "content";
+  public static readonly LANGUAGE = "lang";
+  public static readonly OBJECT = "object";
 
   public static readonly POST_ENDPOINT = "POST";
   public static readonly GET_ENDPOINT = "GET";
