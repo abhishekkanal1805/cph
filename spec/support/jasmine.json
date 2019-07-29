@@ -1,4 +1,4 @@
 {
   "spec_dir": "/dist/services",
-  "spec_files": ["**/apiRequestUtilitySpec.js"]
+  "spec_files": ["**/*[sS]pec.js"]
 }
