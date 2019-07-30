@@ -278,8 +278,6 @@ export class BasePut {
     RequestValidator.validateLength(primaryKeyIds, total);
     log.info("Primary keys are validated");
     // perform Authorization, not setting ownerType as we do not care if patient or any other.
-    await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
-
     // Sharing rules validation here
     const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
