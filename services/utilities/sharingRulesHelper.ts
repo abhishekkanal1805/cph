@@ -57,10 +57,14 @@ export class SharingRulesHelper {
     log.info("Entering SharingRulesHelper :: getSharingRulesClause()");
     const sharingRuleClause = {};
     sharingRuleClause[Op.or] = [];
+    const accessLevelMap = {
+      [Constants.ACCESS_READ]: [Constants.ACCESS_READ],
+      [Constants.ACCESS_EDIT]: [Constants.ACCESS_READ, Constants.ACCESS_EDIT]
+    };
     for (const sharingRule of sharingRules) {
       if (
         sharingRule.resourceType.toLowerCase() === serviceName.toLowerCase() &&
-        sharingRule.accessLevel.toLowerCase() === accessLevel &&
+        accessLevelMap[sharingRule.accessLevel.toLowerCase()].indexOf(accessLevel) > -1 &&
         sharingRule.criteria
       ) {
         const operator = sharingRule.operator ? sharingRule.operator : Constants.OPERATION_OR;

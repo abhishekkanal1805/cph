@@ -30,7 +30,7 @@ export class BaseDelete {
   public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
     log.info("In BaseDelete :: deleteResource()");
     // getResource will always return the record. if nothing found it throws NotFound error.
-    const queryObject = { where: { id, "meta.isDeleted": false } };
+    const queryObject = { id, "meta.isDeleted": false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
