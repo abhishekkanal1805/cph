@@ -64,7 +64,7 @@ export class SharingRulesHelper {
     for (const sharingRule of sharingRules) {
       if (
         sharingRule.resourceType.toLowerCase() === serviceName.toLowerCase() &&
-        accessLevelMap[accessLevel].indexOf(sharingRule.accessLevel.toLowerCase()) > -1 &&
+        accessLevelMap[sharingRule.accessLevel.toLowerCase()].indexOf(accessLevel) > -1 &&
         sharingRule.criteria
       ) {
         const operator = sharingRule.operator ? sharingRule.operator : Constants.OPERATION_OR;
