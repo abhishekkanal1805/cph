@@ -4,7 +4,9 @@ import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { GetOptions, SearchOptions } from "../../common/types/optionsAttribute";
 import { DAOService } from "../dao/daoService";
+import { I18N } from "../i18n/i18n";
 import { AuthService } from "../security/authService";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
@@ -24,7 +26,7 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResource(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResource(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResource()");
     const queryObject = { id, "meta.isDeleted": false };
     const options = { where: queryObject };
@@ -43,11 +45,21 @@ export class BaseGet {
       record = await DAOService.fetchOne(model, { where: whereClause });
       record = record.dataResource;
     }
+    // Translate Resource based on accept language
+    const language = getOptions.acceptLanguage;
+    let isTranslated: boolean = false;
+    const translatedRecord = {};
+    if (language) {
+      log.info("Entering I18N :: translateResource()");
+      isTranslated = true;
+      await I18N.translateResource(record, translatedRecord, language);
+      log.info("Exiting I18N :: translateResource()");
+    }
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    return isTranslated ? translatedRecord : record;
   }
 
-  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement) {
+  public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
@@ -56,7 +68,18 @@ export class BaseGet {
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
-    return record;
+    // Translate Resource based on accept language
+    const language = getOptions.acceptLanguage;
+    let isTranslated: boolean = false;
+    const translatedRecord = {};
+    if (language) {
+      log.info("Entering I18N :: translateResource()");
+      isTranslated = true;
+      await I18N.translateResource(record, translatedRecord, language);
+      log.info("Exiting I18N :: translateResource()");
+    }
+    log.info("getResource() :: Record retrieved successfully");
+    return isTranslated ? translatedRecord : record;
   }
 
   /**
@@ -70,13 +93,24 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResourceWithoutAuthorization(id: string, model: any) {
+  public static async getResourceWithoutAuthorization(id: string, model: any, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
     const options = { where: { id, "meta.isDeleted": false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
-    return record;
+    // Translate Resource based on accept language
+    const language = getOptions.acceptLanguage;
+    let isTranslated: boolean = false;
+    const translatedRecord = {};
+    if (language) {
+      log.info("Entering I18N :: translateResource()");
+      isTranslated = true;
+      await I18N.translateResource(record, translatedRecord, language);
+      log.info("Exiting I18N :: translateResource()");
+    }
+    log.info("getResource() :: Record retrieved successfully");
+    return isTranslated ? translatedRecord : record;
   }
 
   /** Wrapper function to perform search for CPH users
@@ -95,7 +129,8 @@ export class BaseGet {
     resourceOwnerElement: string,
     requestorProfileId: string,
     attributesMapping: any,
-    attributesToRetrieve?: string[]
+    attributesToRetrieve?: string[],
+    searchOptions?: SearchOptions
   ) {
     // Perform User validation
     let connection;
@@ -174,6 +209,23 @@ export class BaseGet {
     // Add offset and limit to generate next url
     queryParams.limit = limit;
     queryParams.offset = offset;
-    return result;
+    // Translate Resource based on accept language
+    if (!searchOptions) {
+      log.info("Translation option not present");
+      return result;
+    }
+    const language = searchOptions.acceptLanguage || "";
+    const translatedRecords = [];
+    const allPromise = [];
+    log.info("TranslateResource Started");
+    result.forEach((eachResource: any) => {
+      const translatedRecord = {};
+      const resultPromise = I18N.translateResource(eachResource, translatedRecord, language);
+      translatedRecords.push(translatedRecord);
+      allPromise.push(resultPromise);
+    });
+    await Promise.all(allPromise);
+    log.info("TranslateResource Complete");
+    return translatedRecords;
   }
 }
