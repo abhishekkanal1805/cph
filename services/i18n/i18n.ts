@@ -2,22 +2,6 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 
 export class I18N {
-  public static getContentLanguage() {
-    return [...new Set(this.contentLanguages)].filter(Boolean).join(Constants.COMMA_SPACE_VALUE);
-  }
-
-  public static setContentLanguage(language) {
-    this.contentLanguages.push(language);
-  }
-
-  public static isResourceTranslated() {
-    return this.isTranslated;
-  }
-
-  public static resetContentLanguage() {
-    this.contentLanguages = [];
-  }
-
   /**
    * It will find translated value for attribute based on requested language
    * If translation not found then it will return original value of that attribute
@@ -55,14 +39,13 @@ export class I18N {
       //   { url: "lang", valueCode: "en_US" },
       //   { url: "lang", valueCode: "en" }
       // ];
-      let idx = -1 ;
+      let idx = -1;
       _.each(translateExtension, (eachTranslateExtension) => {
         idx = _.findIndex(eachExtension, eachTranslateExtension);
       });
       if (idx > -1) {
         const translateValue: any = _.find(eachExtension, { url: Constants.CONTENT });
         if (translateValue) {
-          this.isTranslated = true;
           value = translateValue.valueString;
         }
         // Got translation value so break
@@ -74,7 +57,15 @@ export class I18N {
 
   /**
    * It will recursively translate resource attributes in to requested language if translation present inside resource
-   *
+   * Accept-lang: Empty
+   *   getByID: return whole resource as it is
+   *   search: remove only translation extensions, return base resource without translation
+   * Accept-lang: *
+   *   getByID: remove exts, return base resource without translation
+   *   search: remove only translation extensions, return base resource without translation
+   * Accept-lang: en
+   *   getByID: remove only translation extensions, return base resource with translations applied
+   *   search: remove only translation extensions, return base resource with translations applied
    * @static
    * @param {*} resource Input resource
    * @param {*} translatedResource translated resource
@@ -87,11 +78,6 @@ export class I18N {
     if (language.indexOf(Constants.UNDERSCORE_VALUE) > -1) {
       const parentLanguage = language.split(Constants.UNDERSCORE_VALUE)[0];
       translateExtension.push({ url: Constants.LANGUAGE, valueCode: parentLanguage });
-    }
-    if (Constants.DEFALULT_ACCEPT_LANGUAGE === language) {
-      // No need to translate, return existing resource
-      Object.assign(translatedResource, resource);
-      return;
     }
     for (const attribute in resource) {
       // skip translated attribute from new object
@@ -115,7 +101,4 @@ export class I18N {
       this.translateResource(translatedValue, translatedResource[attribute], language);
     }
   }
-
-  private static contentLanguages: string[] = [];
-  private static isTranslated: boolean = false;
 }

@@ -93,8 +93,8 @@ class Constants {
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
   public static readonly CONTENT_TYPE_PNG = "image/png";
   public static readonly CONTENT_TYPE = "Content-Type";
-  public static readonly ACCEPT_LANGUAGE = "Accept-Language";
-  public static readonly CONTENT_LANGUAGE = "Content-Language";
+  public static readonly ACCEPT_LANGUAGE = "accept-language";
+  public static readonly CONTENT_LANGUAGE = "content-language";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly PDF_EXTENSION = ".pdf";
