@@ -125,18 +125,18 @@ export class APIRequestUtility {
    * It will return accept language from Event headers section
    * @static
    * @see {@link https://tools.ietf.org/html/rfc7231#section-5.3.5}
-   * @param {ApiEvent} apiEvent
+   * @param {headers} any
    * @returns {string}
    * @memberof APIRequestUtility
    */
-  public static getAcceptLanguage(apiEvent: ApiEvent): string {
+  public static getAcceptLanguage(headers: any): string {
     let acceptLanguage;
-    if (!apiEvent) {
+    if (!headers) {
       return acceptLanguage;
     }
     // accept-language with empty value will be same as no accpet-language header present
-    if (apiEvent.headers[Constants.ACCEPT_LANGUAGE].length) {
-      acceptLanguage = apiEvent.headers[Constants.ACCEPT_LANGUAGE];
+    if (headers[Constants.ACCEPT_LANGUAGE]) {
+      acceptLanguage = headers[Constants.ACCEPT_LANGUAGE];
     }
     if (acceptLanguage && acceptLanguage.indexOf(Constants.COMMA_VALUE) > 1) {
       // If more than 1 accept language present, raise an error
