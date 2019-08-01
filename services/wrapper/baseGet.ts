@@ -203,7 +203,7 @@ export class BaseGet {
     };
     let result: any = await DAOService.search(model, searchQuery);
     result =
-      attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve !== [Constants.DEFAULT_SEARCH_ATTRIBUTES]
+      attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve.indexOf(Constants.DEFAULT_SEARCH_ATTRIBUTES) == -1
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
