@@ -96,11 +96,15 @@ export class BasePut {
     let whereClause = {};
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
+      // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
       whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+    } else {
+      // If logged in user type is system/patient then validate with primaryKeyIds
+      whereClause = queryObject;
     }
 
     const options = { where: whereClause, attributes: [Constants.ID] };
@@ -285,11 +289,15 @@ export class BasePut {
     let whereClause = {};
     // For system user/ loggedin user to get his own record we won't add sharing rules
     if (connection.length > 0) {
+      // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
       whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
       if (_.isEmpty(whereClause[Op.and])) {
         log.info("Sharing rules not present for requested user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+    } else {
+      // If logged in user type is system/patient then validate with primaryKeyIds
+      whereClause = queryObject;
     }
 
     const options = { where: whereClause, attributes: [Constants.ID] };
