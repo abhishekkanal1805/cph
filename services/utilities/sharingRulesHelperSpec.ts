@@ -1,8 +1,5 @@
 import "jasmine";
-// import * as log from "lambda-log";
-// import * as moment from "moment";
 import { Op } from "sequelize";
-// import { Constants } from "../../common/constants/constants";
 import { SharingRulesHelper } from "./sharingRulesHelper";
 
 function expressionConverter(expression: any, response: any) {
@@ -564,6 +561,81 @@ describe("SharingRulesHelper", () => {
           [Op.or]: [{
             val: " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
             "'{coding}'))) #> '{code}')) as element where element::text::numeric = 10)"
+          }]
+        };
+        expressionConverter(res, convertedResult);
+        expressionConverter(expected, convertedExpected);
+        expect(convertedResult).toEqual(convertedExpected);
+        done();
+      });
+    });
+    describe("SingleCriteria for nested attribute boolean", () => {
+      it("equal operation", (done) => {
+        const criteria = {
+          type: "single",
+          element: "category[*].coding[*].code",
+          operation: "equal",
+          value: true
+        };
+        const operationMap = {
+          equal: [Op.eq, ""]
+        };
+        const res = SharingRulesHelper.generateConditionForSingleCriteria(criteria, operationMap);
+        const convertedResult = {};
+        const convertedExpected = {};
+        const expected = {
+          dataResource: {
+            [Op.contains]: {
+              category: [{coding: [{code: true}]}]
+            }
+          }
+        };
+        expressionConverter(res, convertedResult);
+        expressionConverter(expected, convertedExpected);
+        expect(convertedResult).toEqual(convertedExpected);
+        done();
+      });
+      it("notEqual operation", (done) => {
+        const criteria = {
+          type: "single",
+          element: "category[*].coding[*].code",
+          operation: "notEqual",
+          value: true
+        };
+        const operationMap = {
+          notEqual: [Op.ne, "ne"]
+        };
+        const res = SharingRulesHelper.generateConditionForSingleCriteria(criteria, operationMap);
+        const convertedResult = {};
+        const convertedExpected = {};
+        const expected = {
+          [Op.or]: [{
+            val: " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> "+
+            "'{coding}'))) #> '{code}')) as element where element::text = 'true')"
+          }]
+        };
+        expressionConverter(res, convertedResult);
+        expressionConverter(expected, convertedExpected);
+        expect(convertedResult).toEqual(convertedExpected);
+        done();
+      });
+      it("greaterThan operation", (done) => {
+        const criteria = {
+          type: "single",
+          element: "category[*].coding[*].code",
+          operation: "greaterThan",
+          value: true
+        };
+        const operationMap = {
+          greaterThan: [Op.gt, "gt"]
+        };
+        const res = SharingRulesHelper.generateConditionForSingleCriteria(criteria, operationMap);
+        const convertedResult = {};
+        const convertedExpected = {};
+        const expected = {
+          [Op.or]: [{
+            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+            "'{coding}'))) #> '{code}')) as element where element::text > 'true')"
           }]
         };
         expressionConverter(res, convertedResult);
