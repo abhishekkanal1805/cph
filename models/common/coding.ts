@@ -6,8 +6,7 @@ class Coding {
   system: string;
   code: string;
   display: string;
-
   /* Extensions */
-  _display: Extension;
+  _display?: Extension;
 }
 export { Coding };

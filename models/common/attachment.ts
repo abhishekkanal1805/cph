@@ -7,5 +7,7 @@ interface Attachment {
   hash?: string;
   title?: string;
   creation?: string;
+  /* Extensions */
+  _title?: string;
 }
 export { Attachment };

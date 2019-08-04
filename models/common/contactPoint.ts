@@ -32,6 +32,9 @@ class ContactPoint {
    * Time period when the contact point was/is in use
    */
   period?: Period;
+
+  /* Extensions */
+  _value?: string;
 }
 
 export { ContactPoint };
