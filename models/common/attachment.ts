@@ -1,3 +1,5 @@
+import { Extension } from "./extension";
+
 interface Attachment {
   contentType?: string;
   language?: string;
@@ -8,6 +10,6 @@ interface Attachment {
   title?: string;
   creation?: string;
   /* Extensions */
-  _title?: string;
+  _title?: Extension;
 }
 export { Attachment };
