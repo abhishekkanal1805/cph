@@ -2,6 +2,50 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 
 export class I18N {
+
+  /**
+   * It will find translated value for attribute based on requested language
+   * If translation not found then it will return original value of array values
+   *
+   * @static
+   * @param {*} translateObject contains translation for an attribute
+   * @param {*} baseLanguageValue original value of an attribute
+   * @param {*} translateExtension requested Extension for translation or conversion
+   * @returns
+   * @memberof I18N
+   */
+  public static getArrayTranslatedValue(translateArray: any, baseLanguageValue: any, translateExtension: any) {
+    const translateArrayValues = [];
+    if (!translateArray) {
+      // No translation available so return original value
+      return baseLanguageValue;
+    }
+    for (const elementIdx in baseLanguageValue) {
+      let value = baseLanguageValue[elementIdx];
+      if (!translateArray[elementIdx]) {
+        // If no translation present then assign original value
+        translateArrayValues.push(value);
+        continue;
+      }
+      const extensionValue = _.map(translateArray[elementIdx].extension, Constants.EXTENSION);
+      _.each(extensionValue, (eachExtension) => {
+        let idx = -1;
+        _.each(translateExtension, (eachTranslateExtension) => {
+          idx = _.findIndex(eachExtension, eachTranslateExtension);
+        });
+        if (idx > -1) {
+          const translatedValue: any = _.find(eachExtension, { url: Constants.CONTENT });
+          if (translatedValue) {
+            value = translatedValue.valueString;
+          }
+          return;
+        }
+      });
+      translateArrayValues.push(value);
+    }
+    return translateArrayValues;
+  }
+
   /**
    * It will find translated value for attribute based on requested language
    * If translation not found then it will return original value of that attribute
@@ -92,7 +136,14 @@ export class I18N {
         // If acceptLanguage is empty then set baseLanguageValue to translatedResource
         translatedResource[element] = baseLanguageValue;
       }
-      const translatedValue = this.getTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+      const isArrayOfObject = _.every(baseLanguageValue, _.isObject);
+      if (!isArrayOfObject) {
+        // If value is array of string then assing translationa and return
+        // implemented for item[*].additionalText(Questionnaire)
+        translatedResource[element] = I18N.getArrayTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+        continue;
+      }
+      const translatedValue = I18N.getTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
       if (_.isEmpty(translatedValue)) {
         // if translatedValue is null/{}/[]/"" then no need search recursively
         translatedResource[element] = translatedValue;
@@ -107,7 +158,7 @@ export class I18N {
         // assign value based on type
         translatedResource[element] = Array.isArray(translatedValue) ? [] : {};
       }
-      this.translateResource(translatedValue, translatedResource[element], acceptLanguage);
+      I18N.translateResource(translatedValue, translatedResource[element], acceptLanguage);
     }
   }
 }
