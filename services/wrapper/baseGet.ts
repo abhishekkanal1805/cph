@@ -47,16 +47,15 @@ export class BaseGet {
     }
     // Translate Resource based on accept language
     const language = getOptions.acceptLanguage;
-    let isTranslated: boolean = false;
     const translatedRecord = {};
-    if (language) {
-      log.info("Entering I18N :: translateResource()");
-      isTranslated = true;
-      await I18N.translateResource(record, translatedRecord, language);
-      log.info("Exiting I18N :: translateResource()");
+    if (!language) {
+      return record;
     }
+    log.info("Entering I18N :: translateResource()");
+    await I18N.translateResource(record, translatedRecord, language);
+    log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
-    return isTranslated ? translatedRecord : record;
+    return translatedRecord;
   }
 
   public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
@@ -70,16 +69,15 @@ export class BaseGet {
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const language = getOptions.acceptLanguage;
-    let isTranslated: boolean = false;
     const translatedRecord = {};
-    if (language) {
-      log.info("Entering I18N :: translateResource()");
-      isTranslated = true;
-      await I18N.translateResource(record, translatedRecord, language);
-      log.info("Exiting I18N :: translateResource()");
+    if (!language) {
+      return record;
     }
+    log.info("Entering I18N :: translateResource()");
+    await I18N.translateResource(record, translatedRecord, language);
+    log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
-    return isTranslated ? translatedRecord : record;
+    return translatedRecord;
   }
 
   /**
@@ -101,16 +99,15 @@ export class BaseGet {
     log.info("getResource() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const language = getOptions.acceptLanguage;
-    let isTranslated: boolean = false;
     const translatedRecord = {};
-    if (language) {
-      log.info("Entering I18N :: translateResource()");
-      isTranslated = true;
-      await I18N.translateResource(record, translatedRecord, language);
-      log.info("Exiting I18N :: translateResource()");
+    if (!language) {
+      return record;
     }
+    log.info("Entering I18N :: translateResource()");
+    await I18N.translateResource(record, translatedRecord, language);
+    log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
-    return isTranslated ? translatedRecord : record;
+    return translatedRecord;
   }
 
   /** Wrapper function to perform search for CPH users
