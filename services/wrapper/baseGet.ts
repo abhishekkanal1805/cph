@@ -46,13 +46,13 @@ export class BaseGet {
       record = record.dataResource;
     }
     // Translate Resource based on accept language
-    const language = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions.acceptLanguage;
     const translatedRecord = {};
-    if (!language) {
+    if (!acceptLanguage) {
       return record;
     }
     log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, language);
+    await I18N.translateResource(record, translatedRecord, acceptLanguage);
     log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
@@ -68,13 +68,13 @@ export class BaseGet {
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
-    const language = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions.acceptLanguage;
     const translatedRecord = {};
-    if (!language) {
+    if (!acceptLanguage) {
       return record;
     }
     log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, language);
+    await I18N.translateResource(record, translatedRecord, acceptLanguage);
     log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
@@ -98,13 +98,13 @@ export class BaseGet {
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
     // Translate Resource based on accept language
-    const language = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions.acceptLanguage;
     const translatedRecord = {};
-    if (!language) {
+    if (!acceptLanguage) {
       return record;
     }
     log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, language);
+    await I18N.translateResource(record, translatedRecord, acceptLanguage);
     log.info("Exiting I18N :: translateResource()");
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
@@ -211,17 +211,14 @@ export class BaseGet {
       log.info("Translation option not present");
       return result;
     }
-    const language = searchOptions.acceptLanguage || "";
+    const acceptLanguage = searchOptions.acceptLanguage || "";
     const translatedRecords = [];
-    const allPromise = [];
     log.info("TranslateResource Started");
     result.forEach((eachResource: any) => {
       const translatedRecord = {};
-      const resultPromise = I18N.translateResource(eachResource, translatedRecord, language);
+      I18N.translateResource(eachResource, translatedRecord, acceptLanguage);
       translatedRecords.push(translatedRecord);
-      allPromise.push(resultPromise);
     });
-    await Promise.all(allPromise);
     log.info("TranslateResource Complete");
     return translatedRecords;
   }
