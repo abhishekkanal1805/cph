@@ -51,6 +51,6 @@ export const errorCodeMap = {
   OperationFailed: { value: "OperationFailed", description: "The resource status is " },
   InvalidAcceptLanguage: {
     value: "InvalidAcceptLanguage",
-    description: "Multiple Accept-Language not allowed in header"
+    description: "Multiple languages are not allowed in Accept-Language header"
   }
 };
