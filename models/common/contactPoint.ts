@@ -1,5 +1,5 @@
-import { Period } from "./period";
 import { Extension } from "./extension";
+import { Period } from "./period";
 
 /**
  * Details for all kinds of technology-mediated contact points for a person or organization,

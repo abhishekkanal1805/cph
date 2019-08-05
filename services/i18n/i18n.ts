@@ -2,19 +2,63 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 
 export class I18N {
+
+  /**
+   * It will find translated value for attribute based on requested language
+   * If translation not found then it will return original value of array values
+   *
+   * @static
+   * @param {*} translateObject contains translation for an attribute
+   * @param {*} baseLanguageValue original value of an attribute
+   * @param {*} translateExtension requested Extension for translation or conversion
+   * @returns
+   * @memberof I18N
+   */
+  public static getArrayTranslatedValue(translateArray: any, baseLanguageValue: any, translateExtension: any) {
+    const translateArrayValues = [];
+    if (!translateArray) {
+      // No translation available so return original value
+      return baseLanguageValue;
+    }
+    for (const elementIdx in baseLanguageValue) {
+      let value = baseLanguageValue[elementIdx];
+      if (!translateArray[elementIdx]) {
+        // If no translation present then assign original value
+        translateArrayValues.push(value);
+        continue;
+      }
+      const extensionValue = _.map(translateArray[elementIdx].extension, Constants.EXTENSION);
+      _.each(extensionValue, (eachExtension) => {
+        let idx = -1;
+        _.each(translateExtension, (eachTranslateExtension) => {
+          idx = _.findIndex(eachExtension, eachTranslateExtension);
+        });
+        if (idx > -1) {
+          const translatedValue: any = _.find(eachExtension, { url: Constants.CONTENT });
+          if (translatedValue) {
+            value = translatedValue.valueString;
+          }
+          return;
+        }
+      });
+      translateArrayValues.push(value);
+    }
+    return translateArrayValues;
+  }
+
   /**
    * It will find translated value for attribute based on requested language
    * If translation not found then it will return original value of that attribute
    *
    * @static
    * @param {*} translateObject contains translation for an attribute
-   * @param {*} originalValue original value of an attribute
+   * @param {*} baseLanguageValue original value of an attribute
    * @param {*} translateExtension requested Extension for translation or conversion
    * @returns
    * @memberof I18N
    */
-  public static getTranslatedValue(translateObject: any, originalValue: any, translateExtension: any) {
-    let value = originalValue;
+  public static getTranslatedValue(translateObject: any, baseLanguageValue: any, translateExtension: any) {
+    let value = baseLanguageValue;
     if (!translateObject) {
       // No translation available so return original value
       return value;
@@ -44,9 +88,9 @@ export class I18N {
         idx = _.findIndex(eachExtension, eachTranslateExtension);
       });
       if (idx > -1) {
-        const translateValue: any = _.find(eachExtension, { url: Constants.CONTENT });
-        if (translateValue) {
-          value = translateValue.valueString;
+        const translatedValue: any = _.find(eachExtension, { url: Constants.CONTENT });
+        if (translatedValue) {
+          value = translatedValue.valueString;
         }
         // Got translation value so break
         return;
@@ -69,36 +113,52 @@ export class I18N {
    * @static
    * @param {*} resource Input resource
    * @param {*} translatedResource translated resource
-   * @param {string} language input language for translation
+   * @param {string} acceptLanguage input language for translation
    * @memberof I18N
    */
-  public static async translateResource(resource: any, translatedResource: any, language: string) {
-    const translateExtension: any[] = [{ url: Constants.LANGUAGE, valueCode: language }];
+  public static async translateResource(resource: any, translatedResource: any, acceptLanguage: string) {
+    const translateExtension: any[] = [{ url: Constants.LANGUAGE, valueCode: acceptLanguage }];
     // If accept-language is en_US, then search for en_US, if not found search for en
-    if (language.indexOf(Constants.UNDERSCORE_VALUE) > -1) {
-      const parentLanguage = language.split(Constants.UNDERSCORE_VALUE)[0];
-      translateExtension.push({ url: Constants.LANGUAGE, valueCode: parentLanguage });
+    if (acceptLanguage.indexOf(Constants.UNDERSCORE_VALUE) > -1) {
+      const baseAcceptLanguage = acceptLanguage.split(Constants.UNDERSCORE_VALUE)[0];
+      translateExtension.push({ url: Constants.LANGUAGE, valueCode: baseAcceptLanguage });
     }
-    for (const attribute in resource) {
+    for (const element in resource) {
       // skip translated attribute from new object
       // error TS2339: Property 'startsWith' does not exist on type 'string' so using charAt
-      // attribute.startsWith(Constants.UNDERSCORE_VALUE)
-      if (attribute.charAt(0) === Constants.UNDERSCORE_VALUE) {
+      // element.startsWith(Constants.UNDERSCORE_VALUE)
+      if (element.charAt(0) === Constants.UNDERSCORE_VALUE) {
         continue;
       }
-      const translateAttribute = Constants.UNDERSCORE_VALUE + attribute;
-      const originalValue = resource[attribute];
-      const translatedValue = this.getTranslatedValue(resource[translateAttribute], originalValue, translateExtension);
+      const translateElement = Constants.UNDERSCORE_VALUE + element;
+      const baseLanguageValue = resource[element];
+      if (_.isEmpty(acceptLanguage)) {
+        // If acceptLanguage is empty then set baseLanguageValue to translatedResource
+        translatedResource[element] = baseLanguageValue;
+      }
+      const isArrayOfObject = _.every(baseLanguageValue, _.isObject);
+      if (!isArrayOfObject) {
+        // If value is array of string then assing translationa and return
+        // implemented for item[*].additionalText(Questionnaire)
+        translatedResource[element] = I18N.getArrayTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+        continue;
+      }
+      const translatedValue = I18N.getTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+      if (_.isEmpty(translatedValue)) {
+        // if translatedValue is null/{}/[]/"" then no need search recursively
+        translatedResource[element] = translatedValue;
+        continue;
+      }
       if (typeof translatedValue != Constants.OBJECT) {
-        // if value is not an object then no need search recursively
-        translatedResource[attribute] = translatedValue;
+        // if translatedValue is string/number/boolean then no need search recursively
+        translatedResource[element] = translatedValue;
         continue;
       }
-      if (!translatedResource[attribute]) {
+      if (!translatedResource[element]) {
         // assign value based on type
-        translatedResource[attribute] = Array.isArray(translatedValue) ? [] : {};
+        translatedResource[element] = Array.isArray(translatedValue) ? [] : {};
       }
-      this.translateResource(translatedValue, translatedResource[attribute], language);
+      I18N.translateResource(translatedValue, translatedResource[element], acceptLanguage);
     }
   }
 }
