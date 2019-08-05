@@ -1,4 +1,5 @@
 import { Period } from "./period";
+import { Extension } from "./extension";
 
 /**
  * Details for all kinds of technology-mediated contact points for a person or organization,
@@ -34,7 +35,7 @@ class ContactPoint {
   period?: Period;
 
   /* Extensions */
-  _value?: string;
+  _value?: Extension;
 }
 
 export { ContactPoint };

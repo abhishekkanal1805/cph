@@ -1,4 +1,5 @@
 import { Coding } from "./coding";
+import { Extension } from "./extension";
 
 export class Option {
   valueInteger?: number;
@@ -7,4 +8,6 @@ export class Option {
   valueTime?: string;
   valueString?: string;
   valueCoding?: Coding;
+  /* Extensions */
+  _valueString?: Extension;
 }
