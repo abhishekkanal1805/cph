@@ -110,6 +110,10 @@ export class BasePut {
     const options = { where: whereClause, attributes: [Constants.ID] };
     // Get validIds after sharing rules
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    if (!filteredPrimaryKeyIds.length) {
+      log.info("validIds list is empty");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
@@ -304,6 +308,10 @@ export class BasePut {
     // Get validIds after sharing rules
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
+    if (!filteredPrimaryKeyIds.length) {
+      log.info("validIds list is empty");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
     if (validateReferenceElement) {
