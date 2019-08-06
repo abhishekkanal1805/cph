@@ -44,6 +44,8 @@ export class BaseDelete {
         log.info("Sharing rules not present for requested user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
     }
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
