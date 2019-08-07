@@ -4,4 +4,5 @@ export interface GetOptions {
 
 export interface SearchOptions {
   acceptLanguage: string;
+  fetchLimit?: number;
 }
