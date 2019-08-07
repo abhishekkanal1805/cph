@@ -153,16 +153,17 @@ export class BaseGet {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
     }
 
-    let limit = Constants.FETCH_LIMIT;
+    let fetchLimit = (searchOptions.hasOwnProperty("fetchLimit")) ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
-    if (queryParams.limit) {
-      limit = _.toNumber(queryParams.limit[0]);
-      if (_.isNaN(limit) || !_.isInteger(limit) || limit < 1 || limit > Constants.FETCH_LIMIT) {
+    if (queryParams.hasOwnProperty("limit")) {
+      const limit = _.toNumber(queryParams.limit[0]);
+      if (_.isNaN(limit) || !_.isInteger(limit) || limit < 1 || limit > fetchLimit) {
         log.info("limit in request is not valid " + queryParams.limit[0]);
         throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.LIMIT);
       }
       // delete limit attibute as it is not part of search attribute
+      fetchLimit = limit;
       delete queryParams.limit;
     }
     // Validate offset parameter
@@ -194,7 +195,7 @@ export class BaseGet {
     const searchQuery = {
       where: whereClause,
       attributes: attributesToRetrieve && attributesToRetrieve.length > 0 ? attributesToRetrieve : [Constants.DEFAULT_SEARCH_ATTRIBUTES],
-      limit: limit + 1,
+      limit: fetchLimit + 1,
       offset,
       order: Constants.DEFAULT_ORDER_BY
     };
@@ -204,7 +205,7 @@ export class BaseGet {
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
-    queryParams.limit = limit;
+    queryParams.limit = fetchLimit;
     queryParams.offset = offset;
     // Translate Resource based on accept language
     if (!searchOptions) {
