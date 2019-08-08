@@ -1,3 +1,4 @@
+import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { LanguageExtension } from "../../models/common/extension";
@@ -103,7 +104,8 @@ export class I18N {
   }
 
   /**
-   * It will recursively translate resource attributes in to requested language if translation present inside resource
+   * Function will recursively traverse through all elements in the single record and translate them to requested language
+   * if translation extension are provided for the respective element. The translations are handled as follows:
    * Accept-lang: Empty
    *   getByID: return whole resource as it is
    *   search: remove only translation extensions, return base resource without translation
@@ -114,13 +116,14 @@ export class I18N {
    *   getByID: remove only translation extensions, return base resource with translations applied
    *   search: remove only translation extensions, return base resource with translations applied
    * @static
-   * @param {*} resource Input resource
-   * @param {*} translatedResource translated resource
+   * @param {*} resource a single record the needs to be processed for translation
+   * @param {*} translatedResource the translated record
    * @param {string} acceptLanguage input language for translation
    * @memberof I18N
    */
-  public static async translateResource(resource: any, translatedResource: any, acceptLanguage: string) {
-    const translateExtension: any[] = [{ url: Constants.LANGUAGE, valueCode: acceptLanguage }];
+  public static translateResource(resource: any, acceptLanguage: string, translatedResource: any = {}) {
+    log.info("Entering I18N :: translateResource()");
+    const translateExtension: LanguageExtension[] = [{ url: Constants.LANGUAGE, valueCode: acceptLanguage }];
     // If accept-language is en_US, then search for en_US, if not found search for en
     if (acceptLanguage.indexOf(Constants.UNDERSCORE_VALUE) > -1) {
       const baseAcceptLanguage = acceptLanguage.split(Constants.UNDERSCORE_VALUE)[0];
@@ -161,7 +164,9 @@ export class I18N {
         // assign value based on type
         translatedResource[element] = Array.isArray(translatedValue) ? [] : {};
       }
-      I18N.translateResource(translatedValue, translatedResource[element], acceptLanguage);
+      I18N.translateResource(translatedValue, acceptLanguage, translatedResource[element]);
     }
+    log.info("Exiting I18N :: translateResource()");
+    return translatedResource;
   }
 }

@@ -47,13 +47,10 @@ export class BaseGet {
     }
     // Translate Resource based on accept language
     const acceptLanguage = getOptions.acceptLanguage;
-    const translatedRecord = {};
     if (!acceptLanguage) {
       return record;
     }
-    log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, acceptLanguage);
-    log.info("Exiting I18N :: translateResource()");
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
   }
@@ -69,13 +66,10 @@ export class BaseGet {
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions.acceptLanguage;
-    const translatedRecord = {};
     if (!acceptLanguage) {
       return record;
     }
-    log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, acceptLanguage);
-    log.info("Exiting I18N :: translateResource()");
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
   }
@@ -99,13 +93,10 @@ export class BaseGet {
     log.info("getResource() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions.acceptLanguage;
-    const translatedRecord = {};
     if (!acceptLanguage) {
       return record;
     }
-    log.info("Entering I18N :: translateResource()");
-    await I18N.translateResource(record, translatedRecord, acceptLanguage);
-    log.info("Exiting I18N :: translateResource()");
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
     log.info("getResource() :: Record retrieved successfully");
     return translatedRecord;
   }
@@ -216,8 +207,7 @@ export class BaseGet {
     const translatedRecords = [];
     log.info("TranslateResource Started");
     result.forEach((eachResource: any) => {
-      const translatedRecord = {};
-      I18N.translateResource(eachResource, translatedRecord, acceptLanguage);
+      const translatedRecord = I18N.translateResource(eachResource, acceptLanguage);
       translatedRecords.push(translatedRecord);
     });
     log.info("TranslateResource Complete");

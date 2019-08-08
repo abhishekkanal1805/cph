@@ -783,4 +783,267 @@ describe("i18N", () => {
       expect(translatedValues).toEqual(expectedLanguageTranslatedContent);
     });
   });
+
+  describe("#translateResource()", () => {
+    it("a record that has no translations/extensions should have no translations", () => {
+      const testTranslationLang: string = "de";
+      const element1Value: string = "General Anxiety Disorder";
+      const element2Value: string[] = ["base value 1", "base value 2", "base value 3", "base value 4", "base value 5"];
+      const testRecord = {
+        element1: element1Value,
+        element2: element2Value,
+      };
+
+      const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
+      expect(translatedRecord.element1).toEqual(element1Value);
+      expect(translatedRecord.element2).toEqual(element2Value);
+    });
+
+    // FIXME: all extensions should be retained
+    it("an element that has no matching extensions should not be translated and all extensions should be retained", () => {
+      const testTranslationLang: string = "de";
+      const element1Value: string = "General Anxiety Disorder";
+      const anyExtendedValue = {
+        extension: [
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: testTranslationLang
+              },
+              {
+                url: "content",
+                valueString: "Generalisierte Angststörung"
+              }
+            ]
+          },
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: "es"
+              },
+              {
+                url: "content",
+                valueString: "Trastorno de ansiedad generalizada"
+              }
+            ]
+          }
+        ]
+      };
+      const testRecord = {
+        element1: element1Value,
+        _element2: anyExtendedValue,
+      };
+      const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
+      expect(translatedRecord.element1).toEqual(element1Value);
+      expect(translatedRecord["_element2"]).toEqual(anyExtendedValue);
+    });
+
+    // FIXME: Get this to work
+    it("a record that has translations/extensions should be translated as expected and all extensions should be retained", () => {
+      const testTranslationLang: string = "de";
+      const expectedElement1Translation: string = "Generalisierte Angststörung";
+      const testElement1ExtendedValue = {
+        extension: [
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: testTranslationLang
+              },
+              {
+                url: "content",
+                valueString: expectedElement1Translation
+              }
+            ]
+          },
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: "es"
+              },
+              {
+                url: "content",
+                valueString: "Trastorno de ansiedad generalizada"
+              }
+            ]
+          }
+        ]
+      };
+
+      const testBaseValues: string[] = ["base value 1", "base value 2", "base value 3", "base value 4", "base value 5"];
+      const expectedElement2Translations = ["translated value - 1", "translated value - 2", "translated value - 3", "translated value - 4", testBaseValues[4]];
+      const testElement2ExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedElement2Translations[0]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "de_UK"
+                },
+                {
+                  url: "content",
+                  valueString: "Generalisierte Angststörung - for UK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedElement2Translations[1]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "de_FR"
+                },
+                {
+                  url: "content",
+                  valueString: "translated in french"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "zh"
+                },
+                {
+                  url: "content",
+                  valueString: "translated in mandarin"
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedElement2Translations[2]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "es"
+                },
+                {
+                  url: "content",
+                  valueString: "translation in spanish"
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedElement2Translations[3]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "es"
+                },
+                {
+                  url: "content",
+                  valueString: "translation in spanish"
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "fr"
+                },
+                {
+                  url: "content",
+                  valueString: "translation in french"
+                }
+              ]
+            }
+          ]
+        }
+      ];
+      const testRecord = {
+        element1: "Generalized Anxiety Disorder",
+        _element1: testElement1ExtendedValue,
+        element2: ["base value 1", "base value 2", "base value 3", "base value 4", "base value 5"],
+        _element2: testElement2ExtendedValues
+      };
+
+      const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
+      expect(translatedRecord.element1).toEqual(expectedElement1Translation);
+      expect(translatedRecord.element2).toEqual(testElement2ExtendedValues);
+      expect(translatedRecord["_element1"]).toEqual(testElement1ExtendedValue);
+      expect(translatedRecord["_element2"]).toEqual(testElement2ExtendedValues);
+    });
+  });
+
 });
