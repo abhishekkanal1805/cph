@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
+import { LanguageExtension } from "../../models/common/extension";
 
 export class I18N {
 
@@ -8,42 +9,44 @@ export class I18N {
    * If translation not found then it will return original value of array values
    *
    * @static
-   * @param {*} translateObject contains translation for an attribute
-   * @param {*} baseLanguageValue original value of an attribute
-   * @param {*} translateExtension requested Extension for translation or conversion
+   * @param {*} baseValues original value of an attribute
+   * @param {*} extendedValues contains translation for an attribute
+   * @param {*} translationPredicates predicate used for selecting a particular extension that will be used for providing translated content
+   * Example: [{ url: "lang", valueCode: "en_US" }, { url: "lang", valueCode: "en" }]
    * @returns
    * @memberof I18N
    */
-  public static getArrayTranslatedValue(translateArray: any, baseLanguageValue: any, translateExtension: any) {
-    const translateArrayValues = [];
-    if (!translateArray) {
+  public static getTranslatedValues(baseValues: string[], extendedValues: any[], translationPredicates: LanguageExtension[]): string[] {
+    if (!extendedValues) {
       // No translation available so return original value
-      return baseLanguageValue;
+      return baseValues;
     }
-    for (const elementIdx in baseLanguageValue) {
-      let value = baseLanguageValue[elementIdx];
-      if (!translateArray[elementIdx]) {
+    const translatedValues = [];
+    for (const elementIdx in baseValues) {
+      let value = baseValues[elementIdx];
+      if (!extendedValues[elementIdx]) {
         // If no translation present then assign original value
-        translateArrayValues.push(value);
+        translatedValues.push(value);
         continue;
       }
-      const extensionValue = _.map(translateArray[elementIdx].extension, Constants.EXTENSION);
+      const extensionValue = _.map(extendedValues[elementIdx].extension, Constants.EXTENSION);
       _.each(extensionValue, (eachExtension) => {
         let idx = -1;
-        _.each(translateExtension, (eachTranslateExtension) => {
+        _.each(translationPredicates, (eachTranslateExtension) => {
           idx = _.findIndex(eachExtension, eachTranslateExtension);
         });
         if (idx > -1) {
-          const translatedValue: any = _.find(eachExtension, { url: Constants.CONTENT });
-          if (translatedValue) {
-            value = translatedValue.valueString;
+          // TODO: need to type translationContent to ContentExtension
+          const translationContent: any = _.find(eachExtension, { url: Constants.CONTENT });
+          if (translationContent) {
+            value = translationContent.valueString;
           }
           return;
         }
       });
-      translateArrayValues.push(value);
+      translatedValues.push(value);
     }
-    return translateArrayValues;
+    return translatedValues;
   }
 
   /**
@@ -51,23 +54,26 @@ export class I18N {
    * If translation not found then it will return original value of that attribute
    *
    * @static
-   * @param {*} translateObject contains translation for an attribute
-   * @param {*} baseLanguageValue original value of an attribute
-   * @param {*} translateExtension requested Extension for translation or conversion
+   * @param {*} baseValue value of an attribute when resource is considered to be at base language.
+   * @param {*} extendedValue object representing extension of an attribute. It contains all extensions for the attribute
+   * including the translations.
+   * @param {*} translationPredicates predicate used for selecting a particular extension that will be used for providing translated content
+   * Example: [{ url: "lang", valueCode: "en_US" }, { url: "lang", valueCode: "en" }]
    * @returns
    * @memberof I18N
    */
-  public static getTranslatedValue(translateObject: any, baseLanguageValue: any, translateExtension: any) {
-    let value = baseLanguageValue;
-    if (!translateObject) {
+  public static getTranslatedValue(baseValue: string, extendedValue: any, translationPredicates: LanguageExtension[]): string {
+    if (!extendedValue) {
       // No translation available so return original value
-      return value;
+      return baseValue;
     }
-    if (!translateObject.extension) {
+    if (!extendedValue.extension) {
       // No extension present inside translation so return original value
-      return value;
+      return baseValue;
     }
-    const extensionValue = _.map(translateObject.extension, Constants.EXTENSION);
+
+    let translatedValue = baseValue;
+    const extensionValue = _.map(extendedValue.extension, Constants.EXTENSION);
     _.each(extensionValue, (eachExtension) => {
       // eachExtension: [
       //   {
@@ -79,24 +85,21 @@ export class I18N {
       //       "valueString": "Wohlbefinden"
       //   }
       // ]
-      // translateExtension = [
-      //   { url: "lang", valueCode: "en_US" },
-      //   { url: "lang", valueCode: "en" }
-      // ];
       let idx = -1;
-      _.each(translateExtension, (eachTranslateExtension) => {
+      _.each(translationPredicates, (eachTranslateExtension) => {
         idx = _.findIndex(eachExtension, eachTranslateExtension);
       });
       if (idx > -1) {
-        const translatedValue: any = _.find(eachExtension, { url: Constants.CONTENT });
-        if (translatedValue) {
-          value = translatedValue.valueString;
+        // TODO: need to type translationContent to ContentExtension
+        const translationContent: any = _.find(eachExtension, { url: Constants.CONTENT });
+        if (translationContent) {
+          translatedValue = translationContent.valueString;
         }
         // Got translation value so break
         return;
       }
     });
-    return value;
+    return translatedValue;
   }
 
   /**
@@ -140,10 +143,10 @@ export class I18N {
       if (!isArrayOfObject) {
         // If value is array of string then assing translationa and return
         // implemented for item[*].additionalText(Questionnaire)
-        translatedResource[element] = I18N.getArrayTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+        translatedResource[element] = I18N.getTranslatedValues(baseLanguageValue, resource[translateElement], translateExtension);
         continue;
       }
-      const translatedValue = I18N.getTranslatedValue(resource[translateElement], baseLanguageValue, translateExtension);
+      const translatedValue = I18N.getTranslatedValue(baseLanguageValue, resource[translateElement], translateExtension);
       if (_.isEmpty(translatedValue)) {
         // if translatedValue is null/{}/[]/"" then no need search recursively
         translatedResource[element] = translatedValue;

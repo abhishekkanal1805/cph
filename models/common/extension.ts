@@ -16,13 +16,23 @@ import { ResourceMetadata } from "./resourceMetadata";
 import { SampleData } from "./sampleData";
 import { SimpleQuantity } from "./simpleQuantity";
 
+export interface LanguageExtension {
+  url: string;
+  valueCode?: string;
+}
+
+export interface ContentExtension {
+  url: string;
+  valueString: string;
+}
+
 /**
  * Every element in a resource or data type includes an optional "extension" child element that may be present any number of times.
  * This is the content model of the extension as it appears in each resource.
  * value[x] must be one of a constrained set of the data types defined here
  * https://www.hl7.org/fhir/extensibility.html
  */
-class Extension {
+export class Extension {
   url: string;
   id?: string;
 
@@ -69,5 +79,3 @@ class Extension {
 
   extension?: Extension[];
 }
-
-export { Extension };
