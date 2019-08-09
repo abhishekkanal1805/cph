@@ -1,11 +1,14 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { BaseGet } from "./baseGet";
 
 export class BaseDelete {
@@ -27,12 +30,23 @@ export class BaseDelete {
   public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
     log.info("In BaseDelete :: deleteResource()");
     // getResource will always return the record. if nothing found it throws NotFound error.
-    const options = { where: { id, "meta.isDeleted": false } };
+    const queryObject = { id, "meta.isDeleted": false };
+    const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    await AuthService.authorizeConnectionBased(requesterProfileId, patientId);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
+    }
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 

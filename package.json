@@ -2,7 +2,7 @@
   "name": "cph-common-service",
   "repository": "https://stash.tools.deloitteinnovation.us/projects/CHCONHUB",
   "license": "UNLICENSED",
-  "version": "0.2.0",
+  "version": "0.2.6",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
@@ -14,7 +14,8 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^4.38.0",
     "sequelize-typescript": "^0.6.6",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "tslib": "^1.10.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^0.1.3",
