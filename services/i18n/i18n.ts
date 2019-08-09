@@ -31,20 +31,23 @@ export class I18N {
         continue;
       }
       const extensionValue = _.map(extendedValues[elementIdx].extension, Constants.EXTENSION);
-      _.each(extensionValue, (eachExtension) => {
-        let idx = -1;
-        _.each(translationPredicates, (eachTranslateExtension) => {
-          idx = _.findIndex(eachExtension, eachTranslateExtension);
-        });
-        if (idx > -1) {
-          // TODO: need to type translationContent to ContentExtension
-          const translationContent: any = _.find(eachExtension, { url: Constants.CONTENT });
-          if (translationContent) {
-            value = translationContent.valueString;
+      for (const eachTranslateExtension of translationPredicates) {
+        let translatedExtensionValue;
+        for (const eachExtension of extensionValue) {
+          const idx = _.findIndex(eachExtension, eachTranslateExtension);
+          if (idx > -1) {
+            translatedExtensionValue = eachExtension;
+            break;
           }
-          return;
         }
-      });
+        if (translatedExtensionValue) {
+          const translationContent: any = _.find(translatedExtensionValue, { url: Constants.CONTENT });
+          if (translationContent) {
+            value =  translationContent.valueString;
+            break;
+          }
+        }
+      }
       translatedValues.push(value);
     }
     return translatedValues;
@@ -72,35 +75,20 @@ export class I18N {
       // No extension present inside translation so return original value
       return baseValue;
     }
-
-    let translatedValue = baseValue;
     const extensionValue = _.map(extendedValue.extension, Constants.EXTENSION);
-    _.each(extensionValue, (eachExtension) => {
-      // eachExtension: [
-      //   {
-      //       "url": "lang",
-      //       "valueCode": "de"
-      //   },
-      //   {
-      //       "url": "content",
-      //       "valueString": "Wohlbefinden"
-      //   }
-      // ]
+    for (const eachTranslateExtension of translationPredicates) {
       let idx = -1;
-      _.each(translationPredicates, (eachTranslateExtension) => {
+      for (const eachExtension of extensionValue) {
         idx = _.findIndex(eachExtension, eachTranslateExtension);
-      });
-      if (idx > -1) {
-        // TODO: need to type translationContent to ContentExtension
-        const translationContent: any = _.find(eachExtension, { url: Constants.CONTENT });
-        if (translationContent) {
-          translatedValue = translationContent.valueString;
+        if (idx > -1) {
+          const translationContent: any = _.find(eachExtension, { url: Constants.CONTENT });
+          if (translationContent) {
+            return translationContent.valueString;
+          }
         }
-        // Got translation value so break
-        return;
       }
-    });
-    return translatedValue;
+    }
+    return baseValue;
   }
 
   /**
@@ -134,6 +122,8 @@ export class I18N {
       // error TS2339: Property 'startsWith' does not exist on type 'string' so using charAt
       // element.startsWith(Constants.UNDERSCORE_VALUE)
       if (element.charAt(0) === Constants.UNDERSCORE_VALUE) {
+        // return extension field as it is
+        translatedResource[element] = resource[element];
         continue;
       }
       const translateElement = Constants.UNDERSCORE_VALUE + element;
@@ -143,20 +133,15 @@ export class I18N {
         translatedResource[element] = baseLanguageValue;
       }
       const isArrayOfObject = _.every(baseLanguageValue, _.isObject);
-      if (!isArrayOfObject) {
+      if (!isArrayOfObject && Array.isArray(baseLanguageValue)) {
         // If value is array of string then assing translationa and return
         // implemented for item[*].additionalText(Questionnaire)
         translatedResource[element] = I18N.getTranslatedValues(baseLanguageValue, resource[translateElement], translateExtension);
         continue;
       }
       const translatedValue = I18N.getTranslatedValue(baseLanguageValue, resource[translateElement], translateExtension);
-      if (_.isEmpty(translatedValue)) {
-        // if translatedValue is null/{}/[]/"" then no need search recursively
-        translatedResource[element] = translatedValue;
-        continue;
-      }
-      if (typeof translatedValue != Constants.OBJECT) {
-        // if translatedValue is string/number/boolean then no need search recursively
+      if ( (_.isEmpty(translatedValue)) || (typeof translatedValue != Constants.OBJECT)) {
+        // if translatedValue is null/{}/[]/""/string/number/boolean then no need search recursively
         translatedResource[element] = translatedValue;
         continue;
       }

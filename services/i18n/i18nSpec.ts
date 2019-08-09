@@ -99,47 +99,6 @@ describe("i18N", () => {
       expect(translatedValue).toEqual(expectedLanguageTranslatedContent);
     });
 
-    it("Should return the region translation if both lang/region are present and if either was requested - predicate lang first", () => {
-      const baseValue: string = "base value";
-      const expectedLocaleTranslatedContent = "Generalisierte Angststörung - for Germany";
-      const testTranslationLang = "de";
-      const testTranslationLocale = "de_GE";
-      const testExtendedValue = {
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung"
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLocale
-              },
-              {
-                url: "content",
-                valueString: expectedLocaleTranslatedContent
-              }
-            ]
-          }
-        ]
-      };
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }, { url: "lang", valueCode: testTranslationLocale }];
-
-      const translatedValue: string = I18N.getTranslatedValue(baseValue, testExtendedValue, testTranslationPredicates);
-      expect(translatedValue).toEqual(expectedLocaleTranslatedContent);
-    });
-
     // FIXME: make this pass
     it("Should return the region translation if both lang/region are present and if either was requested - predicate region first", () => {
       const baseValue: string = "base value";
@@ -410,47 +369,6 @@ describe("i18N", () => {
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
       expect(translatedValues).toEqual(expectedLanguageTranslatedContent);
-    });
-
-    it("Should return the region translation if both lang/region are present and if either was requested - predicate lang first", () => {
-      const baseValues: string[] = ["base value"];
-      const expectedLocaleTranslatedContent = ["Generalisierte Angststörung - for Germany"];
-      const testTranslationLang = "de";
-      const testTranslationLocale = "de_GE";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung"
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLocale
-              },
-              {
-                url: "content",
-                valueString: expectedLocaleTranslatedContent[0]
-              }
-            ]
-          }
-        ]
-      }];
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }, { url: "lang", valueCode: testTranslationLocale }];
-
-      const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
-      expect(translatedValues).toEqual(expectedLocaleTranslatedContent);
     });
 
     // FIXME: make this pass
@@ -1037,13 +955,93 @@ describe("i18N", () => {
         element2: ["base value 1", "base value 2", "base value 3", "base value 4", "base value 5"],
         _element2: testElement2ExtendedValues
       };
-
       const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
       expect(translatedRecord.element1).toEqual(expectedElement1Translation);
-      expect(translatedRecord.element2).toEqual(testElement2ExtendedValues);
+      expect(translatedRecord.element2).toEqual(expectedElement2Translations);
       expect(translatedRecord["_element1"]).toEqual(testElement1ExtendedValue);
       expect(translatedRecord["_element2"]).toEqual(testElement2ExtendedValues);
     });
   });
 
+  it("Should return the region translation if both lang/region are present and if either was requested - predicate lang first", () => {
+    const baseValue: string = "base value";
+    const expectedLocaleTranslatedContent = "Generalisierte Angststörung";
+    const testTranslationLang = "de";
+    const testTranslationLocale = "de_GE";
+    const testExtendedValue = {
+      extension: [
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/translation",
+          extension: [
+            {
+              url: "lang",
+              valueCode: testTranslationLang
+            },
+            {
+              url: "content",
+              valueString: "Generalisierte Angststörung"
+            }
+          ]
+        },
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/translation",
+          extension: [
+            {
+              url: "lang",
+              valueCode: testTranslationLocale
+            },
+            {
+              url: "content",
+              valueString: expectedLocaleTranslatedContent
+            }
+          ]
+        }
+      ]
+    };
+    const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }, { url: "lang", valueCode: testTranslationLocale }];
+
+    const translatedValue: string = I18N.getTranslatedValue(baseValue, testExtendedValue, testTranslationPredicates);
+    expect(translatedValue).toEqual(expectedLocaleTranslatedContent);
+  });
+
+  it("Should return the region translation if both lang/region are present and if either was requested - predicate lang first", () => {
+    const baseValues: string[] = ["base value"];
+    const expectedLocaleTranslatedContent = ["Generalisierte Angststörung"];
+    const testTranslationLang = "de";
+    const testTranslationLocale = "de_GE";
+    const testExtendedValues = [{
+      extension: [
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/translation",
+          extension: [
+            {
+              url: "lang",
+              valueCode: testTranslationLang
+            },
+            {
+              url: "content",
+              valueString: "Generalisierte Angststörung"
+            }
+          ]
+        },
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/translation",
+          extension: [
+            {
+              url: "lang",
+              valueCode: testTranslationLocale
+            },
+            {
+              url: "content",
+              valueString: expectedLocaleTranslatedContent[0]
+            }
+          ]
+        }
+      ]
+    }];
+    const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }, { url: "lang", valueCode: testTranslationLocale }];
+
+    const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
+    expect(translatedValues).toEqual(expectedLocaleTranslatedContent);
+  });
 });

@@ -203,7 +203,10 @@ export class BaseGet {
       log.info("Translation option not present");
       return result;
     }
-    const acceptLanguage = searchOptions.acceptLanguage || "";
+    const acceptLanguage = searchOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      return result;
+    }
     const translatedRecords = [];
     log.info("TranslateResource Started");
     result.forEach((eachResource: any) => {
