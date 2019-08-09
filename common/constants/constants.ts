@@ -75,6 +75,7 @@ class Constants {
   public static readonly CLOSING_PARENTHESES = ")";
   public static readonly HYPHEN = "-";
   public static readonly S3ENCRYPTION = "aws:kms";
+  public static readonly DEFALULT_ACCEPT_LANGUAGE = "*";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
   public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
@@ -92,6 +93,8 @@ class Constants {
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
   public static readonly CONTENT_TYPE_PNG = "image/png";
   public static readonly CONTENT_TYPE = "Content-Type";
+  public static readonly ACCEPT_LANGUAGE = "accept-language";
+  public static readonly CONTENT_LANGUAGE = "content-language";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly PDF_EXTENSION = ".pdf";
@@ -103,6 +106,10 @@ class Constants {
   public static readonly SELF = "self";
   public static readonly NEXT = "next";
   public static readonly MATCH = "match";
+  public static readonly EXTENSION = "extension";
+  public static readonly CONTENT = "content";
+  public static readonly LANGUAGE = "lang";
+  public static readonly OBJECT = "object";
 
   public static readonly POST_ENDPOINT = "POST";
   public static readonly GET_ENDPOINT = "GET";

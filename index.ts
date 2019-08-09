@@ -51,6 +51,7 @@ export * from "./models/common/sampleData";
 export * from "./models/common/search";
 export * from "./models/common/simpleQuantity";
 export * from "./models/common/subject";
+export * from "./models/common/extension";
 
 export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
@@ -67,4 +68,5 @@ export * from "./common/objects/tableNameToResourceTypeMapping";
 export * from "./common/objects/config";
 export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
+export * from "./common/types/optionsAttribute";
 export * from "./models/common/patient";

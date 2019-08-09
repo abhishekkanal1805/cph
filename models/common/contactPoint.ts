@@ -1,3 +1,4 @@
+import { Extension } from "./extension";
 import { Period } from "./period";
 
 /**
@@ -32,6 +33,9 @@ class ContactPoint {
    * Time period when the contact point was/is in use
    */
   period?: Period;
+
+  /* Extensions */
+  _value?: Extension;
 }
 
 export { ContactPoint };
