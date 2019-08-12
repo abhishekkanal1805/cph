@@ -46,8 +46,9 @@ export class BaseGet {
       record = record.dataResource;
     }
     // Translate Resource based on accept language
-    const acceptLanguage = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
     if (!acceptLanguage) {
+      log.info("Translation option not present");
       return record;
     }
     const translatedRecord = I18N.translateResource(record, acceptLanguage);
@@ -65,8 +66,9 @@ export class BaseGet {
     await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
-    const acceptLanguage = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
     if (!acceptLanguage) {
+      log.info("Translation option not present");
       return record;
     }
     const translatedRecord = I18N.translateResource(record, acceptLanguage);
@@ -92,8 +94,9 @@ export class BaseGet {
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
     // Translate Resource based on accept language
-    const acceptLanguage = getOptions.acceptLanguage;
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
     if (!acceptLanguage) {
+      log.info("Translation option not present");
       return record;
     }
     const translatedRecord = I18N.translateResource(record, acceptLanguage);
@@ -144,7 +147,7 @@ export class BaseGet {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
     }
 
-    let fetchLimit = (searchOptions.hasOwnProperty("fetchLimit")) ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
+    let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
     if (queryParams.hasOwnProperty("limit")) {
@@ -199,12 +202,9 @@ export class BaseGet {
     queryParams.limit = fetchLimit;
     queryParams.offset = offset;
     // Translate Resource based on accept language
-    if (!searchOptions) {
-      log.info("Translation option not present");
-      return result;
-    }
-    const acceptLanguage = searchOptions.acceptLanguage;
+    const acceptLanguage = searchOptions && searchOptions.acceptLanguage;
     if (!acceptLanguage) {
+      log.info("Translation option not present");
       return result;
     }
     const translatedRecords = [];
