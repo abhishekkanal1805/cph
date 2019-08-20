@@ -70,3 +70,4 @@ export * from "./common/objects/custom-errors";
 export * from "./common/types/cognitoUserAttribute";
 export * from "./common/types/optionsAttribute";
 export * from "./models/common/patient";
+export * from "./common/constants/resource-type";

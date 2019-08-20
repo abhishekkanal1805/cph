@@ -1,6 +1,8 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
+import { errorCodeMap, ForbiddenResult } from "../..";
 import { Constants } from "../../common/constants/constants";
+import { ResourceType } from "../../common/constants/resource-type";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -107,32 +109,33 @@ export class BasePost {
     requestorProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
-    ownerElement: string,
-    informationSourceElement: string,
+    ownerElement?: string,
+    informationSourceElement?: string,
     referenceValidationModel?,
     referenceValidationElement?: string
   ): Promise<GenericResponse<T>> {
     log.info("saveNonClinicalResources() started");
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
+    const model = payloadModel as any;
+    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+      const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
+      log.info("Reference Keys retrieved successfully :: saveResource()");
 
-    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
-    log.info("Reference Keys retrieved successfully :: saveResource()");
+      //  perform deviceId validation
+      const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+      await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+      // perform owner reference validation
+      const ownerReferences = [...new Set(keysMap.get(ownerElement))];
+      RequestValidator.validateSingularUserReference(ownerReferences);
+      // perform infoSource reference validation
+      const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
+      RequestValidator.validateSingularUserReference(informationSourceReferences);
 
-    //  perform deviceId validation
-    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    // perform owner reference validation
-    const ownerReferences = [...new Set(keysMap.get(ownerElement))];
-    RequestValidator.validateSingularUserReference(ownerReferences);
-    // perform infoSource reference validation
-    const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
-    RequestValidator.validateSingularUserReference(informationSourceReferences);
-
-    // perform Authorization, not setting ownerType as we do not care if patient or any other.
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
-    log.info("User Authorization is successful ");
-
+      // perform Authorization, not setting ownerType as we do not care if patient or any other.
+      await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
+      log.info("User Authorization is successful ");
+    }
     const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
 
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
@@ -176,5 +179,23 @@ export class BasePost {
       return record.dataResource;
     });
     return savedRecords;
+  }
+
+  /**
+   * The function is used to save a new definitional resources. It just validates if the model passed if of type definition.
+   * @static
+   * @param {*} requestPayload requestPayload array in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} createdBy Id of logged in user
+   * @param {*} updatedBy Id of logged in user
+   * @return {Promise<any>}
+   */
+  public static async saveDefinitionalResource(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
+    if (model.resourceType && model.resourceType === ResourceType.Definition) {
+      return await BasePost.prepareModelAndSave(requestPayload, model, modelDataResource, createdBy, updatedBy);
+    } else {
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
   }
 }

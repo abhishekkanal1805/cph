@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { ResourceType } from "../../common/constants/resource-type";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
@@ -245,8 +246,8 @@ export class BasePut {
     requesterProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
-    ownerElement: string,
-    informationSourceElement: string,
+    ownerElement?: string,
+    informationSourceElement?: string,
     referenceValidationModel?,
     referenceValidationElement?: string
   ): Promise<GenericResponse<T>> {
@@ -255,14 +256,16 @@ export class BasePut {
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     const total = requestPayload.length;
     log.info("Record Array created successfully ");
+    let whereClause = {};
+    const validateReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
 
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
-    keysToFetch.set(ownerElement, []);
-    keysToFetch.set(informationSourceElement, []);
+    // keysToFetch.set(ownerElement, []);
+    // keysToFetch.set(informationSourceElement, []);
     // add referenceValidationElement in map only if element it is present
-    const validateReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
+
     if (validateReferenceElement) {
       keysToFetch.set(referenceValidationElement, []);
     }
@@ -273,34 +276,42 @@ export class BasePut {
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     log.debug("Device validation is successful");
-    // perform owner reference validation
-    const ownerReferences = [...new Set(keysMap.get(ownerElement))];
-    RequestValidator.validateSingularUserReference(ownerReferences);
-    log.debug("OwnerElement [" + ownerElement + "] validation is successful");
-    // perform infoSource reference validation
-    const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
-    RequestValidator.validateSingularUserReference(informationSourceReferences);
-    log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
     // primary key Ids validation
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
     RequestValidator.validateLength(primaryKeyIds, total);
     log.info("Primary keys are validated");
-    // perform Authorization, not setting ownerType as we do not care if patient or any other.
-    // Sharing rules validation here
-    const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
-    log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
-    let whereClause = {};
-    // For system user/ loggedin user to get his own record we won't add sharing rules
-    if (connection.length > 0) {
-      // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
-      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
-      if (_.isEmpty(whereClause[Op.and])) {
-        log.info("Sharing rules not present for requested user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+
+    const model = payloadModel as any;
+    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+      // perform owner reference validation
+      const ownerReferences = [...new Set(keysMap.get(ownerElement))];
+      RequestValidator.validateSingularUserReference(ownerReferences);
+      log.debug("OwnerElement [" + ownerElement + "] validation is successful");
+      // perform infoSource reference validation
+      const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
+      RequestValidator.validateSingularUserReference(informationSourceReferences);
+      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
+
+      // perform Authorization, not setting ownerType as we do not care if patient or any other.
+      // Sharing rules validation here
+      const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
+      log.info("User Authorization is successful ");
+
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      if (connection.length > 0) {
+        // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
+        whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+        if (_.isEmpty(whereClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+      } else {
+        // If logged in user type is system/patient then validate with primaryKeyIds
+        whereClause = queryObject;
       }
     } else {
-      // If logged in user type is system/patient then validate with primaryKeyIds
+      // In case of Definition resource, we will just validate the primary key and update
       whereClause = queryObject;
     }
 

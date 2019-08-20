@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { ResourceType } from "../../common/constants/resource-type";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -34,18 +35,20 @@ export class BaseDelete {
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
-    // For system user/ loggedin user to get his own record we won't add sharing rules
-    if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
-      if (_.isEmpty(whereClause[Op.and])) {
-        log.info("Sharing rules not present for requested user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+      const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      if (connection.length > 0) {
+        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
+        if (_.isEmpty(whereClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
       }
-      record = await DAOService.fetchOne(model, { where: whereClause });
-      record = record.dataResource;
     }
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
