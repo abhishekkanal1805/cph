@@ -123,17 +123,52 @@ class QueryGenerator {
           }
         });
       case Constants.DATE:
-        queryObject[Op.or].push({
-          [columnName]: {
-            [rangeObject.start]: {
-              [startOperator]: periodYearMonth
-            },
-            [rangeObject.end]: {
-              [endOperator]: periodYearMonth
+        queryObject[Op.or].push(
+          {
+            [columnName]: {
+              [rangeObject.start]: {
+                [startOperator]: periodDate
+              },
+              [rangeObject.end]: {
+                [endOperator]: periodDate
+              }
+            }
+          },
+          {
+            [columnName]: {
+              [rangeObject.start]: {
+                [startOperator]: periodYearMonth
+              },
+              [rangeObject.end]: {
+                [endOperator]: periodYearMonth
+              }
             }
           }
-        });
+        );
       case Constants.YEAR_MONTH:
+        queryObject[Op.or].push(
+          {
+            [columnName]: {
+              [rangeObject.start]: {
+                [startOperator]: periodYearMonth
+              },
+              [rangeObject.end]: {
+                [endOperator]: periodYearMonth
+              }
+            }
+          },
+          {
+            [columnName]: {
+              [rangeObject.start]: {
+                [startOperator]: periodYear
+              },
+              [rangeObject.end]: {
+                [endOperator]: periodYear
+              }
+            }
+          }
+        );
+      case Constants.YEAR:
         queryObject[Op.or].push({
           [columnName]: {
             [rangeObject.start]: {
@@ -210,7 +245,9 @@ class QueryGenerator {
     } else if (datePattern === Constants.YEAR) {
       periods = Constants.PERIOD_YEARS;
     }
-    const nextDate = moment(dateMomentObject.add({ [periods]: 1 })).format(datePattern);
+    const nextDate = moment(dateMomentObject)
+      .add({ [periods]: 1 })
+      .format(datePattern);
     let dateQuery = {};
     if (column.rangeAttributes) {
       const rangeObject = this.getParsedCondtions(column.rangeAttributes);
