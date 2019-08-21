@@ -135,7 +135,10 @@ describe("i18N", () => {
           }
         ]
       };
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLocale }, { url: "lang", valueCode: testTranslationLang }];
+      const testTranslationPredicates: LanguageExtension[] = [
+        { url: "lang", valueCode: testTranslationLocale },
+        { url: "lang", valueCode: testTranslationLang }
+      ];
 
       const translatedValue: string = I18N.getTranslatedValue(baseValue, testExtendedValue, testTranslationPredicates);
       expect(translatedValue).toEqual(expectedLocaleTranslatedContent);
@@ -176,7 +179,10 @@ describe("i18N", () => {
           }
         ]
       };
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLocale }, { url: "lang", valueCode: testTranslationLang }];
+      const testTranslationPredicates: LanguageExtension[] = [
+        { url: "lang", valueCode: testTranslationLocale },
+        { url: "lang", valueCode: testTranslationLang }
+      ];
 
       const translatedValue: string = I18N.getTranslatedValue(baseValue, testExtendedValue, testTranslationPredicates);
       expect(translatedValue).toEqual(expectedLanguageTranslatedContent);
@@ -293,36 +299,38 @@ describe("i18N", () => {
     it("Should return base value if there is no match for translation predicate", () => {
       const baseValues: string[] = ["base value"];
       const testTranslationLang = "en";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: "de"
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung"
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: "de_GE"
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung - for Germany"
-              }
-            ]
-          }
-        ]
-      }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "de"
+                },
+                {
+                  url: "content",
+                  valueString: "Generalisierte Angststörung"
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: "de_GE"
+                },
+                {
+                  url: "content",
+                  valueString: "Generalisierte Angststörung - for Germany"
+                }
+              ]
+            }
+          ]
+        }
+      ];
       const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
@@ -335,36 +343,38 @@ describe("i18N", () => {
       const localeTranslatedContent = "Generalisierte Angststörung - for Germany";
       const testTranslationLang = "de";
       const testTranslationLocale = "de_GE";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: expectedLanguageTranslatedContent[0]
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLocale
-              },
-              {
-                url: "content",
-                valueString: localeTranslatedContent
-              }
-            ]
-          }
-        ]
-      }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedLanguageTranslatedContent[0]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLocale
+                },
+                {
+                  url: "content",
+                  valueString: localeTranslatedContent
+                }
+              ]
+            }
+          ]
+        }
+      ];
       const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
@@ -377,37 +387,42 @@ describe("i18N", () => {
       const expectedLocaleTranslatedContent = ["Generalisierte Angststörung - for Germany"];
       const testTranslationLang = "de";
       const testTranslationLocale = "de_GE";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung"
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLocale
-              },
-              {
-                url: "content",
-                valueString: expectedLocaleTranslatedContent[0]
-              }
-            ]
-          }
-        ]
-      }];
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLocale }, { url: "lang", valueCode: testTranslationLang }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: "Generalisierte Angststörung"
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLocale
+                },
+                {
+                  url: "content",
+                  valueString: expectedLocaleTranslatedContent[0]
+                }
+              ]
+            }
+          ]
+        }
+      ];
+      const testTranslationPredicates: LanguageExtension[] = [
+        { url: "lang", valueCode: testTranslationLocale },
+        { url: "lang", valueCode: testTranslationLang }
+      ];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
       // FIXME: make this test pass
@@ -419,37 +434,42 @@ describe("i18N", () => {
       const expectedLanguageTranslatedContent = ["Generalisierte Angststörung"];
       const testTranslationLang = "de";
       const testTranslationLocale = "de_GE";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: expectedLanguageTranslatedContent[0]
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang + "_UK"
-              },
-              {
-                url: "content",
-                valueString: "Generalisierte Angststörung - for UK"
-              }
-            ]
-          }
-        ]
-      }];
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLocale }, { url: "lang", valueCode: testTranslationLang }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedLanguageTranslatedContent[0]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang + "_UK"
+                },
+                {
+                  url: "content",
+                  valueString: "Generalisierte Angststörung - for UK"
+                }
+              ]
+            }
+          ]
+        }
+      ];
+      const testTranslationPredicates: LanguageExtension[] = [
+        { url: "lang", valueCode: testTranslationLocale },
+        { url: "lang", valueCode: testTranslationLang }
+      ];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
       expect(translatedValues).toEqual(expectedLanguageTranslatedContent);
@@ -460,36 +480,38 @@ describe("i18N", () => {
       const baseValues: string[] = ["base value"];
       const expectedLanguageTranslatedContents = ["Generalisierte Angststörung"];
       const testTranslationLang = "de";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: expectedLanguageTranslatedContents[0]
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationLang
-              },
-              {
-                url: "content",
-                valueString: "second translation of same lang"
-              }
-            ]
-          }
-        ]
-      }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: expectedLanguageTranslatedContents[0]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationLang
+                },
+                {
+                  url: "content",
+                  valueString: "second translation of same lang"
+                }
+              ]
+            }
+          ]
+        }
+      ];
       const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
@@ -501,36 +523,38 @@ describe("i18N", () => {
       const baseValues: string[] = ["base value"];
       const expectedRegionTranslatedContents = ["Generalisierte Angststörung"];
       const testTranslationRegion = "de_GE";
-      const testExtendedValues = [{
-        extension: [
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationRegion
-              },
-              {
-                url: "content",
-                valueString: expectedRegionTranslatedContents[0]
-              }
-            ]
-          },
-          {
-            url: "http://hl7.org/fhir/StructureDefinition/translation",
-            extension: [
-              {
-                url: "lang",
-                valueCode: testTranslationRegion
-              },
-              {
-                url: "content",
-                valueString: "second translation of same region"
-              }
-            ]
-          }
-        ]
-      }];
+      const testExtendedValues = [
+        {
+          extension: [
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationRegion
+                },
+                {
+                  url: "content",
+                  valueString: expectedRegionTranslatedContents[0]
+                }
+              ]
+            },
+            {
+              url: "http://hl7.org/fhir/StructureDefinition/translation",
+              extension: [
+                {
+                  url: "lang",
+                  valueCode: testTranslationRegion
+                },
+                {
+                  url: "content",
+                  valueString: "second translation of same region"
+                }
+              ]
+            }
+          ]
+        }
+      ];
       const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationRegion }];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
@@ -694,8 +718,11 @@ describe("i18N", () => {
             }
           ]
         }
-       ];
-      const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLocale }, { url: "lang", valueCode: testTranslationLang }];
+      ];
+      const testTranslationPredicates: LanguageExtension[] = [
+        { url: "lang", valueCode: testTranslationLocale },
+        { url: "lang", valueCode: testTranslationLang }
+      ];
 
       const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);
       expect(translatedValues).toEqual(expectedLanguageTranslatedContent);
@@ -709,7 +736,7 @@ describe("i18N", () => {
       const element2Value: string[] = ["base value 1", "base value 2", "base value 3", "base value 4", "base value 5"];
       const testRecord = {
         element1: element1Value,
-        element2: element2Value,
+        element2: element2Value
       };
 
       const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
@@ -753,7 +780,7 @@ describe("i18N", () => {
       };
       const testRecord = {
         element1: element1Value,
-        _element2: anyExtendedValue,
+        _element2: anyExtendedValue
       };
       const translatedRecord = I18N.translateResource(testRecord, testTranslationLang);
       expect(translatedRecord.element1).toEqual(element1Value);
@@ -1009,36 +1036,38 @@ describe("i18N", () => {
     const expectedLocaleTranslatedContent = ["Generalisierte Angststörung"];
     const testTranslationLang = "de";
     const testTranslationLocale = "de_GE";
-    const testExtendedValues = [{
-      extension: [
-        {
-          url: "http://hl7.org/fhir/StructureDefinition/translation",
-          extension: [
-            {
-              url: "lang",
-              valueCode: testTranslationLang
-            },
-            {
-              url: "content",
-              valueString: "Generalisierte Angststörung"
-            }
-          ]
-        },
-        {
-          url: "http://hl7.org/fhir/StructureDefinition/translation",
-          extension: [
-            {
-              url: "lang",
-              valueCode: testTranslationLocale
-            },
-            {
-              url: "content",
-              valueString: expectedLocaleTranslatedContent[0]
-            }
-          ]
-        }
-      ]
-    }];
+    const testExtendedValues = [
+      {
+        extension: [
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: testTranslationLang
+              },
+              {
+                url: "content",
+                valueString: "Generalisierte Angststörung"
+              }
+            ]
+          },
+          {
+            url: "http://hl7.org/fhir/StructureDefinition/translation",
+            extension: [
+              {
+                url: "lang",
+                valueCode: testTranslationLocale
+              },
+              {
+                url: "content",
+                valueString: expectedLocaleTranslatedContent[0]
+              }
+            ]
+          }
+        ]
+      }
+    ];
     const testTranslationPredicates: LanguageExtension[] = [{ url: "lang", valueCode: testTranslationLang }, { url: "lang", valueCode: testTranslationLocale }];
 
     const translatedValues: string[] = I18N.getTranslatedValues(baseValues, testExtendedValues, testTranslationPredicates);

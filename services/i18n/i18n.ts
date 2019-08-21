@@ -4,7 +4,6 @@ import { Constants } from "../../common/constants/constants";
 import { LanguageExtension } from "../../models/common/extension";
 
 export class I18N {
-
   /**
    * It will find translated value for attribute based on requested language
    * If translation not found then it will return original value of array values
@@ -43,7 +42,7 @@ export class I18N {
         if (translatedExtensionValue) {
           const translationContent: any = _.find(translatedExtensionValue, { url: Constants.CONTENT });
           if (translationContent) {
-            value =  translationContent.valueString;
+            value = translationContent.valueString;
             break;
           }
         }
@@ -140,7 +139,7 @@ export class I18N {
         continue;
       }
       const translatedValue = I18N.getTranslatedValue(baseLanguageValue, resource[translateElement], translateExtension);
-      if ( (_.isEmpty(translatedValue)) || (typeof translatedValue != Constants.OBJECT)) {
+      if (_.isEmpty(translatedValue) || typeof translatedValue != Constants.OBJECT) {
         // if translatedValue is null/{}/[]/""/string/number/boolean then no need search recursively
         translatedResource[element] = translatedValue;
         continue;
