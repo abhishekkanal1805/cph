@@ -138,7 +138,7 @@ export class APIRequestUtility {
     if (headers[Constants.ACCEPT_LANGUAGE]) {
       acceptLanguage = headers[Constants.ACCEPT_LANGUAGE];
     }
-    if (acceptLanguage && acceptLanguage.indexOf(Constants.COMMA_VALUE) > 1) {
+    if (acceptLanguage && acceptLanguage.indexOf(Constants.COMMA_VALUE) > -1) {
       // If more than 1 accept language present, raise an error
       throw new BadRequestResult(errorCodeMap.InvalidAcceptLanguage.value, errorCodeMap.InvalidAcceptLanguage.description);
     }

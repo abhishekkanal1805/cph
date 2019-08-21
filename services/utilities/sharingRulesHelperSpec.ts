@@ -119,11 +119,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.eq]: "active"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.eq]: "active"
+              }
             }
-          }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -144,11 +146,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.gt]: "10"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.gt]: "10"
+              }
             }
-          }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -169,11 +173,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.gte]: "10"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.gte]: "10"
+              }
             }
-          }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -194,11 +200,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.lt]: "10"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.lt]: "10"
+              }
             }
-          }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -219,11 +227,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.lte]: "10"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.lte]: "10"
+              }
             }
-          }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -244,14 +254,18 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            "dataResource.status": {
-              [Op.ne]: "10"
+          [Op.or]: [
+            {
+              "dataResource.status": {
+                [Op.ne]: "10"
+              }
+            },
+            {
+              val:
+                " not exists (select true from unnest(array(select jsonb_array_elements(jsonb_build_array(\"dataResource\" #> '{status}')) )) as element " +
+                "where element::text = '\"10\"')"
             }
-          }, {
-            val: " not exists (select true from unnest(array(select jsonb_array_elements(jsonb_build_array(\"dataResource\" #> '{status}')) )) as element "+
-            "where element::text = '\"10\"')"
-         }]
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -276,11 +290,15 @@ describe("SharingRulesHelper", () => {
         const expected = {
           dataResource: {
             [Op.contains]: {
-              category: [{
-                coding: [{
-                  code: "vital-sign"
-                }]
-              }]
+              category: [
+                {
+                  coding: [
+                    {
+                      code: "vital-sign"
+                    }
+                  ]
+                }
+              ]
             }
           }
         };
@@ -305,8 +323,9 @@ describe("SharingRulesHelper", () => {
         const expected = {
           [Op.or]: [
             {
-              val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-              "'{coding}'))) #> '{code}')) as element where element::text > '\"vital-sign\"')"
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text > '\"vital-sign\"')"
             }
           ]
         };
@@ -331,8 +350,9 @@ describe("SharingRulesHelper", () => {
         const expected = {
           [Op.or]: [
             {
-              val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-              "'{coding}'))) #> '{code}')) as element where element::text >= '\"vital-sign\"')"
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text >= '\"vital-sign\"')"
             }
           ]
         };
@@ -357,8 +377,9 @@ describe("SharingRulesHelper", () => {
         const expected = {
           [Op.or]: [
             {
-              val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-              "'{coding}'))) #> '{code}')) as element where element::text < '\"vital-sign\"')"
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text < '\"vital-sign\"')"
             }
           ]
         };
@@ -383,8 +404,9 @@ describe("SharingRulesHelper", () => {
         const expected = {
           [Op.or]: [
             {
-              val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-              "'{coding}'))) #> '{code}')) as element where element::text <= '\"vital-sign\"')"
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text <= '\"vital-sign\"')"
             }
           ]
         };
@@ -409,8 +431,9 @@ describe("SharingRulesHelper", () => {
         const expected = {
           [Op.or]: [
             {
-              val: " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-              "'{coding}'))) #> '{code}')) as element where element::text = '\"vital-sign\"')"
+              val:
+                " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text = '\"vital-sign\"')"
             }
           ]
         };
@@ -437,9 +460,11 @@ describe("SharingRulesHelper", () => {
         const expected = {
           dataResource: {
             contains: {
-              category: [{
-                coding: [{code: 10}]
-              }]
+              category: [
+                {
+                  coding: [{ code: 10 }]
+                }
+              ]
             }
           }
         };
@@ -462,10 +487,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
-            "'{coding}'))) #> '{code}')) as element where element::text::numeric > 10)"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text::numeric > 10)"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -486,10 +514,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
-            "'{coding}'))) #> '{code}')) as element where element::text::numeric >= 10)"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text::numeric >= 10)"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -510,10 +541,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
-            "'{coding}'))) #> '{code}')) as element where element::text::numeric < 10)"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text::numeric < 10)"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -534,10 +568,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
-            "'{coding}'))) #> '{code}')) as element where element::text::numeric <= 10)"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text::numeric <= 10)"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -558,10 +595,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " + 
-            "'{coding}'))) #> '{code}')) as element where element::text::numeric = 10)"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text::numeric = 10)"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -586,7 +626,7 @@ describe("SharingRulesHelper", () => {
         const expected = {
           dataResource: {
             [Op.contains]: {
-              category: [{coding: [{code: true}]}]
+              category: [{ coding: [{ code: true }] }]
             }
           }
         };
@@ -609,10 +649,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> "+
-            "'{coding}'))) #> '{code}')) as element where element::text = 'true')"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text = 'true')"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
@@ -633,10 +676,13 @@ describe("SharingRulesHelper", () => {
         const convertedResult = {};
         const convertedExpected = {};
         const expected = {
-          [Op.or]: [{
-            val: " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-            "'{coding}'))) #> '{code}')) as element where element::text > 'true')"
-          }]
+          [Op.or]: [
+            {
+              val:
+                " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
+                "'{coding}'))) #> '{code}')) as element where element::text > 'true')"
+            }
+          ]
         };
         expressionConverter(res, convertedResult);
         expressionConverter(expected, convertedExpected);
