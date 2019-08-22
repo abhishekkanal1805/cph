@@ -90,7 +90,7 @@ export class BasePut {
     log.info("Primary keys are validated");
 
     // Sharing rules validation here
-    const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
+    const connection = await AuthService.authorizeRequestSharingRules(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};
@@ -287,7 +287,7 @@ export class BasePut {
     log.info("Primary keys are validated");
     // perform Authorization, not setting ownerType as we do not care if patient or any other.
     // Sharing rules validation here
-    const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
+    const connection = await AuthService.authorizeRequestSharingRules(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};
