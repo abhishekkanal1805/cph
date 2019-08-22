@@ -634,7 +634,7 @@ class QueryGenerator {
         const numberObject = Utility.getSearchPrefixValue(eachValue);
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
-        // to handel json null condition https://www.postgresql.org/docs/9.5/functions-json.html
+        // to handel json null condition https://www.postgresql.org/docs/9.5/functions-json.html 
         searchQuery.push(
           ` ${existsValue} (select true from ${rawSql} as element where ` +
             `(case when element = 'null'  then null else element end )::text::numeric ${numericOperation} ${eachValue})`
