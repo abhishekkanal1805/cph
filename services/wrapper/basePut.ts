@@ -281,7 +281,7 @@ export class BasePut {
     const queryObject = { id: primaryKeyIds };
 
     const model = payloadModel as any;
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const referenceKeys = new Map();
       referenceKeys.set(ownerElement, []);
       referenceKeys.set(informationSourceElement, []);

@@ -3,7 +3,7 @@
  *  Summary : Enumeration to distinguish behaviour based of type of resource.
  */
 export enum ResourceCategory {
-  Event = "Event",
-  Request = "Request",
-  Definition = "Definition"
+  EVENT = "Event",
+  REQUEST = "Request",
+  DEFINITION = "Definition"
 }

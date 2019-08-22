@@ -35,7 +35,7 @@ export class BaseDelete {
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
       const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
       const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);

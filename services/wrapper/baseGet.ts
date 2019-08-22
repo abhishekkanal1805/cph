@@ -34,7 +34,7 @@ export class BaseGet {
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
 
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
       const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
       const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
@@ -131,7 +131,7 @@ export class BaseGet {
     let connection;
     let isSharingRuleCheckRequired: boolean = true;
     // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
-    if (model.resourceCategory && model.resourceCategory === ResourceCategory.Definition) {
+    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
       log.info("Search for resource accessible to all: " + model.name);
       isSharingRuleCheckRequired = false;
     } else {
