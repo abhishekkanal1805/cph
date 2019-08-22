@@ -1,7 +1,7 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
-import { ResourceCategory } from "../../common/constants/resource-category";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";

@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resource-category";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
