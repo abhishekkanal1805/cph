@@ -1,8 +1,7 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
-import { errorCodeMap, ForbiddenResult } from "../..";
 import { Constants } from "../../common/constants/constants";
-import { ResourceType } from "../../common/constants/resource-type";
+import { ResourceCategory } from "../../common/constants/resource-category";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -118,7 +117,7 @@ export class BasePost {
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const model = payloadModel as any;
-    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
       const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
       log.info("Reference Keys retrieved successfully :: saveResource()");
 
@@ -179,23 +178,5 @@ export class BasePost {
       return record.dataResource;
     });
     return savedRecords;
-  }
-
-  /**
-   * The function is used to save a new definitional resources. It just validates if the model passed if of type definition.
-   * @static
-   * @param {*} requestPayload requestPayload array in JSON format
-   * @param {*} model Model which need to be saved
-   * @param {*} modelDataResource Data resource model which can be used for object mapping.
-   * @param {*} createdBy Id of logged in user
-   * @param {*} updatedBy Id of logged in user
-   * @return {Promise<any>}
-   */
-  public static async saveDefinitionalResource(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
-    if (model.resourceType && model.resourceType === ResourceType.Definition) {
-      return await BasePost.prepareModelAndSave(requestPayload, model, modelDataResource, createdBy, updatedBy);
-    } else {
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
   }
 }

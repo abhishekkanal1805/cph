@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceType } from "../../common/constants/resource-type";
+import { ResourceCategory } from "../../common/constants/resource-category";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
@@ -257,14 +257,12 @@ export class BasePut {
     const total = requestPayload.length;
     log.info("Record Array created successfully ");
     let whereClause = {};
+    // add referenceValidationElement in map only if element it is present
     const validateReferenceElement: boolean = referenceValidationModel && referenceValidationElement ? true : false;
 
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
-    // keysToFetch.set(ownerElement, []);
-    // keysToFetch.set(informationSourceElement, []);
-    // add referenceValidationElement in map only if element it is present
 
     if (validateReferenceElement) {
       keysToFetch.set(referenceValidationElement, []);
@@ -283,13 +281,18 @@ export class BasePut {
     const queryObject = { id: primaryKeyIds };
 
     const model = payloadModel as any;
-    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
+      const referenceKeys = new Map();
+      referenceKeys.set(ownerElement, []);
+      referenceKeys.set(informationSourceElement, []);
+
+      const referencesMap = JsonParser.findValuesForKeyMap(requestPayload, referenceKeys);
       // perform owner reference validation
-      const ownerReferences = [...new Set(keysMap.get(ownerElement))];
+      const ownerReferences = [...new Set(referencesMap.get(ownerElement))];
       RequestValidator.validateSingularUserReference(ownerReferences);
       log.debug("OwnerElement [" + ownerElement + "] validation is successful");
       // perform infoSource reference validation
-      const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
+      const informationSourceReferences = [...new Set(referencesMap.get(informationSourceElement))];
       RequestValidator.validateSingularUserReference(informationSourceReferences);
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
 

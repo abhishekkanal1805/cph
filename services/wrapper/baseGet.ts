@@ -3,7 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceType } from "../../common/constants/resource-type";
+import { ResourceCategory } from "../../common/constants/resource-category";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { GetOptions, SearchOptions } from "../../common/types/optionsAttribute";
 import { DAOService } from "../dao/daoService";
@@ -34,7 +34,7 @@ export class BaseGet {
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
 
-    if (!model.resourceType || model.resourceType !== ResourceType.Definition) {
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.Definition) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
       const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
       const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
@@ -131,7 +131,7 @@ export class BaseGet {
     let connection;
     let isSharingRuleCheckRequired: boolean = true;
     // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
-    if (model.resourceType && model.resourceType === ResourceType.Definition) {
+    if (model.resourceCategory && model.resourceCategory === ResourceCategory.Definition) {
       log.info("Search for resource accessible to all: " + model.name);
       isSharingRuleCheckRequired = false;
     } else {
