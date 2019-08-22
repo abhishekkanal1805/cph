@@ -94,6 +94,7 @@ export class BasePost {
 
   /**
    * FIXME: Review this for non-clinical usage. Currently no integrations
+   * Reference validations are performed only for Non-Definitonal Resources.
    * @param requestPayload
    * @param {string} requestorProfileId
    * @param {T} payloadModel

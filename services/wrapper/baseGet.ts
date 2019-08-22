@@ -16,7 +16,8 @@ import { QueryValidator } from "../validators/queryValidator";
 
 export class BaseGet {
   /**
-   *
+   * Function to retrieve record by Id.
+   * Sharing rules and Authorization is performed only for Non-Definitions resources.
    *
    * @static
    * @param {string} id
@@ -60,6 +61,14 @@ export class BaseGet {
     return translatedRecord;
   }
 
+  /**
+   * @deprecated use getResource instead.
+   * @param {string} id
+   * @param {*} model
+   * @param {string} requestorProfileId
+   * @param {string} patientElement
+   * @param {GetOptions} getOptions
+   */
   public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
     const options = { where: { id, "meta.isDeleted": false } };
@@ -82,6 +91,7 @@ export class BaseGet {
 
   /**
    * Wrapper function to perform GET for record without authorization
+   * @deprecated use getResource instead.
    * @static
    * @param {string} id
    * @param {*} model
@@ -108,7 +118,7 @@ export class BaseGet {
     return translatedRecord;
   }
 
-  /** Wrapper function to perform search for CPH users
+  /** Wrapper function to perform search for CPH resources
    * @static
    * @param {*} model Service Model for which search operation will occour
    * @param {*} queryParams Input search request

@@ -16,6 +16,7 @@ export class BaseDelete {
   /**
    *  Deletes the id for provided Model from database
    *  A get is first performed to make the record exists in database and also to make sure the access by requestor is authorized.
+   *  For Definitional resources access validations are not performed.
    *
    * @static
    * @param {*} requestPayload requestPayload array in JSON format
@@ -54,6 +55,7 @@ export class BaseDelete {
   }
 
   /**
+   * @deprecated use deleteResource instead.
    * Variation of the deleteResource where access authorization checks are not performed before performing delete.
    * A get is first performed to make the record exists in database.
    *

@@ -232,6 +232,8 @@ export class BasePut {
 
   /**
    * FIXME: Review this for non-clinical usage. Currently no integrations
+   * For Definitional resource only Device & ID validations are performed.
+   * Additionally user Reference validations are performed only for Non-Definitonal Resources.
    * @param requestPayload
    * @param {string} requesterProfileId
    * @param {T} payloadModel
