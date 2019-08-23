@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -93,6 +94,7 @@ export class BasePost {
 
   /**
    * FIXME: Review this for non-clinical usage. Currently no integrations
+   * Reference validations are performed only for Non-Definitonal Resources.
    * @param requestPayload
    * @param {string} requestorProfileId
    * @param {T} payloadModel
@@ -107,32 +109,33 @@ export class BasePost {
     requestorProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
-    ownerElement: string,
-    informationSourceElement: string,
+    ownerElement?: string,
+    informationSourceElement?: string,
     referenceValidationModel?,
     referenceValidationElement?: string
   ): Promise<GenericResponse<T>> {
     log.info("saveNonClinicalResources() started");
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
+    const model = payloadModel as any;
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
+      const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
+      log.info("Reference Keys retrieved successfully :: saveResource()");
 
-    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
-    log.info("Reference Keys retrieved successfully :: saveResource()");
+      //  perform deviceId validation
+      const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+      await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+      // perform owner reference validation
+      const ownerReferences = [...new Set(keysMap.get(ownerElement))];
+      RequestValidator.validateSingularUserReference(ownerReferences);
+      // perform infoSource reference validation
+      const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
+      RequestValidator.validateSingularUserReference(informationSourceReferences);
 
-    //  perform deviceId validation
-    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    // perform owner reference validation
-    const ownerReferences = [...new Set(keysMap.get(ownerElement))];
-    RequestValidator.validateSingularUserReference(ownerReferences);
-    // perform infoSource reference validation
-    const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
-    RequestValidator.validateSingularUserReference(informationSourceReferences);
-
-    // perform Authorization, not setting ownerType as we do not care if patient or any other.
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
-    log.info("User Authorization is successful ");
-
+      // perform Authorization, not setting ownerType as we do not care if patient or any other.
+      await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
+      log.info("User Authorization is successful ");
+    }
     const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
 
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
