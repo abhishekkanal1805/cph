@@ -90,7 +90,12 @@ export class BasePut {
     log.info("Primary keys are validated");
 
     // Sharing rules validation here
-    const connection = await AuthService.authorizeRequestSharingRules(requesterProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
+    const connection = await AuthService.authorizeRequestSharingRules(
+      requesterProfileId,
+      informationSourceReferenceValue,
+      patientReferenceValue,
+      Constants.PATIENT_USER
+    );
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};

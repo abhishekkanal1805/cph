@@ -9,7 +9,9 @@ import { DataFetch } from "../utilities/dataFetch";
 export class AuthService {
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
-   *  Wrapper class to perform all User access authentication
+   * Wrapper class to perform all User access authentication
+   * If requester != requestee, then it will check connection between them,
+   * connection type should be of type practitioner/delegate and requester should be of type practitioner/ CarePartner
    * handles multiple scenarios, if requester is same as informationSource and patient, all access allowed except system user can't be information source
    * if requester is system user it can post data if it is not informationSource
    * if requester is not system user, a valid connection is expected between informationSource and patient
@@ -70,6 +72,7 @@ export class AuthService {
 
   /**
    * Wrapper class to perform all User access authentication based on sharing rules
+   * If requester != requestee, It will validate connection between requester and requestee irrespective of user type and requester should be same as InformatioSource
    * handles multiple scenarios, if requester is same as informationSource and patient, all access allowed except system user can't be information source
    * if requester is system user it can post data if it is not informationSource
    * if requester is not system user, a valid connection is expected between informationSource and patient
@@ -98,10 +101,7 @@ export class AuthService {
       log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
       return [];
     }
-    if (
-      fetchedProfiles[requester].profileType != Constants.SYSTEM_USER  &&
-      requester === informationSourceId
-    ) {
+    if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER && requester === informationSourceId) {
       log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];

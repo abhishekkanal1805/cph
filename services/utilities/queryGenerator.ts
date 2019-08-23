@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
+import { unitOfTime } from "moment";
 import { literal, Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { Utility } from "../common/Utility";
@@ -239,7 +240,7 @@ class QueryGenerator {
     const prefix = operatorMapping[dateObject.prefix] ? operatorMapping[dateObject.prefix] : dateObject.prefix;
     const operation = this.getOperator(prefix);
     const dateMomentObject = moment(dateObject.data, datePattern);
-    let periods: any = Constants.PERIOD_DAYS;
+    let periods: unitOfTime.StartOf = Constants.PERIOD_DAYS;
     if (datePattern === Constants.YEAR_MONTH) {
       periods = Constants.PERIOD_MONTHS;
     } else if (datePattern === Constants.YEAR) {
@@ -634,7 +635,7 @@ class QueryGenerator {
         const numberObject = Utility.getSearchPrefixValue(eachValue);
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
-        // to handel json null condition https://www.postgresql.org/docs/9.5/functions-json.html 
+        // to handel json null condition https://www.postgresql.org/docs/9.5/functions-json.html
         searchQuery.push(
           ` ${existsValue} (select true from ${rawSql} as element where ` +
             `(case when element = 'null'  then null else element end )::text::numeric ${numericOperation} ${eachValue})`
