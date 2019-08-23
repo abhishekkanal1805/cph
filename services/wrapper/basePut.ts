@@ -305,11 +305,7 @@ export class BasePut {
 
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       // Sharing rules validation here
-<<<<<<< HEAD
       const connection = await AuthService.authorizeRequestSharingRules(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
-=======
-      const connection = await AuthService.authorizeRequest(requesterProfileId, informationSourceReferences[0], ownerReferences[0]);
->>>>>>> 22f075e7e7c1148d70d48833b8ffb02215e5a6d4
       log.info("User Authorization is successful ");
 
       // For system user/ loggedin user to get his own record we won't add sharing rules
