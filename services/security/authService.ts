@@ -9,7 +9,9 @@ import { DataFetch } from "../utilities/dataFetch";
 export class AuthService {
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
-   *  Wrapper class to perform all User access authentication
+   * Wrapper class to perform all User access authentication
+   * If requester != requestee, then it will check connection between them,
+   * connection type should be of type practitioner/delegate and requester should be of type practitioner/ CarePartner
    * handles multiple scenarios, if requester is same as informationSource and patient, all access allowed except system user can't be information source
    * if requester is system user it can post data if it is not informationSource
    * if requester is not system user, a valid connection is expected between informationSource and patient
@@ -48,6 +50,60 @@ export class AuthService {
     ) {
       log.info("requester is of type Practitioner or Care Partner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+      const connectionStatus = [Constants.ACTIVE];
+      const connection = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
+      // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+      if (connection.length < 1) {
+        log.error("No connection found between from user and to user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      return connection;
+    } else if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+      // Maybe this can be moved to the top because if request is System user then it does not matter what the other variables are.
+      // check 4. is requester the System user. A system user can submit request on its or someone else's behalf
+      log.info("requester is a system user and it is submitting request for a valid owner");
+      return [];
+    } else {
+      // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
+      log.error("Received a user of unknown profile type");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+  }
+
+  /**
+   * Wrapper class to perform all User access authentication based on sharing rules
+   * If requester != requestee, It will validate connection between requester and requestee irrespective of user type and requester should be same as InformatioSource
+   * handles multiple scenarios, if requester is same as informationSource and patient, all access allowed except system user can't be information source
+   * if requester is system user it can post data if it is not informationSource
+   * if requester is not system user, a valid connection is expected between informationSource and patient
+   * @static
+   * @param {string} requester profileId of logged in User
+   * @param {string} informationSourceReference Reference in format UserProfile/123 for the user who is the submittingor requesting the record
+   * @param {string} ownerReference Reference in format UserProfile/123 for the user who is the record owner
+   * @param {string} ownerType optional. if provided can be used to enforce the profileType of ownerReference. Forbidden error is throw if
+   * they dont matach. If not provided owner profileType is not checked/enforced.
+   * @memberof AuthService
+   */
+  public static async authorizeRequestSharingRules(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
+    log.info("Entering AuthService :: authorizeRequestSharingRules()");
+    const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
+    const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
+    const requestProfileIds = [requester, informationSourceId, ownerId];
+    // query userprofile for the unique profile ids
+    const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
+    if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
+      log.error("Owner is not a valid " + ownerType);
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // check 2. is Patient submitting its own request
+    if (requester === informationSourceId && requester === ownerId) {
+      log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
+      return [];
+    }
+    if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER && requester === informationSourceId) {
+      log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
+      const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
       const connection = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
       // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked

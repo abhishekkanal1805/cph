@@ -491,7 +491,7 @@ describe("SharingRulesHelper", () => {
             {
               val:
                 " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-                "'{coding}'))) #> '{code}')) as element where element::text::numeric > 10)"
+                "'{coding}'))) #> '{code}')) as element where (case when element = 'null'  then null else element end )::text::numeric > 10)"
             }
           ]
         };
@@ -518,7 +518,7 @@ describe("SharingRulesHelper", () => {
             {
               val:
                 " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-                "'{coding}'))) #> '{code}')) as element where element::text::numeric >= 10)"
+                "'{coding}'))) #> '{code}')) as element where (case when element = 'null'  then null else element end )::text::numeric >= 10)"
             }
           ]
         };
@@ -545,7 +545,7 @@ describe("SharingRulesHelper", () => {
             {
               val:
                 " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-                "'{coding}'))) #> '{code}')) as element where element::text::numeric < 10)"
+                "'{coding}'))) #> '{code}')) as element where (case when element = 'null'  then null else element end )::text::numeric < 10)"
             }
           ]
         };
@@ -572,7 +572,7 @@ describe("SharingRulesHelper", () => {
             {
               val:
                 " exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-                "'{coding}'))) #> '{code}')) as element where element::text::numeric <= 10)"
+                "'{coding}'))) #> '{code}')) as element where (case when element = 'null'  then null else element end )::text::numeric <= 10)"
             }
           ]
         };
@@ -599,7 +599,7 @@ describe("SharingRulesHelper", () => {
             {
               val:
                 " not exists (select true from unnest(array(select jsonb_array_elements(unnest(array(select jsonb_array_elements(\"dataResource\" #> '{category}') #> " +
-                "'{coding}'))) #> '{code}')) as element where element::text::numeric = 10)"
+                "'{coding}'))) #> '{code}')) as element where (case when element = 'null'  then null else element end )::text::numeric = 10)"
             }
           ]
         };

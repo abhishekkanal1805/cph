@@ -1,6 +1,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
+import { unitOfTime } from "moment";
 import { literal, Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { Utility } from "../common/Utility";
@@ -239,13 +240,13 @@ class QueryGenerator {
     const prefix = operatorMapping[dateObject.prefix] ? operatorMapping[dateObject.prefix] : dateObject.prefix;
     const operation = this.getOperator(prefix);
     const dateMomentObject = moment(dateObject.data, datePattern);
-    let periods = Constants.PERIOD_DAYS;
+    let periods: unitOfTime.StartOf = Constants.PERIOD_DAYS;
     if (datePattern === Constants.YEAR_MONTH) {
       periods = Constants.PERIOD_MONTHS;
     } else if (datePattern === Constants.YEAR) {
       periods = Constants.PERIOD_YEARS;
     }
-    const nextDate = moment(dateMomentObject)
+    let nextDate = moment(dateMomentObject)
       .add({ [periods]: 1 })
       .format(datePattern);
     let dateQuery = {};
@@ -279,11 +280,19 @@ class QueryGenerator {
           };
           break;
         default:
+          let operator = Constants.PREFIX_LESS_THAN;
+          if (datePattern === Constants.DATE) {
+            nextDate = moment(dateMomentObject)
+              .utc()
+              .endOf(periods)
+              .toISOString();
+            operator = Constants.PREFIX_LESS_THAN_EQUAL;
+          }
           dateQuery = {
             [Op.and]: {
               [column.columnHierarchy]: {
                 [this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL)]: dateObject.data,
-                [this.getOperator(Constants.PREFIX_LESS_THAN)]: nextDate
+                [this.getOperator(operator)]: nextDate
               }
             }
           };
@@ -626,7 +635,11 @@ class QueryGenerator {
         const numberObject = Utility.getSearchPrefixValue(eachValue);
         const numericOperation = this.getNumericSymbol(numberObject.prefix);
         eachValue = this.getUpdatedSearchValue(numberObject.data, column);
-        searchQuery.push(` ${existsValue} (select true from ${rawSql} as element where element::text::numeric ${numericOperation} ${eachValue})`);
+        // to handel json null condition https://www.postgresql.org/docs/9.5/functions-json.html
+        searchQuery.push(
+          ` ${existsValue} (select true from ${rawSql} as element where ` +
+            `(case when element = 'null'  then null else element end )::text::numeric ${numericOperation} ${eachValue})`
+        );
       });
     } else if (column.operation === Constants.TYPE_BOOLEAN) {
       _.each(values, (eachValue: any) => {
