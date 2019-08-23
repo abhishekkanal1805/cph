@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -15,6 +16,7 @@ export class BaseDelete {
   /**
    *  Deletes the id for provided Model from database
    *  A get is first performed to make the record exists in database and also to make sure the access by requestor is authorized.
+   *  For Definitional resources access validations are not performed.
    *
    * @static
    * @param {*} requestPayload requestPayload array in JSON format
@@ -34,23 +36,26 @@ export class BaseDelete {
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
-    // For system user/ loggedin user to get his own record we won't add sharing rules
-    if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
-      if (_.isEmpty(whereClause[Op.and])) {
-        log.info("Sharing rules not present for requested user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
+      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+      const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      if (connection.length > 0) {
+        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
+        if (_.isEmpty(whereClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
       }
-      record = await DAOService.fetchOne(model, { where: whereClause });
-      record = record.dataResource;
     }
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 
   /**
+   * @deprecated use deleteResource instead.
    * Variation of the deleteResource where access authorization checks are not performed before performing delete.
    * A get is first performed to make the record exists in database.
    *

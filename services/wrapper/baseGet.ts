@@ -3,6 +3,7 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { GetOptions, SearchOptions } from "../../common/types/optionsAttribute";
 import { DAOService } from "../dao/daoService";
@@ -15,7 +16,8 @@ import { QueryValidator } from "../validators/queryValidator";
 
 export class BaseGet {
   /**
-   *
+   * Function to retrieve record by Id.
+   * Sharing rules and Authorization is performed only for Non-Definitions resources.
    *
    * @static
    * @param {string} id
@@ -26,24 +28,27 @@ export class BaseGet {
    * @returns
    * @memberof BaseGet
    */
-  public static async getResource(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
+  public static async getResource(id: string, model, requestorProfileId: string, patientElement?: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResource()");
     const queryObject = { id, "meta.isDeleted": false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
-    // For system user/ loggedin user to get his own record we won't add sharing rules
-    if (connection.length > 0) {
-      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
-      if (_.isEmpty(whereClause[Op.and])) {
-        log.info("Sharing rules not present for requested user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
+      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+      const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      if (connection.length > 0) {
+        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
+        if (_.isEmpty(whereClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
       }
-      record = await DAOService.fetchOne(model, { where: whereClause });
-      record = record.dataResource;
     }
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -56,6 +61,14 @@ export class BaseGet {
     return translatedRecord;
   }
 
+  /**
+   * @deprecated use getResource instead.
+   * @param {string} id
+   * @param {*} model
+   * @param {string} requestorProfileId
+   * @param {string} patientElement
+   * @param {GetOptions} getOptions
+   */
   public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
     const options = { where: { id, "meta.isDeleted": false } };
@@ -78,6 +91,7 @@ export class BaseGet {
 
   /**
    * Wrapper function to perform GET for record without authorization
+   * @deprecated use getResource instead.
    * @static
    * @param {string} id
    * @param {*} model
@@ -104,7 +118,7 @@ export class BaseGet {
     return translatedRecord;
   }
 
-  /** Wrapper function to perform search for CPH users
+  /** Wrapper function to perform search for CPH resources
    * @static
    * @param {*} model Service Model for which search operation will occour
    * @param {*} queryParams Input search request
@@ -127,9 +141,8 @@ export class BaseGet {
     let connection;
     let isSharingRuleCheckRequired: boolean = true;
     // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
-    if (Constants.RESOURCES_ACCESSIBLE_TO_ALL.includes(model.name)) {
+    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
       log.info("Search for resource accessible to all: " + model.name);
-      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, requestorProfileId);
       isSharingRuleCheckRequired = false;
     } else {
       if (!queryParams[resourceOwnerElement]) {
