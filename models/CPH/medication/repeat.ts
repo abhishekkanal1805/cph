@@ -1,5 +1,5 @@
-import { Duration } from "../common/duration";
-import { Period } from "../common/period";
+import { Duration } from "../../common/duration";
+import { Period } from "../../common/period";
 
 /*
  * Timing for Medication related resources
