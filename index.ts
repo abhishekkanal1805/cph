@@ -24,6 +24,7 @@ export * from "./services/wrapper/baseDelete";
 export * from "./services/wrapper/baseGet";
 
 export * from "./models/common/address";
+export * from "./models/common/annotation";
 export * from "./models/common/attachment";
 export * from "./models/common/baseBundle";
 export * from "./models/common/baseEntry";
@@ -46,6 +47,7 @@ export * from "./models/common/range";
 export * from "./models/common/ratio";
 export * from "./models/common/reference";
 export * from "./models/common/referenceRange";
+export * from "./models/common/relatedArtifact";
 export * from "./models/common/resourceMetadata";
 export * from "./models/common/sampleData";
 export * from "./models/common/search";
@@ -53,6 +55,8 @@ export * from "./models/common/simpleQuantity";
 export * from "./models/common/subject";
 export * from "./models/common/extension";
 
+export * from "./models/CPH/medication/repeat";
+export * from "./models/CPH/medication/timing";
 export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
