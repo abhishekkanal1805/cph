@@ -84,8 +84,7 @@ export class BasePut {
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
-      const informationSourceId = informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1];
-      await DataFetch.getUserProfile([informationSourceId]);
+      await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
     }
     log.info("Device and user validation is successful");
 
@@ -95,8 +94,7 @@ export class BasePut {
     log.info("Primary keys are validated");
 
     // Sharing rules validation here
-    const patientReferenceId = patientReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1];
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientReferenceId);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]);
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};
@@ -304,13 +302,11 @@ export class BasePut {
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
-      const informationSourceId = informationSourceReferences[0].split(Constants.USERPROFILE_REFERENCE)[1];
-      await DataFetch.getUserProfile([informationSourceId]);
+      await DataFetch.getUserProfile([informationSourceReferences[0].split(Constants.USERPROFILE_REFERENCE)[1]]);
 
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       // Sharing rules validation here
-      const ownerReferenceId = ownerReferences[0].split(Constants.USERPROFILE_REFERENCE)[1];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, ownerReferenceId);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, ownerReferences[0].split(Constants.USERPROFILE_REFERENCE)[1]);
       log.info("User Authorization is successful ");
 
       // For system user/ loggedin user to get his own record we won't add sharing rules
