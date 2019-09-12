@@ -1,8 +1,10 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
+import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
@@ -25,6 +27,12 @@ export class AuthService {
    */
   public static async authorizeRequest(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: performAuthorization()");
+    // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
+    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(ownerReference, informationSourceReference);
+    informationSourceReference = researchStudyProfiles[informationSourceReference]
+      ? researchStudyProfiles[informationSourceReference]
+      : informationSourceReference;
+    ownerReference = researchStudyProfiles[ownerReference] ? researchStudyProfiles[ownerReference] : ownerReference;
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requester, informationSourceId, ownerId];
@@ -86,6 +94,11 @@ export class AuthService {
    */
   public static async authorizeRequestSharingRules(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: authorizeRequestSharingRules()");
+    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(ownerReference, informationSourceReference);
+    informationSourceReference = researchStudyProfiles[informationSourceReference]
+      ? researchStudyProfiles[informationSourceReference]
+      : informationSourceReference;
+    ownerReference = researchStudyProfiles[ownerReference] ? researchStudyProfiles[ownerReference] : ownerReference;
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requester, informationSourceId, ownerId];
@@ -135,8 +148,11 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBased(requesterId: string, requesteeId: string) {
+  public static async authorizeConnectionBased(requesterId: string, requesteeReference: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
+    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(requesteeReference);
+    requesteeReference = researchStudyProfiles[requesteeReference] ? researchStudyProfiles[requesteeReference] : requesteeReference;
+    const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
@@ -178,8 +194,11 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeId: string) {
+  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeReference: string) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
+    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(requesteeReference);
+    requesteeReference = researchStudyProfiles[requesteeReference] ? researchStudyProfiles[requesteeReference] : requesteeReference;
+    const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
@@ -238,5 +257,39 @@ export class AuthService {
     result = result.map((eachRecord: any) => eachRecord[Constants.DEFAULT_SEARCH_ATTRIBUTES]);
     log.info("Exiting AuthService :: hasConnection");
     return result;
+  }
+
+  public static async getResearchStudyProfiles(ownerReference: string, informationSourceReference?: string) {
+    const reasearchSubjectProfiles: any = {};
+    let researchProfileIdx = -1;
+    if (ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) {
+      reasearchSubjectProfiles[ownerReference] = ownerReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+    }
+    if (informationSourceReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) {
+      reasearchSubjectProfiles[informationSourceReference] = informationSourceReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+    }
+    const uniqueProfileIds = _.uniq(Object.values(reasearchSubjectProfiles));
+    if (uniqueProfileIds.length) {
+      const researchStudyIdsProfiles = await DataFetch.getUserProfiles(
+        {
+          [Constants.ID]: uniqueProfileIds
+        },
+        ResearchSubject
+      );
+      if (uniqueProfileIds.length != researchStudyIdsProfiles.length) {
+        log.error("Error in DataFetch: Record doesn't exists for all requested Reasearch ids");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      if (reasearchSubjectProfiles[ownerReference]) {
+        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[Constants.SUBJECT_ATTRIBUTE] });
+        reasearchSubjectProfiles[ownerReference] = researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+      }
+      if (reasearchSubjectProfiles[informationSourceReference]) {
+        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[Constants.INFORMATION_SOURCE_ATTRIBUTE] });
+        reasearchSubjectProfiles[informationSourceReference] =
+          researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+      }
+    }
+    return reasearchSubjectProfiles;
   }
 }

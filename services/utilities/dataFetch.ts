@@ -170,7 +170,7 @@ export class DataFetch {
    * @returns
    * @memberof DataFetch
    */
-  public static async getUserProfiles(searchObject: any) {
+  public static async getUserProfiles(searchObject: any, model?: any) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
       [Op.ne]: null
@@ -179,7 +179,8 @@ export class DataFetch {
       where: searchObject,
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
     };
-    const result = await DAOService.search(UserProfile, query);
+    model = model ? model : UserProfile;
+    const result = await DAOService.search(model, query);
     return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 }
