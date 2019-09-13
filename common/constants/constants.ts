@@ -251,5 +251,7 @@ class Constants {
   public static readonly HEADER_X_XSS_PROTECTION_VALUE = "1; mode=block";
   public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
   public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
+  public static readonly USER_ATTRIBUTE = "user";
+  public static readonly USER_REFERENCE_KEY = "user.reference";
 }
 export { Constants };

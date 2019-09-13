@@ -1,6 +1,7 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { Constants } from "../../../common/constants/constants";
 import { InformationSource } from "../../common/informationSource";
+import { Reference } from "../../common/reference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { DeviceDataResource } from "./deviceDataResource";
 
@@ -31,7 +32,14 @@ export class Device extends Model<Device> {
   @Column({ type: DataType.JSONB })
   dataResource: DeviceDataResource;
 
+  @Column({ type: DataType.STRING, field: Constants.USER_ATTRIBUTE, defaultValue: null })
+  _user: string;
+
   set informationSource(value: InformationSource) {
     this._informationSource = value.reference;
+  }
+
+  set user(value: Reference) {
+    this._user = value.reference;
   }
 }
