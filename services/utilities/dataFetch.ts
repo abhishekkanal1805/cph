@@ -69,7 +69,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static getValidIds(model, recordIds: string[]): Promise<any[]> {
+  public static getValidIds(model, recordIds: string[], ownerElement?: string): Promise<any[]> {
     // TODO: "id": recordIds would achieve the same
     // TODO: Use type IFindOption<Model> for query
     const query = {
@@ -79,7 +79,7 @@ export class DataFetch {
         },
         "meta.isDeleted": false
       },
-      attributes: ["id", "meta"]
+      attributes: ["id", "meta", ownerElement].filter(Boolean)
     };
     return DAOService.search(model, query);
   }

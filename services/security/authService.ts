@@ -261,11 +261,12 @@ export class AuthService {
 
   public static async getResearchStudyProfiles(ownerReference: string, informationSourceReference?: string) {
     const reasearchSubjectProfiles: any = {};
+    const reasearchSubjectToUserProfiles: any = {};
     let researchProfileIdx = -1;
     if (ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) {
       reasearchSubjectProfiles[ownerReference] = ownerReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
     }
-    if (informationSourceReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) {
+    if (informationSourceReference && informationSourceReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) {
       reasearchSubjectProfiles[informationSourceReference] = informationSourceReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
     }
     const uniqueProfileIds = _.uniq(Object.values(reasearchSubjectProfiles));
@@ -281,15 +282,15 @@ export class AuthService {
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
       if (reasearchSubjectProfiles[ownerReference]) {
-        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[Constants.SUBJECT_ATTRIBUTE] });
-        reasearchSubjectProfiles[ownerReference] = researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[ownerReference] });
+        reasearchSubjectToUserProfiles[ownerReference] = researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
       if (reasearchSubjectProfiles[informationSourceReference]) {
-        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[Constants.INFORMATION_SOURCE_ATTRIBUTE] });
-        reasearchSubjectProfiles[informationSourceReference] =
+        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[informationSourceReference] });
+        reasearchSubjectToUserProfiles[informationSourceReference] =
           researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
     }
-    return reasearchSubjectProfiles;
+    return reasearchSubjectToUserProfiles;
   }
 }

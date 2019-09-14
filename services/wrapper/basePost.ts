@@ -57,7 +57,7 @@ export class BasePost {
 
     // perform user validation for owner reference
     const patientReferences = [...new Set(keysMap.get(patientElement))];
-    RequestValidator.validateSingularUserReference(patientReferences);
+    await RequestValidator.validateSingularUserReference(patientReferences);
     const patientReferenceValue = patientReferences[0];
     log.debug("PatientElement [" + patientElement + "] validation is successful");
 
@@ -65,7 +65,7 @@ export class BasePost {
     let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
     if (validateInformationSourceElement) {
       const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
-      RequestValidator.validateSingularUserReference(informationSourceIds);
+      await RequestValidator.validateSingularUserReference(informationSourceIds);
       informationSourceReferenceValue = informationSourceIds[0];
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
     }
@@ -127,10 +127,10 @@ export class BasePost {
       await RequestValidator.validateDeviceIds(uniqueDeviceIds);
       // perform owner reference validation
       const ownerReferences = [...new Set(keysMap.get(ownerElement))];
-      RequestValidator.validateSingularUserReference(ownerReferences);
+      await RequestValidator.validateSingularUserReference(ownerReferences);
       // perform infoSource reference validation
       const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
-      RequestValidator.validateSingularUserReference(informationSourceReferences);
+      await RequestValidator.validateSingularUserReference(informationSourceReferences);
 
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);

@@ -149,7 +149,11 @@ export class BaseGet {
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
       }
-      // TODO: NEED TO ADD
+      // CHCONHUB-4267: if only id present then we will search in userprofile table only
+      const resourceOwnerReference = queryParams[resourceOwnerElement][0];
+      if (queryParams[resourceOwnerElement][0].indexOf(Constants.FORWARD_SLASH) == -1) {
+        queryParams[resourceOwnerElement][0] = [Constants.USER_PROFILE, resourceOwnerReference].join(Constants.FORWARD_SLASH);
+      }
       connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, queryParams[resourceOwnerElement][0]);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       isSharingRuleCheckRequired = connection.length > 0;
