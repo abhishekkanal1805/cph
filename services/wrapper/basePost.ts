@@ -118,13 +118,14 @@ export class BasePost {
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const model = payloadModel as any;
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-      const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
-      log.info("Reference Keys retrieved successfully :: saveResource()");
+    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
+    log.info("Reference Keys retrieved successfully :: saveResource()");
 
-      //  perform deviceId validation
-      const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-      await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    //  perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
+
       // perform owner reference validation
       const ownerReferences = [...new Set(keysMap.get(ownerElement))];
       await RequestValidator.validateSingularUserReference(ownerReferences);
