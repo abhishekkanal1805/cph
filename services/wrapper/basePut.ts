@@ -203,7 +203,7 @@ export class BasePut {
       if (ownerElement) {
         const keysToFetch = new Map();
         keysToFetch.set(ownerElement, []);
-        let keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+        let keysMap = JsonParser.findValuesForKeyMap([record], keysToFetch);
         const payloadRecordOwner = keysMap.get(ownerElement)[0];
         const keysToFetchRequestPayload = new Map();
         keysToFetchRequestPayload.set(ownerElement, []);
