@@ -38,8 +38,7 @@ export class BaseDelete {
     record = record.dataResource;
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientId);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientIds[0]);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);

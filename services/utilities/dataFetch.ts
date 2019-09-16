@@ -69,7 +69,7 @@ export class DataFetch {
    * @returns {Promise<any>}
    * @memberof DataFetch
    */
-  public static getValidIds(model, recordIds: string[]): Promise<any[]> {
+  public static getValidIds(model, recordIds: string[], ownerElement?: string): Promise<any[]> {
     // TODO: "id": recordIds would achieve the same
     // TODO: Use type IFindOption<Model> for query
     const query = {
@@ -79,7 +79,7 @@ export class DataFetch {
         },
         "meta.isDeleted": false
       },
-      attributes: ["id", "meta"]
+      attributes: ["id", "meta", ownerElement].filter(Boolean)
     };
     return DAOService.search(model, query);
   }
@@ -170,7 +170,7 @@ export class DataFetch {
    * @returns
    * @memberof DataFetch
    */
-  public static async getUserProfiles(searchObject: any) {
+  public static async getUserProfiles(searchObject: any, model?: any) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
       [Op.ne]: null
@@ -179,7 +179,8 @@ export class DataFetch {
       where: searchObject,
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
     };
-    const result = await DAOService.search(UserProfile, query);
+    model = model ? model : UserProfile;
+    const result = await DAOService.search(model, query);
     return _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 }

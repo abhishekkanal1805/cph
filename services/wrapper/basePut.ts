@@ -71,20 +71,22 @@ export class BasePut {
 
     // perform user validation for patient reference
     const patientReferences = [...new Set(keysMap.get(patientElement))];
-    RequestValidator.validateSingularUserReference(patientReferences);
-    const patientReferenceValue = patientReferences[0];
+    await RequestValidator.validateSingularUserReference(patientReferences);
     log.debug("PatientElement [" + patientElement + "] validation is successful");
 
     // perform user validation for informationSource
-    let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
+    let informationSourceReferenceValue = patientReferences[0]; // handling for FHIR services
     if (isValidInformationSourceElement) {
       const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
-      RequestValidator.validateSingularUserReference(informationSourceIds);
-      informationSourceReferenceValue = informationSourceIds[0];
-      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
+      await RequestValidator.validateSingularUserReference(informationSourceIds);
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
+      const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(informationSourceIds[0]);
+      informationSourceReferenceValue = researchStudyProfiles[informationSourceIds[0]]
+        ? researchStudyProfiles[informationSourceIds[0]]
+        : informationSourceIds[0];
       await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
+      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
     }
     log.info("Device and user validation is successful");
 
@@ -94,10 +96,7 @@ export class BasePut {
     log.info("Primary keys are validated");
 
     // Sharing rules validation here
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(
-      requesterProfileId,
-      patientReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]
-    );
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientReferences[0]);
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};
@@ -139,7 +138,8 @@ export class BasePut {
       payloadDataResourceModel,
       referenceValidationModel,
       referenceValidationElement,
-      uniquesReferenceIds
+      uniquesReferenceIds,
+      patientElement
     );
     log.info("Payload updated successfully ");
     return result;
@@ -167,12 +167,14 @@ export class BasePut {
     modelDataResource,
     referenceValidationModel?,
     referenceValidationAttribute?: string,
-    uniquesReferenceIds?
+    uniquesReferenceIds?,
+    ownerElement?
   ) {
     log.info("Inside bulkUpdate() ");
     // check if referenceAttribute validation is required
     const isValidateReferences: boolean = referenceValidationModel && referenceValidationAttribute && uniquesReferenceIds;
     let validReferenceIds;
+    const parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
     // validate uniqueReferenceIds against referenceValidationModel
     if (isValidateReferences) {
       // check if uniqueReferenceIds exists in DB
@@ -180,56 +182,70 @@ export class BasePut {
       validReferenceIds = Utility.findIds(validReferenceIds, Constants.ID).map((eachId) => eachId);
     }
     // validate primaryKeys of all the records in request payload
-    const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds);
+    const validPrimaryIds = await DataFetch.getValidIds(model, requestPrimaryIds, parentOwnerElement);
     log.info("Valid primary Ids fetched successfully :: saveRecord()");
     const result = { savedRecords: [], errorRecords: [] };
     // creating an all promise array which can be executed in parallel.
     const allPromise = [];
     // looping over all records to filter good vs bad records
-    requestPayload.forEach((record) => {
-      // Finding if given record id exists in the record ID list received via DB batch get call.
-      const existingRecord = validPrimaryIds.find((validPrimaryId) => {
+    for (const idx in requestPayload) {
+      let record = requestPayload[idx];
+      const existingRecord: any = validPrimaryIds.find((validPrimaryId) => {
         return validPrimaryId.id === record.id;
       });
-      if (existingRecord) {
-        // If record of given id exists in database then we come in this condition.
-        if (existingRecord.meta.versionId === record.meta.versionId) {
-          // We proceed with creation of metadata and adding record to be saved if its version ID is correct
-          record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requesterProfileId, false);
-          record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
-          // if isValidateReferences = true then only referenceValidationAttribute values are validated
-          if (
-            isValidateReferences &&
-            record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
-            !validReferenceIds.includes(
-              record.dataResource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1]
-            )
-          ) {
-            const badRequest = new BadRequestResult(
-              errorCodeMap.InvalidReference.value,
-              errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
-            );
-            badRequest.clientRequestId = record.meta.clientRequestId;
-            result.errorRecords.push(badRequest);
-          } else {
-            const resultPromise = DAOService.update(model, record).then((updatedRecord) => {
-              result.savedRecords.push(updatedRecord);
-            });
-            allPromise.push(resultPromise);
-          }
-        } else {
-          // Else condition if version id is incorrect
-          const badRequest = new BadRequestResult(errorCodeMap.InvalidResourceVersion.value, existingRecord.meta.versionId);
-          badRequest.clientRequestId = record.meta.clientRequestId;
-          result.errorRecords.push(badRequest);
-        }
-      } else {
-        // Else condition if record sent to update doesn't exists in database
+      if (_.isEmpty(existingRecord)) {
+        log.error("Record not exists for id : " + record.id);
         const notFoundResult = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
         notFoundResult.clientRequestId = record.meta.clientRequestId;
         result.errorRecords.push(notFoundResult);
       }
-    });
+      // check if loggedin user trying to modify record owner
+      if (ownerElement) {
+        const keysToFetch = new Map();
+        keysToFetch.set(ownerElement, []);
+        let keysMap = JsonParser.findValuesForKeyMap([record], keysToFetch);
+        const payloadRecordOwner = keysMap.get(ownerElement)[0];
+        const keysToFetchRequestPayload = new Map();
+        keysToFetchRequestPayload.set(ownerElement, []);
+        keysToFetchRequestPayload.set(parentOwnerElement, []);
+        keysMap = JsonParser.findValuesForKeyMap([existingRecord.dataValues], keysToFetchRequestPayload);
+        const existingRecordOwner = keysMap.get(parentOwnerElement)[0] || keysMap.get(ownerElement)[0];
+        if (existingRecordOwner != payloadRecordOwner) {
+          const badRequest = new BadRequestResult(errorCodeMap.InvalidElement.value, errorCodeMap.InvalidElement.description + ownerElement);
+          badRequest.clientRequestId = record.meta.clientRequestId;
+          result.errorRecords.push(badRequest);
+          continue;
+        }
+      }
+      // validate versionId in putRequest
+      if (existingRecord.meta.versionId != record.meta.versionId) {
+        const badRequest = new BadRequestResult(errorCodeMap.InvalidResourceVersion.value, existingRecord.meta.versionId);
+        badRequest.clientRequestId = record.meta.clientRequestId;
+        result.errorRecords.push(badRequest);
+        continue;
+      }
+      // We proceed with creation of metadata and adding record to be saved if its version ID is correct
+      record.meta = DataTransform.getUpdateMetaData(record, existingRecord.meta, requesterProfileId, false);
+      record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
+      // if isValidateReferences = true then only referenceValidationAttribute values are validated
+      if (
+        isValidateReferences &&
+        record.dataResource.hasOwnProperty(referenceValidationAttribute.split(Constants.DOT_VALUE)[0]) &&
+        !validReferenceIds.includes(record.dataResource[referenceValidationAttribute.split(Constants.DOT_VALUE)[0]].reference.split(Constants.FORWARD_SLASH)[1])
+      ) {
+        const badRequest = new BadRequestResult(
+          errorCodeMap.InvalidReference.value,
+          errorCodeMap.InvalidReference.description + referenceValidationAttribute.split(Constants.DOT_VALUE)[0]
+        );
+        badRequest.clientRequestId = record.meta.clientRequestId;
+        result.errorRecords.push(badRequest);
+      } else {
+        const resultPromise = DAOService.update(model, record).then((updatedRecord) => {
+          result.savedRecords.push(updatedRecord);
+        });
+        allPromise.push(resultPromise);
+      }
+    }
     // promise all to run in parallel.
     log.info("Firing bulk update all promises :: bulkUpdate()");
     await Promise.all(allPromise);
@@ -297,22 +313,23 @@ export class BasePut {
       const referencesMap = JsonParser.findValuesForKeyMap(requestPayload, referenceKeys);
       // perform owner reference validation
       const ownerReferences = [...new Set(referencesMap.get(ownerElement))];
-      RequestValidator.validateSingularUserReference(ownerReferences);
+      await RequestValidator.validateSingularUserReference(ownerReferences);
       log.debug("OwnerElement [" + ownerElement + "] validation is successful");
       // perform infoSource reference validation
       const informationSourceReferences = [...new Set(referencesMap.get(informationSourceElement))];
-      RequestValidator.validateSingularUserReference(informationSourceReferences);
+      await RequestValidator.validateSingularUserReference(informationSourceReferences);
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
-      await DataFetch.getUserProfile([informationSourceReferences[0].split(Constants.USERPROFILE_REFERENCE)[1]]);
-
+      const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(informationSourceReferences[0]);
+      const informationSourceReferenceValue = researchStudyProfiles[informationSourceReferences[0]]
+        ? researchStudyProfiles[informationSourceReferences[0]]
+        : informationSourceReferences[0];
+      await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
+      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       // Sharing rules validation here
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(
-        requesterProfileId,
-        ownerReferences[0].split(Constants.USERPROFILE_REFERENCE)[1]
-      );
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, ownerReferences[0]);
       log.info("User Authorization is successful ");
 
       // For system user/ loggedin user to get his own record we won't add sharing rules
@@ -357,7 +374,8 @@ export class BasePut {
       payloadDataResourceModel,
       referenceValidationModel,
       referenceValidationElement,
-      uniquesReferenceIds
+      uniquesReferenceIds,
+      ownerElement
     );
     log.info("Payload updated successfully ");
     return result;

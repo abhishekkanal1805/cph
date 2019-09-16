@@ -37,8 +37,7 @@ export class BaseGet {
 
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientId);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientIds[0]);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
@@ -75,8 +74,7 @@ export class BaseGet {
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientId);
+    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0]);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -150,6 +148,11 @@ export class BaseGet {
         // If loggedin id is not present in queryParams, then return loggedin user data only
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
+      }
+      // CHCONHUB-4267: if only id present then we will search in userprofile table only
+      const resourceOwnerReference = queryParams[resourceOwnerElement][0];
+      if (queryParams[resourceOwnerElement][0].indexOf(Constants.FORWARD_SLASH) == -1) {
+        queryParams[resourceOwnerElement][0] = [Constants.USER_PROFILE, resourceOwnerReference].join(Constants.FORWARD_SLASH);
       }
       connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, queryParams[resourceOwnerElement][0]);
       // For system user/ loggedin user to get his own record we won't add sharing rules
