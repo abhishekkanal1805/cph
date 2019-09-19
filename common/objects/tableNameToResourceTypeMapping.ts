@@ -17,5 +17,7 @@ export const tableNameToResourceTypeMapping = {
   QuestionnaireResponse: "QuestionnaireResponse",
   UserProfile: "UserProfile",
   Notification: "Notification",
-  Invitation: "Invitation"
+  Invitation: "Invitation",
+  Task: "Task",
+  Location: "Location"
 };
