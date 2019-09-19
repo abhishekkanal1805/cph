@@ -19,5 +19,11 @@ export const tableNameToResourceTypeMapping = {
   Notification: "Notification",
   Invitation: "Invitation",
   Task: "Task",
-  Location: "Location"
+  Location: "Location",
+  ResearchStudy: "ResearchStudy",
+  ResearchSubject: "ResearchSubject",
+  PlanDefinition: "PlanDefinition",
+  ActivityDefinition: "ActivityDefinition",
+  RequestGroup: "RequestGroup",
+  StudySite: "StudySite"
 };
