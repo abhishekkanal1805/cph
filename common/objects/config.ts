@@ -29,7 +29,7 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "inviteeReference", "inviter"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "inviteeReference", "inviter", "user"],
   nonUserDisplayFields: ["device", "medicationPlan"],
   typeAttributeAdditionalFields: ["derivedFrom", "basedOn", "assigner"],
   searchContent: {

@@ -1,6 +1,7 @@
 import { CodeableConcept } from "../../common/codeableConcept";
 import { Identifier } from "../../common/identifier";
 import { InformationSource } from "../../common/informationSource";
+import { Reference } from "../../common/reference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { DeviceName } from "./deviceName";
 import { Version } from "./version";
@@ -13,6 +14,7 @@ export class DeviceDataResource {
   status: string;
   statusReason: CodeableConcept[];
   informationSource: InformationSource;
+  user: Reference;
   manufacturer: string;
   manufactureDate: string;
   expirationDate: string;
