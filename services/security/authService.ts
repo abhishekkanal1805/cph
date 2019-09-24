@@ -259,6 +259,15 @@ export class AuthService {
     return result;
   }
 
+  /**
+   * Validates ResearchSubject profiles and returns connected UserProfile Reference
+   *
+   * @static
+   * @param {string} ownerReference userReference value
+   * @param {string} informationSourceReference practionerReference value
+   * @returns
+   * @memberof AuthService
+   */
   public static async getResearchStudyProfiles(ownerReference: string, informationSourceReference?: string) {
     const reasearchSubjectProfiles: any = {};
     const reasearchSubjectToUserProfiles: any = {};
@@ -273,7 +282,8 @@ export class AuthService {
     if (uniqueProfileIds.length) {
       const researchStudyIdsProfiles = await DataFetch.getUserProfiles(
         {
-          [Constants.ID]: uniqueProfileIds
+          [Constants.ID]: uniqueProfileIds,
+          [Constants.META_IS_DELETED_KEY]: false
         },
         ResearchSubject
       );

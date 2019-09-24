@@ -176,7 +176,7 @@ export class BasePut {
     let validReferenceIds;
     let parentOwnerElement = ownerElement;
     if (ownerElement) {
-        parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
+      parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
     }
     // validate uniqueReferenceIds against referenceValidationModel
     if (isValidateReferences) {
