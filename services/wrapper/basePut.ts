@@ -174,7 +174,7 @@ export class BasePut {
     // check if referenceAttribute validation is required
     const isValidateReferences: boolean = referenceValidationModel && referenceValidationAttribute && uniquesReferenceIds;
     let validReferenceIds;
-    let parentOwnerElement = ownerElement;
+    let parentOwnerElement;
     if (ownerElement) {
       parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
     }
