@@ -174,7 +174,10 @@ export class BasePut {
     // check if referenceAttribute validation is required
     const isValidateReferences: boolean = referenceValidationModel && referenceValidationAttribute && uniquesReferenceIds;
     let validReferenceIds;
-    const parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
+    let parentOwnerElement;
+    if (ownerElement) {
+      parentOwnerElement = ownerElement.split(Constants.DOT_VALUE)[0];
+    }
     // validate uniqueReferenceIds against referenceValidationModel
     if (isValidateReferences) {
       // check if uniqueReferenceIds exists in DB

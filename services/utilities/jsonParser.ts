@@ -78,8 +78,8 @@ export class JsonParser {
   public static findAllKeysAsMap(records: any[], ...keys: string[]): Map<string, any[]> {
     const keysToFetch = new Map();
     for (const key of keys) {
-      if(key){
-      keysToFetch.set(key, []);
+      if (key) {
+        keysToFetch.set(key, []);
       }
     }
     return JsonParser.findValuesForKeyMap(records, keysToFetch);
