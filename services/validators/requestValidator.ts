@@ -5,7 +5,6 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
-import { Reference } from "../../models/common/reference";
 import { Device } from "../../models/CPH/device/device";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { Utility } from "../common/Utility";
