@@ -5,6 +5,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
+import { Reference } from "../../models/common/reference";
 import { Device } from "../../models/CPH/device/device";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { Utility } from "../common/Utility";
@@ -222,5 +223,33 @@ export class RequestValidator {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     return requestPayload;
+  }
+
+  /**
+   * This function is used to validate reference attributes
+   * @param referenceList it contains references which needs to be validated
+   * @param attribute whose references are being validated
+   * @returns {Promise<void>}
+   */
+  public static async validateReferencesForAttribute(referenceList: string[], attribute) {
+    try {
+      const referenceMap = new Map();
+      // create a map of references where resourceType is key and resourceIds are values
+      for (const reference of referenceList) {
+        const resourceType = reference.split(Constants.FORWARD_SLASH)[0];
+        const resourceId = reference.split(Constants.FORWARD_SLASH)[1];
+        const resourceIds: string[] = referenceMap.has(resourceType) ? referenceMap.get(resourceType) : [];
+        resourceIds.push(resourceId);
+        referenceMap.set(resourceType, resourceIds);
+      }
+      // validate all the resourceTypes and resourceIds
+      if (referenceMap.size > 0) {
+        for (const [resourceType, resourceIds] of referenceMap) {
+          await RequestValidator.validateReference(resourceType, resourceIds);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + attribute);
+    }
   }
 }
