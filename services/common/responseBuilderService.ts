@@ -212,8 +212,8 @@ class ResponseBuilderService {
       const familyName = result.name ? result.name.family || "" : "";
       const displayName = [familyName, givenName.join(" ")].join(", ");
       log.info("Initialized the displayMap with {profileId:" + profileId + ", displayName=" + displayName + "}");
-      ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
-      ResponseBuilderService.typeMap[profileId] = [result.resourceType, result.type].join(".");
+      ResponseBuilderService.displayMap[profileReference] = displayName ? displayName : " ";
+      ResponseBuilderService.typeMap[profileReference] = [result.resourceType, result.type].join(".");
     } catch (e) {
       log.error("Error constructing display name for profileId=" + profileReference);
     }
