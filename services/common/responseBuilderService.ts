@@ -16,6 +16,7 @@ import {
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
+import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 import { Utility } from "./Utility";
@@ -150,19 +151,21 @@ class ResponseBuilderService {
     for (const eachResult of result) {
       for (const displayAttribute of config.data.displayFields) {
         if (eachResult[displayAttribute] && eachResult[displayAttribute].reference) {
-          const serviceObj: any = Utility.getServiceId(eachResult[displayAttribute].reference);
-          if (serviceObj.resourceType.toLowerCase() === "userprofile") {
-            displayValue = await this.getDisplayAttribute(serviceObj.id);
+          const profileReference: string = eachResult[displayAttribute].reference;
+          if (profileReference.indexOf(Constants.USER_PROFILE) > -1 || profileReference.indexOf(Constants.RESEARCH_SUBJECT) > -1) {
+            displayValue = await this.getDisplayAttribute(profileReference);
             eachResult[displayAttribute].display = displayValue;
-            eachResult[displayAttribute].type = ResponseBuilderService.typeMap[serviceObj.id];
+            eachResult[displayAttribute].type = ResponseBuilderService.typeMap[profileReference];
           }
         }
       }
       // Adding type value non display attributes
       const nonDisplayAttributes = lodash.concat(config.data.nonUserDisplayFields, config.data.typeAttributeAdditionalFields);
       for (const nonDisplayAttribute of nonDisplayAttributes) {
-        if (eachResult[nonDisplayAttribute]) {
-          eachResult[nonDisplayAttribute].type = eachResult.resourceType;
+        if (eachResult[nonDisplayAttribute] && eachResult[nonDisplayAttribute].reference) {
+          if (eachResult[nonDisplayAttribute].reference.indexOf(Constants.FORWARD_SLASH) > -1) {
+            eachResult[nonDisplayAttribute].type = eachResult[nonDisplayAttribute].reference.split(Constants.FORWARD_SLASH)[0];
+          }
         }
       }
     }
@@ -175,15 +178,15 @@ class ResponseBuilderService {
 
   /**
    * Function to get display attribute.
-   * @param {string} profileId profile id.
+   * @param {string} profileReference profile refrence UserProfile/123
    * @returns display value.
    */
-  public static async getDisplayAttribute(profileId: string) {
-    if (!ResponseBuilderService.displayMap.hasOwnProperty(profileId)) {
-      log.info("The displayMap does not contain this profile, fetching profileId=" + profileId);
-      await ResponseBuilderService.initDisplayName(profileId);
+  public static async getDisplayAttribute(profileReference: string) {
+    if (!ResponseBuilderService.displayMap.hasOwnProperty(profileReference)) {
+      log.info("The displayMap does not contain this profile, fetching profileId=" + profileReference);
+      await ResponseBuilderService.initDisplayName(profileReference);
     }
-    const displayValue = ResponseBuilderService.displayMap[profileId];
+    const displayValue = ResponseBuilderService.displayMap[profileReference];
     return displayValue;
   }
 
@@ -191,11 +194,18 @@ class ResponseBuilderService {
    * If the display name for this profile is not found inthe map we attempt to fetch profile
    * and construct the name and add it to the map for later use.
    * If exception, we will not add any map entry
-   * @param {string} profileId
+   * @param {string} profileReference UserProfile/123
    * @returns {Promise<string>}
    */
-  public static async initDisplayName(profileId: string) {
+  public static async initDisplayName(profileReference: string) {
     try {
+      const profileObj: any = Utility.getServiceId(profileReference);
+      let profileId = profileObj.id;
+      if (profileObj.resourceType == Constants.RESEARCH_SUBJECT) {
+        log.info("Fetching UserProfile for profileReference: " + profileReference);
+        const researchSubjectResult = await DAOService.fetchByPk(profileObj.id, ResearchSubject);
+        profileId = researchSubjectResult[Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE].split(Constants.FORWARD_SLASH)[1];
+      }
       const result = await DAOService.fetchByPk(profileId, UserProfile);
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
@@ -205,7 +215,7 @@ class ResponseBuilderService {
       ResponseBuilderService.displayMap[profileId] = displayName ? displayName : " ";
       ResponseBuilderService.typeMap[profileId] = [result.resourceType, result.type].join(".");
     } catch (e) {
-      log.error("Error constructing display name for profileId=" + profileId);
+      log.error("Error constructing display name for profileId=" + profileReference);
     }
   }
 

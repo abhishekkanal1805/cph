@@ -81,9 +81,9 @@ export class BasePut {
       await RequestValidator.validateSingularUserReference(informationSourceIds);
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
-      const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(informationSourceIds[0]);
-      informationSourceReferenceValue = researchStudyProfiles[informationSourceIds[0]]
-        ? researchStudyProfiles[informationSourceIds[0]]
+      const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(informationSourceIds[0]);
+      informationSourceReferenceValue = researchSubjectProfiles[informationSourceIds[0]]
+        ? researchSubjectProfiles[informationSourceIds[0]]
         : informationSourceIds[0];
       await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
@@ -324,9 +324,9 @@ export class BasePut {
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
-      const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(informationSourceReferences[0]);
-      const informationSourceReferenceValue = researchStudyProfiles[informationSourceReferences[0]]
-        ? researchStudyProfiles[informationSourceReferences[0]]
+      const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(informationSourceReferences[0]);
+      const informationSourceReferenceValue = researchSubjectProfiles[informationSourceReferences[0]]
+        ? researchSubjectProfiles[informationSourceReferences[0]]
         : informationSourceReferences[0];
       await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
