@@ -3,6 +3,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
+import { DataFetch } from "../utilities/dataFetch";
 import { RequestValidator } from "./requestValidator";
 
 describe("RequestValidator", () => {
@@ -166,11 +167,15 @@ describe("RequestValidator", () => {
   });
 
   describe("#validateSingularUserReference()", () => {
-    it("Should throw BadRequestResult error if more than one patient references are provided", (done) => {
+    const reference = Constants.INDIVIDUAL + "." + Constants.REFERENCE_ATTRIBUTE;
+    it("Should throw BadRequestResult error if more than one patient references are provided", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}, {[reference]: "2"}];
+      });
       const patientReferenceId = ["1", "2"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        RequestValidator.validateSingularUserReference(patientReferenceId);
+        await RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -179,11 +184,14 @@ describe("RequestValidator", () => {
       done.fail("Should have thrown the BadRequestResult error.");
     });
 
-    it("Should throw BadRequestResult error if more than one patient references are provided even if all the same", (done) => {
+    it("Should throw BadRequestResult error if more than one patient references are provided even if all the same", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}, {[reference]: "2"}];
+      });
       const patientReferenceId = ["1", "1"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        RequestValidator.validateSingularUserReference(patientReferenceId);
+        await RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError, "This failed");
         done();
@@ -192,11 +200,14 @@ describe("RequestValidator", () => {
       done.fail("Should have thrown the BadRequestResult error.");
     });
 
-    it("Should throw BadRequestResult error if no patient references are provided", (done) => {
+    it("Should throw BadRequestResult error if no patient references are provided", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}, {[reference]: "2"}];
+      });
       const patientReferenceId = [];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        RequestValidator.validateSingularUserReference(patientReferenceId);
+        await RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError, "This failed");
         done();
@@ -205,12 +216,15 @@ describe("RequestValidator", () => {
       done.fail("Should have thrown the BadRequestResult error.");
     });
 
-    it("Validates correctly if exactly one patient reference is provided", (done) => {
-      const patientReferenceId = ["1"];
+    it("Validates correctly if exactly one patient reference is provided", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}];
+      });
+      const patientReference = ["UserProfile/1"];
       let result = null;
       const expected = null;
       try {
-        RequestValidator.validateSingularUserReference(patientReferenceId);
+        await RequestValidator.validateSingularUserReference(patientReference);
       } catch (err) {
         result = err;
       }
@@ -220,24 +234,31 @@ describe("RequestValidator", () => {
   });
 
   describe("#validateNumberOfUniqueUserReference()", () => {
-    it("Throw error user reference id are more than 1", (done) => {
+    const reference = Constants.INDIVIDUAL + "." + Constants.REFERENCE_ATTRIBUTE;
+    it("Throw error user reference id are more than 1", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}];
+      });
       const userReferenceId = ["1", "2"];
       let result;
       const expected = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        RequestValidator.validateSingularUserReference(userReferenceId);
+        await RequestValidator.validateSingularUserReference(userReferenceId);
       } catch (err) {
         result = err;
       }
       expect(result).toEqual(expected);
       done();
     });
-    it("No error is thrown if patient reference are unique", (done) => {
-      const userReferenceId = ["1"];
+    it("No error is thrown if patient reference are unique", async (done) => {
+      spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
+        return [{[reference]: "1"}];
+      });
+      const userReference = ["UserProfile/1"];
       let result = null;
       const expected = null;
       try {
-        RequestValidator.validateSingularUserReference(userReferenceId);
+        await RequestValidator.validateSingularUserReference(userReference);
       } catch (err) {
         result = err;
       }

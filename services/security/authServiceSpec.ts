@@ -47,6 +47,10 @@ describe("AuthService", () => {
         // does not matter what this returns as long as error is not thrown
         return {};
       });
+      spyOn(AuthService, "getResearchStudyProfiles").and.callFake(() => {
+        // does not matter what this returns as long as error is not thrown
+        return {[testProfile.id]: Constants.USERPROFILE_REFERENCE + testProfile.id};
+      });
 
       try {
         await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id);
