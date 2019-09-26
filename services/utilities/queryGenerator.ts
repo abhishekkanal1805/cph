@@ -66,7 +66,10 @@ class QueryGenerator {
     if (column.cast === Constants.TYPE_NUMBER) {
       return Number(value) || 0;
     }
-    value = [prefixValue, value, suffixValue].join(Constants.EMPTY_VALUE);
+    // Add prefix if value doesn't contain any reference
+    if (value.indexOf(Constants.FORWARD_SLASH) == -1) {
+      value = [prefixValue, value, suffixValue].join(Constants.EMPTY_VALUE);
+    }
     switch (column.operation) {
       case Constants.OPERATION_LIKE:
         value = Constants.PERCENTAGE_VALUE + value + Constants.PERCENTAGE_VALUE;

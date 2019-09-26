@@ -79,7 +79,7 @@ export class JsonParser {
     const keysToFetch = new Map();
     for (const key of keys) {
       if (key) {
-      keysToFetch.set(key, []);
+        keysToFetch.set(key, []);
       }
     }
     return JsonParser.findValuesForKeyMap(records, keysToFetch);
