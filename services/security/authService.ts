@@ -28,11 +28,11 @@ export class AuthService {
   public static async authorizeRequest(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: performAuthorization()");
     // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
-    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(ownerReference, informationSourceReference);
-    informationSourceReference = researchStudyProfiles[informationSourceReference]
-      ? researchStudyProfiles[informationSourceReference]
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
+    informationSourceReference = researchSubjectProfiles[informationSourceReference]
+      ? researchSubjectProfiles[informationSourceReference]
       : informationSourceReference;
-    ownerReference = researchStudyProfiles[ownerReference] ? researchStudyProfiles[ownerReference] : ownerReference;
+    ownerReference = researchSubjectProfiles[ownerReference] ? researchSubjectProfiles[ownerReference] : ownerReference;
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requester, informationSourceId, ownerId];
@@ -94,11 +94,11 @@ export class AuthService {
    */
   public static async authorizeRequestSharingRules(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
     log.info("Entering AuthService :: authorizeRequestSharingRules()");
-    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(ownerReference, informationSourceReference);
-    informationSourceReference = researchStudyProfiles[informationSourceReference]
-      ? researchStudyProfiles[informationSourceReference]
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
+    informationSourceReference = researchSubjectProfiles[informationSourceReference]
+      ? researchSubjectProfiles[informationSourceReference]
       : informationSourceReference;
-    ownerReference = researchStudyProfiles[ownerReference] ? researchStudyProfiles[ownerReference] : ownerReference;
+    ownerReference = researchSubjectProfiles[ownerReference] ? researchSubjectProfiles[ownerReference] : ownerReference;
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requester, informationSourceId, ownerId];
@@ -150,8 +150,8 @@ export class AuthService {
    */
   public static async authorizeConnectionBased(requesterId: string, requesteeReference: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
-    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(requesteeReference);
-    requesteeReference = researchStudyProfiles[requesteeReference] ? researchStudyProfiles[requesteeReference] : requesteeReference;
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
+    requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
@@ -196,8 +196,8 @@ export class AuthService {
    */
   public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeReference: string) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
-    const researchStudyProfiles: any = await AuthService.getResearchStudyProfiles(requesteeReference);
-    requesteeReference = researchStudyProfiles[requesteeReference] ? researchStudyProfiles[requesteeReference] : requesteeReference;
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
+    requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
@@ -260,15 +260,15 @@ export class AuthService {
   }
 
   /**
-   * Validates ResearchSubject profiles and returns connected UserProfile Reference
+   * Validates ResearchSubject profiles reference and returns mapped UserProfile Reference
    *
    * @static
-   * @param {string} ownerReference userReference value
-   * @param {string} informationSourceReference practionerReference value
+   * @param {string} ownerReference userReference value will be Reference/1234
+   * @param {string} informationSourceReference practionerReference value will be Reference/1234
    * @returns
    * @memberof AuthService
    */
-  public static async getResearchStudyProfiles(ownerReference: string, informationSourceReference?: string) {
+  public static async getResearchSubjectProfiles(ownerReference: string, informationSourceReference?: string) {
     const reasearchSubjectProfiles: any = {};
     const reasearchSubjectToUserProfiles: any = {};
     let researchProfileIdx = -1;

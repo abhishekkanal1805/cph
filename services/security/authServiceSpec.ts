@@ -47,9 +47,9 @@ describe("AuthService", () => {
         // does not matter what this returns as long as error is not thrown
         return {};
       });
-      spyOn(AuthService, "getResearchStudyProfiles").and.callFake(() => {
+      spyOn(AuthService, "getResearchSubjectProfiles").and.callFake(() => {
         // does not matter what this returns as long as error is not thrown
-        return {[testProfile.id]: Constants.USERPROFILE_REFERENCE + testProfile.id};
+        return { [testProfile.id]: Constants.USERPROFILE_REFERENCE + testProfile.id };
       });
 
       try {

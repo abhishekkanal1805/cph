@@ -170,7 +170,7 @@ describe("RequestValidator", () => {
     const reference = Constants.INDIVIDUAL + "." + Constants.REFERENCE_ATTRIBUTE;
     it("Should throw BadRequestResult error if more than one patient references are provided", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}, {[reference]: "2"}];
+        return [{ [reference]: "1" }, { [reference]: "2" }];
       });
       const patientReferenceId = ["1", "2"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
@@ -186,7 +186,7 @@ describe("RequestValidator", () => {
 
     it("Should throw BadRequestResult error if more than one patient references are provided even if all the same", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}, {[reference]: "2"}];
+        return [{ [reference]: "1" }, { [reference]: "2" }];
       });
       const patientReferenceId = ["1", "1"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
@@ -202,7 +202,7 @@ describe("RequestValidator", () => {
 
     it("Should throw BadRequestResult error if no patient references are provided", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}, {[reference]: "2"}];
+        return [{ [reference]: "1" }, { [reference]: "2" }];
       });
       const patientReferenceId = [];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
@@ -218,7 +218,7 @@ describe("RequestValidator", () => {
 
     it("Validates correctly if exactly one patient reference is provided", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}];
+        return [{ [reference]: "1" }];
       });
       const patientReference = ["UserProfile/1"];
       let result = null;
@@ -237,7 +237,7 @@ describe("RequestValidator", () => {
     const reference = Constants.INDIVIDUAL + "." + Constants.REFERENCE_ATTRIBUTE;
     it("Throw error user reference id are more than 1", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}];
+        return [{ [reference]: "1" }];
       });
       const userReferenceId = ["1", "2"];
       let result;
@@ -252,7 +252,7 @@ describe("RequestValidator", () => {
     });
     it("No error is thrown if patient reference are unique", async (done) => {
       spyOn(DataFetch, "getUserProfiles").and.callFake(() => {
-        return [{[reference]: "1"}];
+        return [{ [reference]: "1" }];
       });
       const userReference = ["UserProfile/1"];
       let result = null;
