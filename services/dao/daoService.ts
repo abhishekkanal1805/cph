@@ -1,7 +1,12 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
+import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, InternalServerErrorResult, NotFoundResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
+import { DataSource } from "../../dataSource";
+import { DataFetch } from "../utilities/dataFetch";
 
 export class DAOService {
   /**
@@ -211,5 +216,58 @@ export class DAOService {
         log.debug("Error while updating resource: " + err.stack);
         throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       });
+  }
+
+  /**
+   * This function is used to fetch resource irrespective of the model.
+   * @param {string} resourceType which table needs to be queried
+   * @param {string} resourceIds whose dataResources needs to be fetched
+   * @returns {Promise<any>} returns dataResources
+   */
+  public static async getResourcesById(resourceType: string, resourceIds: string[], model?: any): Promise<any> {
+    log.info("In DAOService: getResourcesById()");
+    try {
+      let dataResources: any;
+      const tableName = resourceTypeToTableNameMapping[resourceType];
+      if (tableName) {
+        if (model) {
+          log.info("Fetch UserProfile dataResources");
+          const uniqueResourceIds = _.uniq(Object.values(resourceIds));
+          dataResources = await DataFetch.getUserProfiles(
+            {
+              [Constants.ID]: uniqueResourceIds,
+              [Constants.META_IS_DELETED_KEY]: false
+            },
+            model
+          );
+          if (dataResources.length < 1) {
+            log.error("Invalid UserProfile resource Id");
+            throw Error();
+          }
+          return dataResources;
+        } else {
+          dataResources = await DataSource.getDataSource()
+            .query(
+              'SELECT \"dataResource\" FROM "' + tableName + '" WHERE id in (:id) and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';",
+              {
+                replacements: { id: resourceIds },
+                type: sequelize.QueryTypes.SELECT
+              }
+            )
+            .then((results) => {
+              if (results.length != [...new Set(resourceIds)].length) {
+                log.error("Invalid " + tableName + " resource Id");
+                throw new UnAuthorizedResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+              }
+              return results;
+            });
+          return dataResources;
+        }
+      } else {
+        throw Error();
+      }
+    } catch (err) {
+      throw new UnAuthorizedResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
   }
 }
