@@ -125,7 +125,6 @@ export class BasePost {
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-
       // perform owner reference validation
       const ownerReferences = [...new Set(keysMap.get(ownerElement))];
       await RequestValidator.validateSingularUserReference(ownerReferences);
