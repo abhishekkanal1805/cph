@@ -252,6 +252,9 @@ class QueryGenerator {
     } else if (currentDatePattern === Constants.YEAR) {
       periods = Constants.PERIOD_YEARS;
     }
+    if (prefix === Constants.PREFIX_LESS_THAN_EQUAL || prefix === Constants.PREFIX_LESS_THAN) {
+      periodAttribute = rangeObject.start;
+    }
     const nextDate = moment(dateMomentObject)
       .add({ [periods]: 1 })
       .format(currentDatePattern);
@@ -269,7 +272,6 @@ class QueryGenerator {
         break;
       case Constants.PREFIX_GREATER_THAN_EQUAL:
       case Constants.PREFIX_LESS_THAN:
-        periodAttribute = rangeObject.start;
         queryObject[Op.or].push({
           [columnName]: {
             [periodAttribute]: {
@@ -280,13 +282,23 @@ class QueryGenerator {
         this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
         break;
       default:
+        const startDate = moment(dateMomentObject, currentDatePattern)
+          .utc()
+          .add(1, Constants.PERIOD_DAYS)
+          .startOf(Constants.PERIOD_DAYS)
+          .toISOString();
+        const endDate = moment(dateMomentObject, currentDatePattern)
+          .utc()
+          .add(1, periods)
+          .endOf(Constants.PERIOD_DAYS)
+          .toISOString();
         queryObject[Op.or].push({
           [columnName]: {
             [rangeObject.start]: {
-              [startOperator]: dateMomentObject.format(currentDatePattern)
+              [startOperator]: endDate
             },
             [rangeObject.end]: {
-              [endOperator]: dateMomentObject.format(currentDatePattern)
+              [endOperator]: startDate
             }
           }
         });

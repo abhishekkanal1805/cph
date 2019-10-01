@@ -118,7 +118,7 @@ export class BasePut {
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
     if (!filteredPrimaryKeyIds.length) {
       log.info("validIds list is empty");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     // fetch unique reference ids of referenceValidationElement which needs to be validated
@@ -358,7 +358,7 @@ export class BasePut {
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     if (!filteredPrimaryKeyIds.length) {
       log.info("validIds list is empty");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     // fetch unique reference ids of referenceValidationElement which needs to be validated
     let uniquesReferenceIds;
