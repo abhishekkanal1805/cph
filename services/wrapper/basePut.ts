@@ -201,6 +201,7 @@ export class BasePut {
         const notFoundResult = new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
         notFoundResult.clientRequestId = record.meta.clientRequestId;
         result.errorRecords.push(notFoundResult);
+        continue;
       }
       // check if loggedin user trying to modify record owner
       if (ownerElement) {
