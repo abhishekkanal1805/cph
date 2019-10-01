@@ -102,15 +102,15 @@ class QueryGenerator {
    * @param {*} rangeObject RangeObject object from config file, it will specify start and end attribute for a column
    * @param {*} dateMomentObject Input Date object
    * @param {*} queryObject Query object which stores all search conditions
+   * @param {string} prefix prefix value of input search value
    * @param {string} currentDatePattern Date pattern of input dateObject
    * @memberof QueryGenerator
    */
-  public static getPeriodDateFilters(columnName: string, rangeObject: any, dateMomentObject: any, queryObject: any, currentDatePattern: string) {
+
+  public static getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern) {
     if (!queryObject[Op.or]) {
       queryObject[Op.or] = [];
     }
-    const startOperator = this.getOperator(Constants.PREFIX_LESS_THAN_EQUAL);
-    const endOperator = this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL);
     const periodDate = dateMomentObject.format(Constants.DATE);
     const periodYearMonth = dateMomentObject.format(Constants.YEAR_MONTH);
     const periodYear = dateMomentObject.format(Constants.YEAR);
@@ -118,71 +118,179 @@ class QueryGenerator {
       case Constants.DATE_TIME:
         queryObject[Op.or].push({
           [columnName]: {
-            [rangeObject.start]: {
-              [startOperator]: periodDate
-            },
-            [rangeObject.end]: {
-              [endOperator]: periodDate
-            }
+            [periodAttribute]: periodDate
           }
         });
       case Constants.DATE:
-        queryObject[Op.or].push(
-          {
-            [columnName]: {
-              [rangeObject.start]: {
-                [startOperator]: periodDate
-              },
-              [rangeObject.end]: {
-                [endOperator]: periodDate
-              }
-            }
-          },
-          {
-            [columnName]: {
-              [rangeObject.start]: {
-                [startOperator]: periodYearMonth
-              },
-              [rangeObject.end]: {
-                [endOperator]: periodYearMonth
-              }
-            }
-          }
-        );
-      case Constants.YEAR_MONTH:
-        queryObject[Op.or].push(
-          {
-            [columnName]: {
-              [rangeObject.start]: {
-                [startOperator]: periodYearMonth
-              },
-              [rangeObject.end]: {
-                [endOperator]: periodYearMonth
-              }
-            }
-          },
-          {
-            [columnName]: {
-              [rangeObject.start]: {
-                [startOperator]: periodYear
-              },
-              [rangeObject.end]: {
-                [endOperator]: periodYear
-              }
-            }
-          }
-        );
-      case Constants.YEAR:
         queryObject[Op.or].push({
           [columnName]: {
-            [rangeObject.start]: {
-              [startOperator]: periodYear
-            },
-            [rangeObject.end]: {
-              [endOperator]: periodYear
+            [periodAttribute]: periodYearMonth
+          }
+        });
+      case Constants.YEAR_MONTH:
+        queryObject[Op.or].push({
+          [columnName]: {
+            [periodAttribute]: periodYear
+          }
+        });
+      default:
+        break;
+    }
+  }
+
+  /**
+   * It will add additional filter for Period
+   * FHIR Date Search: https://www.hl7.org/fhir/search.html#date
+   * If input is 2019-03-12T07:32:18.279Z, then as per FHIR it should match for 2019, 2019-03, 2019-03-12
+   * if dateObject is of type datetime then add condition for data, year-month, year
+   * if dateObject is of type date then add condition for year-month, year
+   * if dateObject is of type year-month then add condition for year
+   * if dateObject is of type year then don't add any condition
+   * @static
+   * @param {string} columnName Column object from config file
+   * @param {*} rangeObject RangeObject object from config file, it will specify start and end attribute for a column
+   * @param {*} dateMomentObject Input Date object
+   * @param {*} queryObject Query object which stores all search conditions
+   * @param {string} currentDatePattern Date pattern of input dateObject
+   * @param {string} prefix prefix value of input search value
+   * @memberof QueryGenerator
+   */
+  public static getPeriodDateTimeFilters(
+    columnName: string,
+    rangeObject: any,
+    dateMomentObject: any,
+    queryObject: any,
+    currentDatePattern: string,
+    prefix: string
+  ) {
+    if (!queryObject[Op.or]) {
+      queryObject[Op.or] = [];
+    }
+    const operator = this.getOperator(prefix);
+    const startOperator = this.getOperator(Constants.PREFIX_LESS_THAN_EQUAL);
+    const endOperator = this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL);
+    let periodAttribute = rangeObject.end;
+    switch (prefix) {
+      case Constants.PREFIX_GREATER_THAN:
+      case Constants.PREFIX_GREATER_THAN_EQUAL:
+        queryObject[Op.or].push({
+          [columnName]: {
+            [periodAttribute]: {
+              [operator]: dateMomentObject.toISOString()
             }
           }
         });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
+        break;
+      case Constants.PREFIX_LESS_THAN:
+      case Constants.PREFIX_LESS_THAN_EQUAL:
+        periodAttribute = rangeObject.start;
+        queryObject[Op.or].push({
+          [columnName]: {
+            [periodAttribute]: {
+              [operator]: dateMomentObject.toISOString()
+            }
+          }
+        });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
+        break;
+      default:
+        queryObject[Op.or].push({
+          [columnName]: {
+            [rangeObject.start]: {
+              [startOperator]: dateMomentObject.toISOString()
+            },
+            [rangeObject.end]: {
+              [endOperator]: dateMomentObject.toISOString()
+            }
+          }
+        });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
+    }
+  }
+
+  /**
+   * It will add additional filter for Period
+   * FHIR Date Search: https://www.hl7.org/fhir/search.html#date
+   * If input is 2019-03-12T07:32:18.279Z, then as per FHIR it should match for 2019, 2019-03, 2019-03-12
+   * if dateObject is of type datetime then add condition for data, year-month, year
+   * if dateObject is of type date then add condition for year-month, year
+   * if dateObject is of type year-month then add condition for year
+   * if dateObject is of type year then don't add any condition
+   * @static
+   * @param {string} columnName Column object from config file
+   * @param {*} rangeObject RangeObject object from config file, it will specify start and end attribute for a column
+   * @param {*} dateMomentObject Input Date object
+   * @param {*} queryObject Query object which stores all search conditions
+   * @param {string} currentDatePattern Date pattern of input dateObject
+   * @param {string} prefix prefix value of input search value
+   * @memberof QueryGenerator
+   */
+  public static getPeriodDateFilters(
+    columnName: string,
+    rangeObject: any,
+    dateMomentObject: any,
+    queryObject: any,
+    currentDatePattern: string,
+    prefix: string
+  ) {
+    if (!queryObject[Op.or]) {
+      queryObject[Op.or] = [];
+    }
+    const operatorMapping = {
+      [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
+      [Constants.PREFIX_LESS_THAN_EQUAL]: Constants.PREFIX_LESS_THAN
+    };
+    const newPrefix = operatorMapping[prefix] ? operatorMapping[prefix] : prefix;
+    const operator = this.getOperator(newPrefix);
+    const startOperator = this.getOperator(Constants.PREFIX_LESS_THAN_EQUAL);
+    const endOperator = this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL);
+    let periodAttribute = rangeObject.end;
+    let periods: unitOfTime.StartOf = Constants.PERIOD_DAYS;
+    if (currentDatePattern === Constants.YEAR_MONTH) {
+      periods = Constants.PERIOD_MONTHS;
+    } else if (currentDatePattern === Constants.YEAR) {
+      periods = Constants.PERIOD_YEARS;
+    }
+    const nextDate = moment(dateMomentObject)
+    .add({ [periods]: 1 })
+    .format(currentDatePattern);
+    switch (prefix) {
+      case Constants.PREFIX_GREATER_THAN:
+      case Constants.PREFIX_LESS_THAN_EQUAL:
+        queryObject[Op.or].push({
+          [columnName]: {
+            [periodAttribute]: {
+              [operator]: nextDate
+            }
+          }
+        });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
+        break;
+      case Constants.PREFIX_GREATER_THAN_EQUAL:
+      case Constants.PREFIX_LESS_THAN:
+        periodAttribute = rangeObject.start;
+        queryObject[Op.or].push({
+          [columnName]: {
+            [periodAttribute]: {
+              [operator]: dateMomentObject.format(currentDatePattern)
+            }
+          }
+        });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
+        break;
+      default:
+        queryObject[Op.or].push({
+          [columnName]: {
+            [rangeObject.start]: {
+              [startOperator]: dateMomentObject.format(currentDatePattern)
+            },
+            [rangeObject.end]: {
+              [endOperator]: dateMomentObject.format(currentDatePattern)
+            }
+          }
+        });
+        this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
     }
   }
 
@@ -255,7 +363,7 @@ class QueryGenerator {
     let dateQuery = {};
     if (column.rangeAttributes) {
       const rangeObject = this.getParsedCondtions(column.rangeAttributes);
-      this.getPeriodDateFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern);
+      this.getPeriodDateFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix);
     } else {
       switch (dateObject.prefix) {
         case Constants.PREFIX_GREATER_THAN:
@@ -333,7 +441,7 @@ class QueryGenerator {
     const dateMomentObject = moment(dateObject.data, datePattern);
     if (column.rangeAttributes) {
       const rangeObject = this.getParsedCondtions(column.rangeAttributes);
-      this.getPeriodDateFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern);
+      this.getPeriodDateTimeFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix);
     } else {
       queryObject[condtionOperator].push({
         [column.columnHierarchy]: {
