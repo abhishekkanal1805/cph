@@ -253,8 +253,8 @@ class QueryGenerator {
       periods = Constants.PERIOD_YEARS;
     }
     const nextDate = moment(dateMomentObject)
-    .add({ [periods]: 1 })
-    .format(currentDatePattern);
+      .add({ [periods]: 1 })
+      .format(currentDatePattern);
     switch (prefix) {
       case Constants.PREFIX_GREATER_THAN:
       case Constants.PREFIX_LESS_THAN_EQUAL:
