@@ -2,7 +2,7 @@ import * as log from "lambda-log";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
@@ -110,7 +110,12 @@ export class RequestValidator {
         })
       );
     }
-    return RequestValidator.validateLength([...new Set(userProfileIds)], 1);
+    const uniqUserProfileIds = [...new Set(userProfileIds)];
+    if (uniqUserProfileIds.length == 0) {
+      log.error("UserProfileIds present in request are not valid");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    return RequestValidator.validateLength(uniqUserProfileIds, 1);
   }
 
   /**
