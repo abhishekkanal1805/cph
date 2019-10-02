@@ -161,10 +161,11 @@ class QueryGenerator {
     dateMomentObject: any,
     queryObject: any,
     currentDatePattern: string,
-    prefix: string
+    prefix: string,
+    condtionOperator: symbol
   ) {
-    if (!queryObject[Op.or]) {
-      queryObject[Op.or] = [];
+    if (!queryObject[condtionOperator]) {
+      queryObject[condtionOperator] = [];
     }
     const operator = this.getOperator(prefix);
     const startOperator = this.getOperator(Constants.PREFIX_LESS_THAN_EQUAL);
@@ -173,7 +174,7 @@ class QueryGenerator {
     switch (prefix) {
       case Constants.PREFIX_GREATER_THAN:
       case Constants.PREFIX_GREATER_THAN_EQUAL:
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [periodAttribute]: {
               [operator]: dateMomentObject.toISOString()
@@ -185,7 +186,7 @@ class QueryGenerator {
       case Constants.PREFIX_LESS_THAN:
       case Constants.PREFIX_LESS_THAN_EQUAL:
         periodAttribute = rangeObject.start;
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [periodAttribute]: {
               [operator]: dateMomentObject.toISOString()
@@ -195,7 +196,7 @@ class QueryGenerator {
         this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
         break;
       default:
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [rangeObject.start]: {
               [startOperator]: dateMomentObject.toISOString()
@@ -232,10 +233,11 @@ class QueryGenerator {
     dateMomentObject: any,
     queryObject: any,
     currentDatePattern: string,
-    prefix: string
+    prefix: string,
+    condtionOperator: symbol
   ) {
-    if (!queryObject[Op.or]) {
-      queryObject[Op.or] = [];
+    if (!queryObject[condtionOperator]) {
+      queryObject[condtionOperator] = [];
     }
     const operatorMapping = {
       [Constants.PREFIX_GREATER_THAN]: Constants.PREFIX_GREATER_THAN_EQUAL,
@@ -261,7 +263,7 @@ class QueryGenerator {
     switch (prefix) {
       case Constants.PREFIX_GREATER_THAN:
       case Constants.PREFIX_LESS_THAN_EQUAL:
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [periodAttribute]: {
               [operator]: nextDate
@@ -272,7 +274,7 @@ class QueryGenerator {
         break;
       case Constants.PREFIX_GREATER_THAN_EQUAL:
       case Constants.PREFIX_LESS_THAN:
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [periodAttribute]: {
               [operator]: dateMomentObject.format(currentDatePattern)
@@ -292,7 +294,7 @@ class QueryGenerator {
           .add(1, periods)
           .endOf(Constants.PERIOD_DAYS)
           .toISOString();
-        queryObject[Op.or].push({
+        queryObject[condtionOperator].push({
           [columnName]: {
             [rangeObject.start]: {
               [startOperator]: endDate
@@ -375,7 +377,7 @@ class QueryGenerator {
     let dateQuery = {};
     if (column.rangeAttributes) {
       const rangeObject = this.getParsedCondtions(column.rangeAttributes);
-      this.getPeriodDateFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix);
+      this.getPeriodDateFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix, condtionOperator);
     } else {
       switch (dateObject.prefix) {
         case Constants.PREFIX_GREATER_THAN:
@@ -453,7 +455,7 @@ class QueryGenerator {
     const dateMomentObject = moment(dateObject.data, datePattern);
     if (column.rangeAttributes) {
       const rangeObject = this.getParsedCondtions(column.rangeAttributes);
-      this.getPeriodDateTimeFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix);
+      this.getPeriodDateTimeFilters(column.columnHierarchy, rangeObject, dateMomentObject, queryObject, datePattern, dateObject.prefix, condtionOperator);
     } else {
       queryObject[condtionOperator].push({
         [column.columnHierarchy]: {
