@@ -24,8 +24,7 @@ logs
 .idea
 workspace.xml
 
-# NPM files
-package-lock.json
+
 
 #serverless log file
 filelogs.txt
