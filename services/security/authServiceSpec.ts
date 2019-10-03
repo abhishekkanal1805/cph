@@ -47,6 +47,10 @@ describe("AuthService", () => {
         // does not matter what this returns as long as error is not thrown
         return {};
       });
+      spyOn(AuthService, "getResearchSubjectProfiles").and.callFake(() => {
+        // does not matter what this returns as long as error is not thrown
+        return { [testProfile.id]: Constants.USERPROFILE_REFERENCE + testProfile.id };
+      });
 
       try {
         await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id);
@@ -491,6 +495,355 @@ describe("AuthService", () => {
         expect(capturedQueryOptions.where["type"]).toBe(testProfileTypes);
         expect(capturedQueryOptions.where["status"]).toBe(testConnectionStatuses);
         expect(result).toEqual([expectedConnectionResource]);
+      } catch (err) {
+        done.fail("Unexpected error thrown: " + err.message);
+      }
+      done();
+    });
+  });
+
+  describe("#authorizeRequestSharingRules()", () => {
+    it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
+      spyOn(DataFetch, "getUserProfile").and.callFake(() => {
+        throw expectedError;
+      });
+      try {
+        // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz");
+      } catch (err) {
+        expect(err).toEqual(expectedError);
+        done();
+        return;
+      }
+      done.fail("Should have thrown a Forbidden error.");
+    });
+
+    it("Do not allow access if DataFetch throws unexpected internal error", async (done) => {
+      const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
+      spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
+      try {
+        // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz");
+      } catch (err) {
+        expect(err.message).toEqual(unexpectedInternalErrorMsg);
+        done();
+        return;
+      }
+      done.fail("Should have thrown an internal error.");
+    });
+
+    it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only practitioner owner allowed", async (done) => {
+      const allowedOwnerType = Constants.PRACTITIONER_USER;
+      const testPatientOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+      const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValues(
+        DataFetchStub.getUserAccess(testPatientOwnerProfile),
+        DataFetchStub.getUserAccess(testSystemOwnerProfile)
+      );
+      // test 1, Patient owner will be forbidden
+      let actualError;
+      try {
+        // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testPatientOwnerProfile.id, allowedOwnerType);
+      } catch (err) {
+        actualError = err;
+      }
+      expect(actualError).toEqual(expectedError);
+
+      // test 2, System owner will be forbidden
+      try {
+        // the provided args dont matter as we are mocking the DataFetch behavior
+        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+      } catch (err) {
+        expect(err).toEqual(expectedError);
+        done();
+        return;
+      }
+      done.fail("Should have thrown an internal error.");
+    });
+
+    it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only patient owner allowed", async (done) => {
+      const allowedOwnerType = Constants.PATIENT_USER;
+      const testPractitionerOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+      const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValues(
+        DataFetchStub.getUserAccess(testPractitionerOwnerProfile),
+        DataFetchStub.getUserAccess(testSystemOwnerProfile)
+      );
+      // test 1, Practitioner owner will be forbidden
+      let actualError;
+      try {
+        // the provided id/references need to match ones returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testPractitionerOwnerProfile.id, allowedOwnerType);
+      } catch (err) {
+        actualError = err;
+      }
+      expect(actualError).toEqual(expectedError);
+
+      // test 2, System owner will be forbidden
+      try {
+        // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+      } catch (err) {
+        expect(err).toEqual(expectedError);
+        done();
+        return;
+      }
+      done.fail("Should have thrown an internal error.");
+    });
+
+    it("Allow access if the owner is submitting their own record", async (done) => {
+      const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.callFake(() => {
+        // the requester profile in access must be present
+        return DataFetchStub.getUserAccess(testOwnerProfile);
+      });
+
+      try {
+        // the provided id/references need to match ones expected to be returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id);
+      } catch (err) {
+        done.fail("Unexpected error thrown: " + err.message);
+      }
+      done();
+    });
+
+    it("Do not allow access if provided profiles are valid, owner submitting his own record but owner's user type does not match the provided one", async (done) => {
+      const allowedOwnerType = Constants.PATIENT_USER;
+      const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile));
+
+      try {
+        // the provided id/references need to match ones returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules(
+          testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          allowedOwnerType
+        );
+      } catch (err) {
+        expect(err).toEqual(expectedError);
+        done();
+        return;
+      }
+      done.fail("Should have thrown an internal error.");
+    });
+
+    it(
+      "Do not allow access if provided profiles are valid, requester is not the owner or informationSource " +
+        "and requester's profileType is unknown or unsupported",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        const testRequesterProfile = { id: "999", type: "UNSUPPORTED" };
+
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          expect(err).toEqual(expectedError);
+          done();
+          return;
+        }
+        done.fail("Should have thrown an internal error.");
+      }
+    );
+
+    it(
+      "Do not allow access if provided profiles are valid, requester is not the owner or informationSource or a System user," +
+        "and informationSource user is practitioner but not the same as requester.",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[1];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          expect(err).toEqual(expectedError);
+          done();
+          return;
+        }
+        done.fail("Should have thrown an internal error.");
+      }
+    );
+
+    it(
+      "Do not allow access if provided profiles are valid, requester is not the owner or informationSource or a System user," +
+        "and informationSource user is carepartner but not the same as requester.",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          expect(err).toEqual(expectedError);
+          done();
+          return;
+        }
+        done.fail("Should have thrown an internal error.");
+      }
+    );
+
+    it(
+      "Allow access if provided profiles are valid, requester is not the owner or informationSource or System user " +
+        "but informationSource is practitioner and same as requester and has connection to the owner",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+        // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+        spyOn(AuthService, "hasConnection").and.returnValue([{}]);
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          done.fail("Unexpected error thrown: " + err.message);
+        }
+        done();
+      }
+    );
+
+    it(
+      "Allow access if provided profiles are valid, requester is not the owner or informationSource or System user " +
+        "but informationSource is carepartner and same as requester and has connection to the owner",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+        // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+        spyOn(AuthService, "hasConnection").and.returnValue([{}]);
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          done.fail("Unexpected error thrown: " + err.message);
+        }
+        done();
+      }
+    );
+
+    it(
+      "Do not allow access if provided profiles are valid, requester is not the owner or informationSource or System user " +
+        "but informationSource is practitioner and same as requester but has no connection to the owner",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+        // hasConnection has to return any array size=0 to prove no connection
+        spyOn(AuthService, "hasConnection").and.returnValue([]);
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          expect(err).toEqual(expectedError);
+          done();
+          return;
+        }
+        done.fail("Should have thrown an internal error.");
+      }
+    );
+
+    it(
+      "Do not allow access if provided profiles are valid, requester is not the owner or informationSource or System user " +
+        "but informationSource is carepartner and same as requester but has no connection to the owner",
+      async (done) => {
+        const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+        const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+        const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+        spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+        // hasConnection has to return any array size=0 to prove no connection
+        spyOn(AuthService, "hasConnection").and.returnValue([]);
+
+        try {
+          // the provided id/references need to match ones returned by the mocked DataFetch
+          await AuthService.authorizeRequestSharingRules(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id
+          );
+        } catch (err) {
+          expect(err).toEqual(expectedError);
+          done();
+          return;
+        }
+        done.fail("Should have thrown an internal error.");
+      }
+    );
+
+    it("Allow access if provided profiles are valid, requester is not the owner or informationSource but requester's profileType is System", async (done) => {
+      const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
+      const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+      const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+
+      try {
+        // the provided id/references need to match ones returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules(
+          testRequesterProfile.id,
+          "UserProfile/" + testInformationSourceProfile.id,
+          "UserProfile/" + testOwnerProfile.id
+        );
+      } catch (err) {
+        done.fail("Unexpected error thrown: " + err.message);
+      }
+      done();
+    });
+
+    it("Allow access if provided profiles are valid, if connection type is friend", async (done) => {
+      const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
+      const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1];
+      const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[1];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+      spyOn(AuthService, "hasConnection").and.callFake(() => {
+        // returning any array greater than length one will allow access
+        return [{}];
+      });
+      try {
+        // the provided id/references need to match ones returned by the mocked DataFetch
+        await AuthService.authorizeRequestSharingRules(
+          testRequesterProfile.id,
+          "UserProfile/" + testInformationSourceProfile.id,
+          "UserProfile/" + testOwnerProfile.id
+        );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }

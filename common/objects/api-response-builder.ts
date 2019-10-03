@@ -70,6 +70,7 @@ export class APIResponseBuilder {
     [Constants.HEADER_X_XSS_PROTECTION]: Constants.HEADER_X_XSS_PROTECTION_VALUE,
     [Constants.HEADER_REFERRER_POLICY]: Constants.HEADER_REFERRER_POLICY_VALUE
   };
+
   private static base64Encoding: boolean = false;
 
   private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback): void {

@@ -1,4 +1,7 @@
+import { Constants } from "../../common/constants/constants";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 
 /**
  * Utility to help extracting request and context data from ApiEvent and ApiContext
@@ -118,6 +121,30 @@ export class APIRequestUtility {
     return "";
   }
 
+  /**
+   * It will return accept language from Event headers section
+   * @static
+   * @see {@link https://tools.ietf.org/html/rfc7231#section-5.3.5}
+   * @param {headers} any
+   * @returns {string}
+   * @memberof APIRequestUtility
+   */
+  public static getAcceptLanguage(headers: any): string {
+    let acceptLanguage;
+    if (!headers) {
+      return acceptLanguage;
+    }
+    // accept-language with empty value will be same as no accpet-language header present
+    if (headers[Constants.ACCEPT_LANGUAGE]) {
+      acceptLanguage = headers[Constants.ACCEPT_LANGUAGE];
+    }
+    if (acceptLanguage && acceptLanguage.indexOf(Constants.COMMA_VALUE) > -1) {
+      // If more than 1 accept language present, raise an error
+      throw new BadRequestResult(errorCodeMap.InvalidAcceptLanguage.value, errorCodeMap.InvalidAcceptLanguage.description);
+    }
+    return acceptLanguage;
+  }
+
   public static createApiEvent(body?: string, queryParams?: string, pathParams?: string, context?: string, header?: string): ApiEvent {
     const event: any = {};
     event.body = body;
@@ -126,5 +153,18 @@ export class APIRequestUtility {
     event.requestContext.identity.caller = context; // FIXME: this line would probably fail with trying to access identity on undefined.
     event.headers = JSON.parse(header);
     return event as ApiEvent;
+  }
+
+  /**
+   * This function is used to convert headers name into lower case
+   * @param headers name which needs to be converted into lower case
+   * @returns {any}
+   */
+  public static convertHeadersToLowerCase(headers: any) {
+    const requestHeaders = Object.keys(headers).reduce((result, key) => {
+      result[key.toLowerCase()] = headers[key];
+      return result;
+    }, {});
+    return requestHeaders;
   }
 }

@@ -1,17 +1,22 @@
 import * as log from "lambda-log";
+import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { ResourceCategory } from "../../common/constants/resourceCategory";
+import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
+import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { BaseGet } from "./baseGet";
 
 export class BaseDelete {
   /**
    *  Deletes the id for provided Model from database
    *  A get is first performed to make the record exists in database and also to make sure the access by requestor is authorized.
+   *  For Definitional resources access validations are not performed.
    *
    * @static
    * @param {*} requestPayload requestPayload array in JSON format
@@ -27,16 +32,29 @@ export class BaseDelete {
   public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
     log.info("In BaseDelete :: deleteResource()");
     // getResource will always return the record. if nothing found it throws NotFound error.
-    const options = { where: { id, "meta.isDeleted": false } };
+    const queryObject = { id, "meta.isDeleted": false };
+    const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    const patientId = patientIds[0].split(Constants.USERPROFILE_REFERENCE)[1];
-    await AuthService.authorizeConnectionBased(requesterProfileId, patientId);
+    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
+      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientIds[0]);
+      // For system user/ loggedin user to get his own record we won't add sharing rules
+      if (connection.length > 0) {
+        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
+        if (_.isEmpty(whereClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
+      }
+    }
     await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
   }
 
   /**
+   * @deprecated use deleteResource instead.
    * Variation of the deleteResource where access authorization checks are not performed before performing delete.
    * A get is first performed to make the record exists in database.
    *

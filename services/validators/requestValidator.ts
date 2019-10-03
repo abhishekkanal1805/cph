@@ -2,10 +2,11 @@ import * as log from "lambda-log";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
+import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
@@ -85,9 +86,36 @@ export class RequestValidator {
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static validateSingularUserReference(informationSourceIds: string[]): void {
+  public static async validateSingularUserReference(informationSourceIds: string[]): Promise<void> {
     log.info("In RequestValidator: validateSingularUserReference()");
-    return RequestValidator.validateLength(informationSourceIds, 1);
+    let researchSubjectIds = informationSourceIds.filter((eachId: any) => {
+      return eachId.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
+    });
+    let userProfileIds = informationSourceIds.filter((eachId: any) => {
+      return eachId.indexOf(Constants.USER_PROFILE) > -1;
+    });
+    researchSubjectIds = [...new Set(researchSubjectIds)].map((eachId: string) => {
+      return eachId.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+    });
+    if (researchSubjectIds.length) {
+      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(
+        {
+          [Constants.ID]: researchSubjectIds
+        },
+        ResearchSubject
+      );
+      userProfileIds = userProfileIds.concat(
+        researchSubjectIdsProfiles.map((record: any) => {
+          return record[Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+        })
+      );
+    }
+    const uniqUserProfileIds = [...new Set(userProfileIds)];
+    if (uniqUserProfileIds.length == 0) {
+      log.error("UserProfileIds present in request are not valid");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    return RequestValidator.validateLength(uniqUserProfileIds, 1);
   }
 
   /**
@@ -100,8 +128,8 @@ export class RequestValidator {
    * @memberof RequestValidator
    */
   public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
-    RequestValidator.validateSingularUserReference(informationSourceIds);
-    RequestValidator.validateSingularUserReference(patientIds);
+    await RequestValidator.validateSingularUserReference(informationSourceIds);
+    await RequestValidator.validateSingularUserReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
 
@@ -199,5 +227,33 @@ export class RequestValidator {
       RequestValidator.validateBundlePostLimit(requestPayload, Constants.POST_LIMIT);
     }
     return requestPayload;
+  }
+
+  /**
+   * This function is used to validate reference attributes
+   * @param referenceList it contains references which needs to be validated
+   * @param attribute whose references are being validated
+   * @returns {Promise<void>}
+   */
+  public static async validateReferencesForAttribute(referenceList: string[], attribute) {
+    try {
+      const referenceMap = new Map();
+      // create a map of references where resourceType is key and resourceIds are values
+      for (const reference of referenceList) {
+        const resourceType = reference.split(Constants.FORWARD_SLASH)[0];
+        const resourceId = reference.split(Constants.FORWARD_SLASH)[1];
+        const resourceIds: string[] = referenceMap.has(resourceType) ? referenceMap.get(resourceType) : [];
+        resourceIds.push(resourceId);
+        referenceMap.set(resourceType, resourceIds);
+      }
+      // validate all the resourceTypes and resourceIds
+      if (referenceMap.size > 0) {
+        for (const [resourceType, resourceIds] of referenceMap) {
+          await RequestValidator.validateReference(resourceType, resourceIds);
+        }
+      }
+    } catch (error) {
+      throw new BadRequestResult(errorCodeMap.InvalidReference.value, errorCodeMap.InvalidReference.description + attribute);
+    }
   }
 }

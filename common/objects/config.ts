@@ -29,9 +29,9 @@ const data = {
     "siteActivationDate",
     "withdrawalDate"
   ],
-  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "inviteeReference", "inviter"],
+  displayFields: ["informationSource", "subject", "patient", "to", "from", "consentingParty", "inviteeReference", "inviter", "user", "owner", "requester"],
   nonUserDisplayFields: ["device", "medicationPlan"],
-  typeAttributeAdditionalFields: ["derivedFrom", "basedOn", "assigner"],
+  typeAttributeAdditionalFields: ["derivedFrom", "basedOn", "assigner", "focus", "for", "location", "reasonReference"],
   searchContent: {
     projectionExpression: [
       { key: "articleId", type: "string" },

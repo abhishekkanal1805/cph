@@ -75,6 +75,7 @@ class Constants {
   public static readonly CLOSING_PARENTHESES = ")";
   public static readonly HYPHEN = "-";
   public static readonly S3ENCRYPTION = "aws:kms";
+  public static readonly DEFALULT_ACCEPT_LANGUAGE = "*";
 
   public static readonly FAMILYNAME_ATTRIBUTE = "name.family";
   public static readonly IDENTIFIER_ATTRIBUTE = "identifier";
@@ -92,8 +93,12 @@ class Constants {
   public static readonly CONTENT_TYPE_PDF = "application/pdf";
   public static readonly CONTENT_TYPE_PNG = "image/png";
   public static readonly CONTENT_TYPE = "Content-Type";
+  public static readonly ACCEPT_LANGUAGE = "accept-language";
+  public static readonly CONTENT_LANGUAGE = "content-language";
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
+  public static readonly RESEARCHSUBJECT_REFERENCE = "ResearchSubject/";
+  public static readonly INDIVIDUAL = "individual";
   public static readonly PDF_EXTENSION = ".pdf";
   public static readonly ATTACHMENT = "attachment";
   public static readonly URL_SPLIT_OPERATOR = ".com/";
@@ -103,6 +108,10 @@ class Constants {
   public static readonly SELF = "self";
   public static readonly NEXT = "next";
   public static readonly MATCH = "match";
+  public static readonly EXTENSION = "extension";
+  public static readonly CONTENT = "content";
+  public static readonly LANGUAGE = "lang";
+  public static readonly OBJECT = "object";
 
   public static readonly POST_ENDPOINT = "POST";
   public static readonly GET_ENDPOINT = "GET";
@@ -231,6 +240,7 @@ class Constants {
   public static readonly PERMANENT = "permanent";
   public static readonly TRUE = true;
   public static readonly USER_PROFILE = "UserProfile";
+  public static readonly RESEARCH_SUBJECT = "ResearchSubject";
   public static readonly LIMIT = "limit";
   public static readonly OFFSET = "offset";
 
@@ -244,5 +254,7 @@ class Constants {
   public static readonly HEADER_X_XSS_PROTECTION_VALUE = "1; mode=block";
   public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
   public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
+  public static readonly USER_ATTRIBUTE = "user";
+  public static readonly USER_REFERENCE_KEY = "user.reference";
 }
 export { Constants };
