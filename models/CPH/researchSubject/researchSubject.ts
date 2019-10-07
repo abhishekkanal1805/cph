@@ -5,7 +5,6 @@ import { ResearchSubjectDataResource } from "./researchSubjectDataResource";
 
 @Table({ tableName: "ResearchSubject" })
 export class ResearchSubject extends Model<ResearchSubject> {
-
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
