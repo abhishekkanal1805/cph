@@ -246,7 +246,7 @@ class QueryGenerator {
     const newPrefix = operatorMapping[prefix] ? operatorMapping[prefix] : prefix;
     const operator = this.getOperator(newPrefix);
     const startOperator = this.getOperator(Constants.PREFIX_LESS_THAN_EQUAL);
-    const endOperator = this.getOperator(Constants.PREFIX_GREATER_THAN_EQUAL);
+    const endOperator = this.getOperator(Constants.PREFIX_GREATER_THAN);
     let periodAttribute = rangeObject.end;
     let periods: unitOfTime.StartOf = Constants.PERIOD_DAYS;
     if (currentDatePattern === Constants.YEAR_MONTH) {
@@ -286,8 +286,7 @@ class QueryGenerator {
       default:
         const startDate = moment(dateMomentObject, currentDatePattern)
           .utc()
-          .add(1, Constants.PERIOD_DAYS)
-          .startOf(Constants.PERIOD_DAYS)
+          .endOf(Constants.PERIOD_DAYS)
           .toISOString();
         const endDate = moment(dateMomentObject, currentDatePattern)
           .utc()
