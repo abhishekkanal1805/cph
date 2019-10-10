@@ -204,7 +204,9 @@ class ResponseBuilderService {
       if (profileObj.resourceType == Constants.RESEARCH_SUBJECT) {
         log.info("Fetching UserProfile for profileReference: " + profileReference);
         const researchSubjectResult = await DAOService.fetchByPk(profileObj.id, ResearchSubject);
-        profileId = researchSubjectResult[Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE].split(Constants.FORWARD_SLASH)[1];
+        profileId = researchSubjectResult[Constants.DEFAULT_SEARCH_ATTRIBUTES][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE].split(
+          Constants.FORWARD_SLASH
+        )[1];
       }
       const result = await DAOService.fetchByPk(profileId, UserProfile);
       // if user is valid then set display attribute and profile status
