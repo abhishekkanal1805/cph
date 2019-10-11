@@ -175,7 +175,7 @@ describe("RequestValidator", () => {
       const patientReferenceId = ["1", "2"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        await RequestValidator.validateSingularUserReference(patientReferenceId);
+        RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -191,7 +191,7 @@ describe("RequestValidator", () => {
       const patientReferenceId = ["1", "1"];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        await RequestValidator.validateSingularUserReference(patientReferenceId);
+        RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError, "This failed");
         done();
@@ -207,7 +207,7 @@ describe("RequestValidator", () => {
       const patientReferenceId = [];
       const expectedError = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        await RequestValidator.validateSingularUserReference(patientReferenceId);
+        RequestValidator.validateSingularUserReference(patientReferenceId);
       } catch (err) {
         expect(err).toEqual(expectedError, "This failed");
         done();
@@ -224,7 +224,7 @@ describe("RequestValidator", () => {
       let result = null;
       const expected = null;
       try {
-        await RequestValidator.validateSingularUserReference(patientReference);
+        RequestValidator.validateSingularUserReference(patientReference);
       } catch (err) {
         result = err;
       }
@@ -243,7 +243,7 @@ describe("RequestValidator", () => {
       let result;
       const expected = new BadRequestResult(errorCodeMap.InvalidBundle.value, errorCodeMap.InvalidBundle.description);
       try {
-        await RequestValidator.validateSingularUserReference(userReferenceId);
+        RequestValidator.validateSingularUserReference(userReferenceId);
       } catch (err) {
         result = err;
       }
@@ -258,7 +258,7 @@ describe("RequestValidator", () => {
       let result = null;
       const expected = null;
       try {
-        await RequestValidator.validateSingularUserReference(userReference);
+        RequestValidator.validateSingularUserReference(userReference);
       } catch (err) {
         result = err;
       }
