@@ -88,38 +88,7 @@ export class RequestValidator {
    */
   public static async validateSingularUserReference(informationSourceIds: string[]): Promise<void> {
     log.info("In RequestValidator: validateSingularUserReference()");
-    let researchSubjectIds = informationSourceIds.filter((eachId: any) => {
-      return eachId.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
-    });
-    let userProfileIds = informationSourceIds.filter((eachId: any) => {
-      return eachId.indexOf(Constants.USER_PROFILE) > -1;
-    });
-    researchSubjectIds = [...new Set(researchSubjectIds)].map((eachId: string) => {
-      return eachId.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
-    });
-    if (researchSubjectIds.length) {
-      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(
-        {
-          [Constants.ID]: researchSubjectIds
-        },
-        ResearchSubject
-      );
-      if (researchSubjectIds.length != researchSubjectIdsProfiles.length) {
-        log.error("Error in DataFetch: Record doesn't exists for all requested Reasearch ids");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
-      userProfileIds = userProfileIds.concat(
-        researchSubjectIdsProfiles.map((record: any) => {
-          return record[Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
-        })
-      );
-    }
-    const uniqUserProfileIds = [...new Set(userProfileIds)];
-    if (uniqUserProfileIds.length == 0) {
-      log.error("UserProfileIds present in request are not valid");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
-    return RequestValidator.validateLength(uniqUserProfileIds, 1);
+    return RequestValidator.validateLength(informationSourceIds, 1);
   }
 
   /**
@@ -132,8 +101,8 @@ export class RequestValidator {
    * @memberof RequestValidator
    */
   public static async validateDeviceAndProfile(deviceIds: string[], informationSourceIds: string[], patientIds: string[]) {
-    await RequestValidator.validateSingularUserReference(informationSourceIds);
-    await RequestValidator.validateSingularUserReference(patientIds);
+    RequestValidator.validateSingularUserReference(informationSourceIds);
+    RequestValidator.validateSingularUserReference(patientIds);
     await RequestValidator.validateDeviceIds(deviceIds);
   }
 
