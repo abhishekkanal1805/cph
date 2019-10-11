@@ -104,6 +104,10 @@ export class RequestValidator {
         },
         ResearchSubject
       );
+      if (researchSubjectIds.length != researchSubjectIdsProfiles.length) {
+        log.error("Error in DataFetch: Record doesn't exists for all requested Reasearch ids");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
       userProfileIds = userProfileIds.concat(
         researchSubjectIdsProfiles.map((record: any) => {
           return record[Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];

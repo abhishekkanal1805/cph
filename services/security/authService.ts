@@ -280,25 +280,25 @@ export class AuthService {
     }
     const uniqueProfileIds = _.uniq(Object.values(reasearchSubjectProfiles));
     if (uniqueProfileIds.length) {
-      const researchStudyIdsProfiles = await DataFetch.getUserProfiles(
+      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(
         {
           [Constants.ID]: uniqueProfileIds,
           [Constants.META_IS_DELETED_KEY]: false
         },
         ResearchSubject
       );
-      if (uniqueProfileIds.length != researchStudyIdsProfiles.length) {
+      if (uniqueProfileIds.length != researchSubjectIdsProfiles.length) {
         log.error("Error in DataFetch: Record doesn't exists for all requested Reasearch ids");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
       if (reasearchSubjectProfiles[ownerReference]) {
-        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[ownerReference] });
-        reasearchSubjectToUserProfiles[ownerReference] = researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+        researchProfileIdx = _.findIndex(researchSubjectIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[ownerReference] });
+        reasearchSubjectToUserProfiles[ownerReference] = researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
       if (reasearchSubjectProfiles[informationSourceReference]) {
-        researchProfileIdx = _.findIndex(researchStudyIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[informationSourceReference] });
+        researchProfileIdx = _.findIndex(researchSubjectIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[informationSourceReference] });
         reasearchSubjectToUserProfiles[informationSourceReference] =
-          researchStudyIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+        researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
     }
     return reasearchSubjectToUserProfiles;
