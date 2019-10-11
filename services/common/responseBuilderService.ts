@@ -16,7 +16,6 @@ import {
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
-import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 import { Utility } from "./Utility";
@@ -152,10 +151,12 @@ class ResponseBuilderService {
       for (const displayAttribute of config.data.displayFields) {
         if (eachResult[displayAttribute] && eachResult[displayAttribute].reference) {
           const profileReference: string = eachResult[displayAttribute].reference;
-          if (profileReference.indexOf(Constants.USER_PROFILE) > -1 || profileReference.indexOf(Constants.RESEARCH_SUBJECT) > -1) {
+          if (profileReference.indexOf(Constants.USER_PROFILE) > -1) {
             displayValue = await this.getDisplayAttribute(profileReference);
             eachResult[displayAttribute].display = displayValue;
             eachResult[displayAttribute].type = ResponseBuilderService.typeMap[profileReference];
+          } else {
+            eachResult[displayAttribute].type = profileReference.split(Constants.FORWARD_SLASH)[0];
           }
         }
       }
@@ -200,20 +201,12 @@ class ResponseBuilderService {
   public static async initDisplayName(profileReference: string) {
     try {
       const profileObj: any = Utility.getServiceId(profileReference);
-      let profileId = profileObj.id;
-      if (profileObj.resourceType == Constants.RESEARCH_SUBJECT) {
-        log.info("Fetching UserProfile for profileReference: " + profileReference);
-        const researchSubjectResult = await DAOService.fetchByPk(profileObj.id, ResearchSubject);
-        profileId = researchSubjectResult[Constants.DEFAULT_SEARCH_ATTRIBUTES][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE].split(
-          Constants.FORWARD_SLASH
-        )[1];
-      }
-      const result = await DAOService.fetchByPk(profileId, UserProfile);
+      const result = await DAOService.fetchByPk(profileObj.id, UserProfile);
       // if user is valid then set display attribute and profile status
       const givenName = result.name ? result.name.given || [] : [];
       const familyName = result.name ? result.name.family || "" : "";
       const displayName = [familyName, givenName.join(" ")].join(", ");
-      log.info("Initialized the displayMap with {profileId:" + profileId + ", displayName=" + displayName + "}");
+      log.info("Initialized the displayMap with {profileId:" + profileObj.id + ", displayName=" + displayName + "}");
       ResponseBuilderService.displayMap[profileReference] = displayName ? displayName : " ";
       ResponseBuilderService.typeMap[profileReference] = [result.resourceType, result.type].join(".");
     } catch (e) {

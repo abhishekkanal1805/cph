@@ -71,14 +71,14 @@ export class BasePut {
 
     // perform user validation for patient reference
     const patientReferences = [...new Set(keysMap.get(patientElement))];
-    await RequestValidator.validateSingularUserReference(patientReferences);
+    RequestValidator.validateSingularUserReference(patientReferences);
     log.debug("PatientElement [" + patientElement + "] validation is successful");
 
     // perform user validation for informationSource
     let informationSourceReferenceValue = patientReferences[0]; // handling for FHIR services
     if (isValidInformationSourceElement) {
       const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
-      await RequestValidator.validateSingularUserReference(informationSourceIds);
+      RequestValidator.validateSingularUserReference(informationSourceIds);
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
       const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(informationSourceIds[0]);
@@ -317,11 +317,11 @@ export class BasePut {
       const referencesMap = JsonParser.findValuesForKeyMap(requestPayload, referenceKeys);
       // perform owner reference validation
       const ownerReferences = [...new Set(referencesMap.get(ownerElement))];
-      await RequestValidator.validateSingularUserReference(ownerReferences);
+      RequestValidator.validateSingularUserReference(ownerReferences);
       log.debug("OwnerElement [" + ownerElement + "] validation is successful");
       // perform infoSource reference validation
       const informationSourceReferences = [...new Set(referencesMap.get(informationSourceElement))];
-      await RequestValidator.validateSingularUserReference(informationSourceReferences);
+      RequestValidator.validateSingularUserReference(informationSourceReferences);
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // Sharing rules will validate connection between loggedIn and recordOwner and access permission
       // Additional check added to validate InformationSource which must be an active user
