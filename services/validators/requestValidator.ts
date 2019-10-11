@@ -86,7 +86,7 @@ export class RequestValidator {
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static async validateSingularUserReference(informationSourceIds: string[]): Promise<void> {
+  public static validateSingularUserReference(informationSourceIds: string[]): Promise<void> {
     log.info("In RequestValidator: validateSingularUserReference()");
     return RequestValidator.validateLength(informationSourceIds, 1);
   }
