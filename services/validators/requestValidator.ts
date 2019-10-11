@@ -2,11 +2,10 @@ import * as log from "lambda-log";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, ForbiddenResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, UnAuthorizedResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { Device } from "../../models/CPH/device/device";
-import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
@@ -86,9 +85,9 @@ export class RequestValidator {
    * @returns {Promise<void>}
    * @memberof RequestValidator
    */
-  public static validateSingularUserReference(informationSourceIds: string[]): Promise<void> {
+  public static validateSingularUserReference(informationSourceIds: string[]): void {
     log.info("In RequestValidator: validateSingularUserReference()");
-    return RequestValidator.validateLength(informationSourceIds, 1);
+    RequestValidator.validateLength(informationSourceIds, 1);
   }
 
   /**
