@@ -87,7 +87,7 @@ export class RequestValidator {
    */
   public static validateSingularUserReference(informationSourceIds: string[]): void {
     log.info("In RequestValidator: validateSingularUserReference()");
-    return RequestValidator.validateLength(informationSourceIds, 1);
+    RequestValidator.validateLength(informationSourceIds, 1);
   }
 
   /**
