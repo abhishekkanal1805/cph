@@ -298,7 +298,7 @@ export class AuthService {
       if (reasearchSubjectProfiles[informationSourceReference]) {
         researchProfileIdx = _.findIndex(researchSubjectIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[informationSourceReference] });
         reasearchSubjectToUserProfiles[informationSourceReference] =
-        researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+          researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
     }
     return reasearchSubjectToUserProfiles;

@@ -16,7 +16,6 @@ import {
 import { Bundle } from "../../models/common/bundle";
 import { Entry } from "../../models/common/entry";
 import { Link } from "../../models/common/link";
-import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 import { Utility } from "./Utility";
@@ -152,7 +151,7 @@ class ResponseBuilderService {
       for (const displayAttribute of config.data.displayFields) {
         if (eachResult[displayAttribute] && eachResult[displayAttribute].reference) {
           const profileReference: string = eachResult[displayAttribute].reference;
-          if (profileReference.indexOf(Constants.USER_PROFILE) > -1 ) {
+          if (profileReference.indexOf(Constants.USER_PROFILE) > -1) {
             displayValue = await this.getDisplayAttribute(profileReference);
             eachResult[displayAttribute].display = displayValue;
             eachResult[displayAttribute].type = ResponseBuilderService.typeMap[profileReference];
