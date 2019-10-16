@@ -284,13 +284,14 @@ class QueryGenerator {
         this.getAddtionalPeriodDateFilters(columnName, dateMomentObject, periodAttribute, queryObject, currentDatePattern);
         break;
       default:
+        const utcOffset = dateMomentObject.utcOffset();
         const startDate = moment(dateMomentObject, currentDatePattern)
-          .utc()
+          .utc(utcOffset)
+          .add(-1, periods)
           .endOf(Constants.PERIOD_DAYS)
           .toISOString();
         const endDate = moment(dateMomentObject, currentDatePattern)
-          .utc()
-          .add(1, periods)
+          .utc(utcOffset)
           .endOf(Constants.PERIOD_DAYS)
           .toISOString();
         queryObject[condtionOperator].push({
