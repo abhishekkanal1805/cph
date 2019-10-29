@@ -6,19 +6,21 @@ export interface SearchOptions {
   acceptLanguage: string;
   fetchLimit?: number;
 }
-
-export interface ClinicalSaveOptions {
+export interface PostOptions {
+  requestId: string;
+  requestorProfileId: string;
   referenceValidationModel?: any;
   referenceValidationElement?: string;
-  requestId: string;
 }
 
-export interface NonClinicalSaveOptions {
-  referenceValidationModel?: any;
-  referenceValidationElement?: string;
+export interface ClinicalSaveOptions extends PostOptions {
+  patientElement: string;
+  informationSourceElement: string;
+}
+
+export interface NonClinicalSaveOptions extends PostOptions {
   ownerElement?: string;
   informationSourceElement?: string;
-  requestId: string;
 }
 
 export interface MetaDataOptions {

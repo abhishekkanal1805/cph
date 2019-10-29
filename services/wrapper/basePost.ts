@@ -30,22 +30,20 @@ export class BasePost {
    */
   public static async saveClinicalResources<T>(
     requestPayload,
-    requestorProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
-    patientElement: string,
-    informationSourceElement: string,
     clinicalSaveOptions: ClinicalSaveOptions
   ): Promise<GenericResponse<T>> {
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    keysToFetch.set(patientElement, []);
+    keysToFetch.set(clinicalSaveOptions.patientElement, []);
     // validate information source key only if element is present and if its different from patient element
-    const validateInformationSourceElement: boolean = informationSourceElement && informationSourceElement !== patientElement;
+    const validateInformationSourceElement: boolean =
+      clinicalSaveOptions.informationSourceElement && clinicalSaveOptions.informationSourceElement !== clinicalSaveOptions.patientElement;
     if (validateInformationSourceElement) {
-      keysToFetch.set(informationSourceElement, []);
+      keysToFetch.set(clinicalSaveOptions.informationSourceElement, []);
     }
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Device and User Keys retrieved successfully :: saveResource()");
@@ -53,45 +51,43 @@ export class BasePost {
     // perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.debug("Devices [" + patientElement + "] validation is successful");
+    log.debug("Devices [" + clinicalSaveOptions.patientElement + "] validation is successful");
 
     // perform user validation for owner reference
-    const patientReferences = [...new Set(keysMap.get(patientElement))];
+    const patientReferences = [...new Set(keysMap.get(clinicalSaveOptions.patientElement))];
     RequestValidator.validateSingularUserReference(patientReferences);
     const patientReferenceValue = patientReferences[0];
-    log.debug("PatientElement [" + patientElement + "] validation is successful");
+    log.debug("PatientElement [" + clinicalSaveOptions.patientElement + "] validation is successful");
 
     // perform user validation for information source
     let informationSourceReferenceValue = patientReferenceValue; // handling for FHIR services
     if (validateInformationSourceElement) {
-      const informationSourceIds = [...new Set(keysMap.get(informationSourceElement))];
+      const informationSourceIds = [...new Set(keysMap.get(clinicalSaveOptions.informationSourceElement))];
       RequestValidator.validateSingularUserReference(informationSourceIds);
       informationSourceReferenceValue = informationSourceIds[0];
-      log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
+      log.debug("InformationSourceElement [" + clinicalSaveOptions.informationSourceElement + "] validation is successful");
     }
     log.info("Device and user validation is successful");
 
-    await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
+    await AuthService.authorizeRequest(clinicalSaveOptions.requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
 
     const validatedResources = await ReferenceValidator.validateReference(
-      requestPayload, clinicalSaveOptions.referenceValidationModel, clinicalSaveOptions.referenceValidationElement);
+      requestPayload,
+      clinicalSaveOptions.referenceValidationModel,
+      clinicalSaveOptions.referenceValidationElement
+    );
 
     const metaData: MetaDataOptions = {
-      createdBy: requestorProfileId,
-      lastUpdatedBy: requestorProfileId,
+      createdBy: clinicalSaveOptions.requestorProfileId,
+      lastUpdatedBy: clinicalSaveOptions.requestorProfileId,
       requestId: clinicalSaveOptions.requestId
     };
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
     saveResponse.errorRecords = validatedResources.errorResults;
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
-      const savedResources = await BasePost.prepareModelAndSave(
-        validatedResources.validResources,
-        payloadModel,
-        payloadDataResourceModel,
-        metaData
-      );
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, metaData);
       saveResponse.savedRecords = savedResources;
     }
     return saveResponse;
@@ -111,7 +107,6 @@ export class BasePost {
    */
   public static async saveNonClinicalResources<T>(
     requestPayload,
-    requestorProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
     nonClinicalSaveOptions: NonClinicalSaveOptions
@@ -121,7 +116,11 @@ export class BasePost {
     log.info("Record Array created succesfully in :: saveResource()");
     const model = payloadModel as any;
     const keysMap = JsonParser.findAllKeysAsMap(
-      requestPayload, Constants.DEVICE_REFERENCE_KEY, nonClinicalSaveOptions.ownerElement, nonClinicalSaveOptions.informationSourceElement);
+      requestPayload,
+      Constants.DEVICE_REFERENCE_KEY,
+      nonClinicalSaveOptions.ownerElement,
+      nonClinicalSaveOptions.informationSourceElement
+    );
     log.info("Reference Keys retrieved successfully :: saveResource()");
 
     //  perform deviceId validation
@@ -136,26 +135,24 @@ export class BasePost {
       RequestValidator.validateSingularUserReference(informationSourceReferences);
 
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
-      await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
+      await AuthService.authorizeRequest(nonClinicalSaveOptions.requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
       log.info("User Authorization is successful ");
     }
     const validatedResources = await ReferenceValidator.validateReference(
-      requestPayload, nonClinicalSaveOptions.referenceValidationModel, nonClinicalSaveOptions.referenceValidationElement);
+      requestPayload,
+      nonClinicalSaveOptions.referenceValidationModel,
+      nonClinicalSaveOptions.referenceValidationElement
+    );
     const metaData: MetaDataOptions = {
-      createdBy: requestorProfileId,
-      lastUpdatedBy: requestorProfileId,
+      createdBy: nonClinicalSaveOptions.requestorProfileId,
+      lastUpdatedBy: nonClinicalSaveOptions.requestorProfileId,
       requestId: nonClinicalSaveOptions.requestId
     };
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
     saveResponse.errorRecords = validatedResources.errorResults;
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
-      const savedResources = await BasePost.prepareModelAndSave(
-        validatedResources.validResources,
-        payloadModel,
-        payloadDataResourceModel,
-        metaData
-      );
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, metaData);
       saveResponse.savedRecords = savedResources;
     }
     log.info("saveNonClinicalResources() completed");
