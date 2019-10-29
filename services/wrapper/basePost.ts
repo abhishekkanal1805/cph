@@ -2,6 +2,7 @@ import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
+import { ClinicalSaveOptions, MetaDataOptions, NonClinicalSaveOptions } from "../../common/types/optionsAttribute";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -34,8 +35,7 @@ export class BasePost {
     payloadDataResourceModel,
     patientElement: string,
     informationSourceElement: string,
-    referenceValidationModel?,
-    referenceValidationElement?: string
+    clinicalSaveOptions: ClinicalSaveOptions
   ): Promise<GenericResponse<T>> {
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
@@ -74,8 +74,14 @@ export class BasePost {
     await AuthService.authorizeRequest(requestorProfileId, informationSourceReferenceValue, patientReferenceValue, Constants.PATIENT_USER);
     log.info("User Authorization is successful ");
 
-    const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload, clinicalSaveOptions.referenceValidationModel, clinicalSaveOptions.referenceValidationElement);
 
+    const metaData: MetaDataOptions = {
+      createdBy: requestorProfileId,
+      lastUpdatedBy: requestorProfileId,
+      requestId: clinicalSaveOptions.requestId
+    };
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
     saveResponse.errorRecords = validatedResources.errorResults;
     if (validatedResources.validResources.length > 0) {
@@ -84,8 +90,7 @@ export class BasePost {
         validatedResources.validResources,
         payloadModel,
         payloadDataResourceModel,
-        requestorProfileId,
-        requestorProfileId
+        metaData
       );
       saveResponse.savedRecords = savedResources;
     }
@@ -109,16 +114,14 @@ export class BasePost {
     requestorProfileId: string,
     payloadModel: T,
     payloadDataResourceModel,
-    ownerElement?: string,
-    informationSourceElement?: string,
-    referenceValidationModel?,
-    referenceValidationElement?: string
+    nonClinicalSaveOptions: NonClinicalSaveOptions
   ): Promise<GenericResponse<T>> {
     log.info("saveNonClinicalResources() started");
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const model = payloadModel as any;
-    const keysMap = JsonParser.findAllKeysAsMap(requestPayload, Constants.DEVICE_REFERENCE_KEY, ownerElement, informationSourceElement);
+    const keysMap = JsonParser.findAllKeysAsMap(
+      requestPayload, Constants.DEVICE_REFERENCE_KEY, nonClinicalSaveOptions.ownerElement, nonClinicalSaveOptions.informationSourceElement);
     log.info("Reference Keys retrieved successfully :: saveResource()");
 
     //  perform deviceId validation
@@ -126,18 +129,23 @@ export class BasePost {
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       // perform owner reference validation
-      const ownerReferences = [...new Set(keysMap.get(ownerElement))];
+      const ownerReferences = [...new Set(keysMap.get(nonClinicalSaveOptions.ownerElement))];
       RequestValidator.validateSingularUserReference(ownerReferences);
       // perform infoSource reference validation
-      const informationSourceReferences = [...new Set(keysMap.get(informationSourceElement))];
+      const informationSourceReferences = [...new Set(keysMap.get(nonClinicalSaveOptions.informationSourceElement))];
       RequestValidator.validateSingularUserReference(informationSourceReferences);
 
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       await AuthService.authorizeRequest(requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
       log.info("User Authorization is successful ");
     }
-    const validatedResources = await ReferenceValidator.validateReference(requestPayload, referenceValidationModel, referenceValidationElement);
-
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload, nonClinicalSaveOptions.referenceValidationModel, nonClinicalSaveOptions.referenceValidationElement);
+    const metaData: MetaDataOptions = {
+      createdBy: requestorProfileId,
+      lastUpdatedBy: requestorProfileId,
+      requestId: nonClinicalSaveOptions.requestId
+    };
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
     saveResponse.errorRecords = validatedResources.errorResults;
     if (validatedResources.validResources.length > 0) {
@@ -146,8 +154,7 @@ export class BasePost {
         validatedResources.validResources,
         payloadModel,
         payloadDataResourceModel,
-        requestorProfileId,
-        requestorProfileId
+        metaData
       );
       saveResponse.savedRecords = savedResources;
     }
@@ -166,9 +173,9 @@ export class BasePost {
    * @param {*} updatedBy Id of logged in user
    * @return {Promise<any>}
    */
-  public static async prepareModelAndSave(requestPayload, model, modelDataResource, createdBy: string, updatedBy: string) {
+  public static async prepareModelAndSave(requestPayload, model, modelDataResource, resourceMetaData: MetaDataOptions) {
     requestPayload.forEach((record, index) => {
-      record.meta = DataTransform.getRecordMetaData(record, createdBy, updatedBy);
+      record.meta = DataTransform.getRecordMetaData(record, resourceMetaData);
       record.id = uuid();
       record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
       requestPayload[index] = record;

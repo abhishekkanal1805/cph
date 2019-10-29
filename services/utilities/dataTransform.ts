@@ -1,3 +1,4 @@
+import { MetaDataOptions } from "../../common/types/optionsAttribute";
 export class DataTransform {
   /**
    * Generates record's metadata as per information passed to it.
@@ -9,15 +10,16 @@ export class DataTransform {
    * @returns
    * @memberof DataTransform
    */
-  public static getRecordMetaData(record, createdByUser: string, modifiedByUser: string) {
+  public static getRecordMetaData(record, resourceMetaData: MetaDataOptions) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
       versionId: 1,
       created: timestamp,
       lastUpdated: timestamp,
-      createdBy: createdByUser,
-      lastUpdatedBy: modifiedByUser,
-      isDeleted: false
+      createdBy: resourceMetaData.createdBy,
+      lastUpdatedBy: resourceMetaData.lastUpdatedBy,
+      isDeleted: false,
+      requestId: resourceMetaData.requestId
     };
     if (record.meta) {
       metaDataObject.clientRequestId = record.meta.clientRequestId;

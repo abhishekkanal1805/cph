@@ -8,5 +8,6 @@ class ResourceMetadata {
   clientRequestId?: string;
   deviceId?: string;
   source?: string;
+  requestId: string;
 }
 export { ResourceMetadata };
