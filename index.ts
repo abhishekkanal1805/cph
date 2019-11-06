@@ -72,7 +72,6 @@ export * from "./common/objects/api-response-builder";
 export * from "./common/objects/tableNameToResourceTypeMapping";
 export * from "./common/objects/config";
 export * from "./common/objects/custom-errors";
-export * from "./common/types/cognitoUserAttribute";
-export * from "./common/types/optionsAttribute";
+export * from "./common/interfaces/baseInterfaces";
 export * from "./models/common/patient";
 export * from "./common/constants/resourceCategory";
