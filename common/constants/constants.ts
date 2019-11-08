@@ -260,6 +260,10 @@ class Constants {
   public static readonly HEADER_X_XSS_PROTECTION_VALUE = "1; mode=block";
   public static readonly HEADER_REFERRER_POLICY = "Referrer-Policy";
   public static readonly HEADER_REFERRER_POLICY_VALUE = "same-origin";
+  public static readonly HEADER_CACHE_CONTROL = "Cache-Control";
+  public static readonly HEADER_CACHE_CONTROL_VALUE = "no-store, no-cache, max-age=0, must-revalidate";
+  public static readonly HEADER_CONTENT_SECURITY_POLICY = "Content-Security-Policy";
+  public static readonly HEADER_CONTENT_SECURITY_POLICY_VALUE = "default-src 'self'; object-src 'none';";
   public static readonly USER_ATTRIBUTE = "user";
   public static readonly USER_REFERENCE_KEY = "user.reference";
 }
