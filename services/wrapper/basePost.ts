@@ -4,11 +4,12 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { MetaDataElements, RequestParams } from "../../common/interfaces/baseInterfaces";
-import { BadRequestResult } from "../../common/objects/custom-errors";
+import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
+import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { ReferenceValidator } from "../validators/referenceValidator";
@@ -42,7 +43,7 @@ export class BasePost {
             requestParams.informationSourceElement
           }`
         );
-        throw new BadRequestResult(errorCodeMap.InvalidRequest.value, errorCodeMap.InvalidRequest.description);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
         // Both should be there else throw error, discuss error type with team
       }
       keysToFetch.set(requestParams.ownerElement, []);
@@ -72,8 +73,12 @@ export class BasePost {
         informationSourceReferences[0],
         ownerReferences[0],
         serviceName,
-        Constants.ACCESS_EDIT
+        Constants.ACCESS_EDIT,
+        requestParams.ownerType
       );
+      log.info("User Authorization is successful ");
+    } else {
+      await DataFetch.getUserProfile([requestParams.requestorProfileId]);
       log.info("User Authorization is successful ");
     }
 

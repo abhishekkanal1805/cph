@@ -7,12 +7,13 @@ export interface SearchOptions {
   fetchLimit?: number;
 }
 export interface RequestParams {
-  requestId: string;
+  requestId?: string;
   requestorProfileId: string;
   ownerElement?: string;
   informationSourceElement?: string;
   referenceValidationModel?: any;
   referenceValidationElement?: string;
+  ownerType?: string;
 }
 
 export interface MetaDataElements {

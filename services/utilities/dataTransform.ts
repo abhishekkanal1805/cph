@@ -17,9 +17,11 @@ export class DataTransform {
       lastUpdated: timestamp,
       createdBy: resourceMetaData.createdBy,
       lastUpdatedBy: resourceMetaData.lastUpdatedBy,
-      isDeleted: false,
-      requestId: resourceMetaData.requestId
+      isDeleted: false
     };
+    if (resourceMetaData.requestId) {
+      metaDataObject.requestId = resourceMetaData.requestId;
+    }
     if (record.meta) {
       metaDataObject.clientRequestId = record.meta.clientRequestId;
       metaDataObject.deviceId = record.meta.deviceId;
