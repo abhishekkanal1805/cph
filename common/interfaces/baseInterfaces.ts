@@ -19,5 +19,5 @@ export interface RequestParams {
 export interface MetaDataElements {
   createdBy: string;
   lastUpdatedBy: string;
-  requestId: string;
+  requestId?: string;
 }
