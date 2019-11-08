@@ -5,6 +5,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
 import { DAOService } from "../dao/daoService";
@@ -96,7 +97,9 @@ export class BasePut {
     log.info("Primary keys are validated");
 
     // Sharing rules validation here
-    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientReferences[0]);
+    const model = payloadModel as any;
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientReferences[0], serviceName, Constants.ACCESS_EDIT);
     log.info("User Authorization is successful ");
     const queryObject = { id: primaryKeyIds };
     let whereClause = {};
@@ -333,7 +336,8 @@ export class BasePut {
       log.debug("InformationSourceElement [" + informationSourceElement + "] validation is successful");
       // perform Authorization, not setting ownerType as we do not care if patient or any other.
       // Sharing rules validation here
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, ownerReferences[0]);
+      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, ownerReferences[0], serviceName, Constants.ACCESS_EDIT);
       log.info("User Authorization is successful ");
 
       // For system user/ loggedin user to get his own record we won't add sharing rules

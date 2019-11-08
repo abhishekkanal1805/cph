@@ -6,6 +6,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GetOptions, SearchOptions } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { DAOService } from "../dao/daoService";
 import { I18N } from "../i18n/i18n";
 import { AuthService } from "../security/authService";
@@ -34,10 +35,10 @@ export class BaseGet {
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientIds[0]);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
@@ -74,7 +75,8 @@ export class BaseGet {
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0]);
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -154,7 +156,13 @@ export class BaseGet {
       if (queryParams[resourceOwnerElement][0].indexOf(Constants.FORWARD_SLASH) == -1) {
         queryParams[resourceOwnerElement][0] = [Constants.USER_PROFILE, resourceOwnerReference].join(Constants.FORWARD_SLASH);
       }
-      connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, queryParams[resourceOwnerElement][0]);
+      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      connection = await AuthService.authorizeConnectionBasedSharingRules(
+        requestorProfileId,
+        queryParams[resourceOwnerElement][0],
+        serviceName,
+        Constants.ACCESS_READ
+      );
       // For system user/ loggedin user to get his own record we won't add sharing rules
       isSharingRuleCheckRequired = connection.length > 0;
     }

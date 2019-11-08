@@ -5,6 +5,7 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { MetaDataElements, RequestParams } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult } from "../../common/objects/custom-errors";
+import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
@@ -65,8 +66,14 @@ export class BasePost {
       const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))].filter(Boolean);
       RequestValidator.validateSingularUserReference(informationSourceReferences);
       log.info("InformationSourceElement validation is successful :: saveResource()");
-
-      await AuthService.authorizeRequest(requestParams.requestorProfileId, informationSourceReferences[0], ownerReferences[0]);
+      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      await AuthService.authorizeRequest(
+        requestParams.requestorProfileId,
+        informationSourceReferences[0],
+        ownerReferences[0],
+        serviceName,
+        Constants.ACCESS_EDIT
+      );
       log.info("User Authorization is successful ");
     }
 

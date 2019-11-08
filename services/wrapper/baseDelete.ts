@@ -5,6 +5,7 @@ import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
 import { DataTransform } from "../utilities/dataTransform";
@@ -38,7 +39,8 @@ export class BaseDelete {
     record = record.dataResource;
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientIds[0]);
+      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientIds[0], serviceName, Constants.ACCESS_EDIT);
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
