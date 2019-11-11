@@ -8,7 +8,12 @@ describe("DataTransform", () => {
       const testCreatedByUserId = "1";
       const testUpdatedByUserId = "2";
       const record = {};
-      const result = DataTransform.getRecordMetaData(record, testCreatedByUserId, testUpdatedByUserId);
+      const metaData = {
+        createdBy: testCreatedByUserId,
+        lastUpdatedBy: testUpdatedByUserId,
+        requestId: "requestContext_requestId.context_awsRequestId"
+      };
+      const result = DataTransform.getRecordMetaData(record, metaData);
 
       // verifying the create meta
       expect(result.versionId).toEqual(1);
@@ -29,7 +34,12 @@ describe("DataTransform", () => {
       const testUpdatedByUserId = "2";
       const testProvidedMeta = { clientRequestId: "123", deviceId: "456", source: "mobile", created: "12235" };
       const record = { meta: testProvidedMeta };
-      const result = DataTransform.getRecordMetaData(record, testCreatedByUserId, testUpdatedByUserId);
+      const metaData = {
+        createdBy: testCreatedByUserId,
+        lastUpdatedBy: testUpdatedByUserId,
+        requestId: "requestContext_requestId.context_awsRequestId"
+      };
+      const result = DataTransform.getRecordMetaData(record, metaData);
 
       // verifying the create meta
       expect(result.versionId).toEqual(1);

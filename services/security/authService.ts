@@ -3,10 +3,14 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
+import { ServiceConfig } from "../../models/CPH/serviceConfig/serviceConfig";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
+
+DataSource.addModel(ServiceConfig);
 
 export class AuthService {
   /**
@@ -25,7 +29,14 @@ export class AuthService {
    * they dont matach. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
    */
-  public static async authorizeRequest(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
+  public static async authorizeRequest(
+    requester: string,
+    informationSourceReference: string,
+    ownerReference: string,
+    resourceType: string,
+    accessType: string,
+    ownerType?: string
+  ) {
     log.info("Entering AuthService :: performAuthorization()");
     // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
@@ -38,6 +49,12 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    // check 1. If resourceType publically accessable, then no connection check required
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
@@ -92,7 +109,14 @@ export class AuthService {
    * they dont matach. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
    */
-  public static async authorizeRequestSharingRules(requester: string, informationSourceReference: string, ownerReference: string, ownerType?: string) {
+  public static async authorizeRequestSharingRules(
+    requester: string,
+    informationSourceReference: string,
+    ownerReference: string,
+    resourceType: string,
+    accessType: string,
+    ownerType?: string
+  ) {
     log.info("Entering AuthService :: authorizeRequestSharingRules()");
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
     informationSourceReference = researchSubjectProfiles[informationSourceReference]
@@ -104,6 +128,12 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    // check 1. If resourceType publically accessable, then no connection check required
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
@@ -148,7 +178,7 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBased(requesterId: string, requesteeReference: string) {
+  public static async authorizeConnectionBased(requesterId: string, requesteeReference: string, resourceType: string, accessType: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
     requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
@@ -157,7 +187,12 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // reaches here if requester and requestee are both valid profiles
-
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    // check 1. If resourceType publically accessable, then no connection check required
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
@@ -194,7 +229,7 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeReference: string) {
+  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeReference: string, resourceType: string, accessType: string) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
     requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
@@ -203,7 +238,12 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // reaches here if requester and requestee are both valid profiles
-
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    // check 1. If resourceType publically accessable, then no connection check required
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
@@ -302,5 +342,26 @@ export class AuthService {
       }
     }
     return reasearchSubjectToUserProfiles;
+  }
+
+  public static async getResourceAccessLevel(resourceType: string, accessType: string) {
+    const permissionMapping = {
+      [Constants.PUBLIC_ACCESS_READ_WRITE]: [Constants.ACCESS_READ, Constants.ACCESS_EDIT],
+      [Constants.PUBLIC_ACCESS_READ_ONLY]: [Constants.ACCESS_READ]
+    };
+    const queryOptions = {
+      where: { resourceType },
+      attributes: [Constants.ACCESS_TYPE]
+    };
+    const result = await DAOService.search(ServiceConfig, queryOptions);
+    if (!result.length) {
+      log.error("Record not found in serviceConfig Table for resourceType: " + resourceType);
+      return false;
+    }
+    const serviceAccessValue = _.map(result, Constants.ACCESS_TYPE)[0];
+    if (permissionMapping[serviceAccessValue].indexOf(accessType) > -1) {
+      return true;
+    }
+    return false;
   }
 }

@@ -18,7 +18,7 @@ describe("AuthService", () => {
         throw expectedError;
       });
       try {
-        await AuthService.authorizeConnectionBased("any_id", "any_id");
+        await AuthService.authorizeConnectionBased("any_id", "any_id", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -31,7 +31,7 @@ describe("AuthService", () => {
       const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
       spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
       try {
-        await AuthService.authorizeConnectionBased("any_id", "any_id");
+        await AuthService.authorizeConnectionBased("any_id", "any_id", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err.message).toEqual(unexpectedInternalErrorMsg);
         done();
@@ -53,7 +53,7 @@ describe("AuthService", () => {
       });
 
       try {
-        await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id);
+        await AuthService.authorizeConnectionBased(testProfile.id, testProfile.id, null, Constants.ACCESS_READ);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -68,7 +68,7 @@ describe("AuthService", () => {
         return DataFetchStub.getUserAccess(requesterProfile, requesteeProfile);
       });
       try {
-        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id);
+        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id, null, Constants.ACCESS_READ);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -87,7 +87,7 @@ describe("AuthService", () => {
         return [{}];
       });
       try {
-        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id);
+        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id, null, Constants.ACCESS_READ);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -107,7 +107,7 @@ describe("AuthService", () => {
         return [];
       });
       try {
-        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id);
+        await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id, null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -124,7 +124,7 @@ describe("AuthService", () => {
       });
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz");
+        await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -138,7 +138,7 @@ describe("AuthService", () => {
       spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz");
+        await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err.message).toEqual(unexpectedInternalErrorMsg);
         done();
@@ -159,7 +159,14 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testPatientOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequest(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testPatientOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         actualError = err;
       }
@@ -168,7 +175,14 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided args dont matter as we are mocking the DataFetch behavior
-        await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequest(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testSystemOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -189,7 +203,14 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testPractitionerOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequest(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testPractitionerOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         actualError = err;
       }
@@ -198,7 +219,14 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequest("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequest(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testSystemOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -216,7 +244,13 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequest(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id);
+        await AuthService.authorizeRequest(
+          testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ
+        );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -230,7 +264,14 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequest(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequest(
+          testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -251,7 +292,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -272,7 +319,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -293,7 +346,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -314,7 +373,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -337,7 +402,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
         }
@@ -358,7 +429,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
         }
@@ -379,7 +456,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -402,7 +485,13 @@ describe("AuthService", () => {
 
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+          await AuthService.authorizeRequest(
+            testRequesterProfile.id,
+            "UserProfile/" + testInformationSourceProfile.id,
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
+          );
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -420,7 +509,13 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequest(testRequesterProfile.id, "UserProfile/" + testInformationSourceProfile.id, "UserProfile/" + testOwnerProfile.id);
+        await AuthService.authorizeRequest(
+          testRequesterProfile.id,
+          "UserProfile/" + testInformationSourceProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ
+        );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -509,7 +604,7 @@ describe("AuthService", () => {
       });
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz");
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -523,7 +618,7 @@ describe("AuthService", () => {
       spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz");
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err.message).toEqual(unexpectedInternalErrorMsg);
         done();
@@ -544,7 +639,14 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testPatientOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequestSharingRules(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testPatientOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         actualError = err;
       }
@@ -553,7 +655,14 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided args dont matter as we are mocking the DataFetch behavior
-        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequestSharingRules(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testSystemOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -574,7 +683,14 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testPractitionerOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequestSharingRules(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testPractitionerOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         actualError = err;
       }
@@ -583,7 +699,14 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("any", "UserProfile/dontcare", "UserProfile/" + testSystemOwnerProfile.id, allowedOwnerType);
+        await AuthService.authorizeRequestSharingRules(
+          "any",
+          "UserProfile/dontcare",
+          "UserProfile/" + testSystemOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
+          allowedOwnerType
+        );
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -601,7 +724,13 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id, "UserProfile/" + testOwnerProfile.id);
+        await AuthService.authorizeRequestSharingRules(
+          testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ
+        );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -619,6 +748,8 @@ describe("AuthService", () => {
           testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ,
           allowedOwnerType
         );
       } catch (err) {
@@ -644,7 +775,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           expect(err).toEqual(expectedError);
@@ -669,7 +802,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           expect(err).toEqual(expectedError);
@@ -694,7 +829,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           expect(err).toEqual(expectedError);
@@ -721,7 +858,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
@@ -746,7 +885,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
@@ -771,7 +912,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           expect(err).toEqual(expectedError);
@@ -798,7 +941,9 @@ describe("AuthService", () => {
           await AuthService.authorizeRequestSharingRules(
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id
+            "UserProfile/" + testOwnerProfile.id,
+            null,
+            Constants.ACCESS_READ
           );
         } catch (err) {
           expect(err).toEqual(expectedError);
@@ -820,7 +965,9 @@ describe("AuthService", () => {
         await AuthService.authorizeRequestSharingRules(
           testRequesterProfile.id,
           "UserProfile/" + testInformationSourceProfile.id,
-          "UserProfile/" + testOwnerProfile.id
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ
         );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
@@ -842,7 +989,9 @@ describe("AuthService", () => {
         await AuthService.authorizeRequestSharingRules(
           testRequesterProfile.id,
           "UserProfile/" + testInformationSourceProfile.id,
-          "UserProfile/" + testOwnerProfile.id
+          "UserProfile/" + testOwnerProfile.id,
+          null,
+          Constants.ACCESS_READ
         );
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);

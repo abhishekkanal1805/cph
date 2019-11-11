@@ -1,24 +1,27 @@
+import { MetaDataElements } from "../../common/interfaces/baseInterfaces";
 export class DataTransform {
   /**
    * Generates record's metadata as per information passed to it.
    * TODO: this function is only used in the context of creating record as version 1 is assigned. it would help to rename this as such.
    * @static
    * @param {*} record
-   * @param {string} createdByUser
-   * @param {string} modifiedByUser
+   * @param {MetaDataElements} resourceMetaData
    * @returns
    * @memberof DataTransform
    */
-  public static getRecordMetaData(record, createdByUser: string, modifiedByUser: string) {
+  public static getRecordMetaData(record, resourceMetaData: MetaDataElements) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
       versionId: 1,
       created: timestamp,
       lastUpdated: timestamp,
-      createdBy: createdByUser,
-      lastUpdatedBy: modifiedByUser,
+      createdBy: resourceMetaData.createdBy,
+      lastUpdatedBy: resourceMetaData.lastUpdatedBy,
       isDeleted: false
     };
+    if (resourceMetaData.requestId) {
+      metaDataObject.requestId = resourceMetaData.requestId;
+    }
     if (record.meta) {
       metaDataObject.clientRequestId = record.meta.clientRequestId;
       metaDataObject.deviceId = record.meta.deviceId;

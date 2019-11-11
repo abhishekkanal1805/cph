@@ -172,6 +172,9 @@ class Constants {
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
 
+  public static readonly PRIVATE_RESOURCE_TYPE = "private";
+  public static readonly ACCESS_TYPE = "accessType";
+
   /* Sharing Rule Constants */
   public static readonly DATE_PATTERN =
     "^-?[0-9]{4}(-(0[1-9]|1[0-2])(-(0[0-9]|[1-2][0-9]|3[0-1])(T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\\\.[0-9]+)?(Z|(\\\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00)))?)?)?$";
@@ -221,6 +224,8 @@ class Constants {
   public static readonly TYPE_GROUP = "group";
   public static readonly ACCESS_READ = "read";
   public static readonly ACCESS_EDIT = "edit";
+  public static readonly PUBLIC_ACCESS_READ_ONLY = "public-read-only";
+  public static readonly PUBLIC_ACCESS_READ_WRITE = "public-read-write";
 
   public static readonly QUESTIONNAIRE_TITLE_IMAGE = "titleImage";
   public static readonly TITLE_IMAGE_CONTENT_TYPE = "contentType";
@@ -239,6 +244,7 @@ class Constants {
   public static readonly CONNECTION_SERVICE = "Connection";
   public static readonly PERMANENT = "permanent";
   public static readonly TRUE = true;
+  public static readonly FALSE = false;
   public static readonly USER_PROFILE = "UserProfile";
   public static readonly RESEARCH_SUBJECT = "ResearchSubject";
   public static readonly LIMIT = "limit";
