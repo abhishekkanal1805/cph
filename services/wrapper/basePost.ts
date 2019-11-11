@@ -68,7 +68,7 @@ export class BasePost {
       RequestValidator.validateSingularUserReference(informationSourceReferences);
       log.info("InformationSourceElement validation is successful :: saveResource()");
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      await AuthService.authorizeRequest(
+      await AuthService.authorizeRequestSharingRules(
         requestParams.requestorProfileId,
         informationSourceReferences[0],
         ownerReferences[0],
