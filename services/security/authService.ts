@@ -49,20 +49,20 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    // check 1. If resourceType publically accessable, then no connection check required
-    if (isResoucePublicAccessable) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
-      return [];
-    }
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    // check 2. is Patient submitting its own request
+    // check 2. is user submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
+      return [];
+    }
+    // check 3. If resourceType publically accessable, then no connection check required
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
     // check 3. is Practitioner or Care Partner submitting request for owner
@@ -128,12 +128,6 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    // check 1. If resourceType publically accessable, then no connection check required
-    if (isResoucePublicAccessable) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
-      return [];
-    }
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
@@ -142,6 +136,12 @@ export class AuthService {
     // check 2. is Patient submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
+      return [];
+    }
+    // check 3. If resourceType publically accessable, then no connection check required
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
     if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER && requester === informationSourceId) {
@@ -187,18 +187,17 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // reaches here if requester and requestee are both valid profiles
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    // check 1. If resourceType publically accessable, then no connection check required
-    if (isResoucePublicAccessable) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
-      return [];
-    }
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return [];
     }
-
+    // check 1. If resourceType publically accessable, then no connection check required
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
@@ -238,18 +237,17 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // reaches here if requester and requestee are both valid profiles
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    // check 1. If resourceType publically accessable, then no connection check required
-    if (isResoucePublicAccessable) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
-      return [];
-    }
     // check 1. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
-
+    // check 2. If resourceType publically accessable, then no connection check required
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      return [];
+    }
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
@@ -359,7 +357,11 @@ export class AuthService {
       return false;
     }
     const serviceAccessValue = _.map(result, Constants.ACCESS_TYPE)[0];
-    if (permissionMapping[serviceAccessValue].indexOf(accessType) > -1) {
+    if (permissionMapping[serviceAccessValue] && permissionMapping[serviceAccessValue].indexOf(accessType) > -1) {
+      if (serviceAccessValue == Constants.PUBLIC_ACCESS_READ_ONLY && accessType == Constants.ACCESS_EDIT) {
+        log.error("Resource accessType is public-read-only and trying to perform edit operation");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
       return true;
     }
     return false;
