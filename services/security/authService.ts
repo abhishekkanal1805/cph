@@ -5,12 +5,12 @@ import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
+import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
-import { ServiceConfig } from "../../models/CPH/serviceConfig/serviceConfig";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
-DataSource.addModel(ServiceConfig);
+DataSource.addModel(OrganizationLevelDefaults);
 
 export class AuthService {
   /**
@@ -348,9 +348,9 @@ export class AuthService {
       where: { resourceType },
       attributes: [Constants.ACCESS_TYPE]
     };
-    const result = await DAOService.search(ServiceConfig, queryOptions);
+    const result = await DAOService.search(OrganizationLevelDefaults, queryOptions);
     if (!result.length) {
-      log.error("Record not found in serviceConfig Table for resourceType: " + resourceType);
+      log.error("Record not found in OrganizationLevelDefaults Table for resourceType: " + resourceType);
       return false;
     }
     const serviceAccessValue = _.map(result, Constants.ACCESS_TYPE)[0];
