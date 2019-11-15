@@ -1,8 +1,8 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 
-@Table({ tableName: "ServiceConfig" })
-export class ServiceConfig extends Model<ServiceConfig> {
+@Table({ tableName: "OrganizationLevelDefaults" })
+export class OrganizationLevelDefaults extends Model<OrganizationLevelDefaults> {
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
