@@ -3,14 +3,11 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
 import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
-
-DataSource.addModel(OrganizationLevelDefaults);
 
 export class AuthService {
   /**
@@ -354,10 +351,6 @@ export class AuthService {
       return false;
     }
     const serviceAccessValue = _.map(result, Constants.ACCESS_TYPE)[0];
-    if (serviceAccessValue == Constants.PUBLIC_ACCESS_READ_ONLY && accessType == Constants.ACCESS_EDIT) {
-      log.error("Resource accessType is public-read-only and trying to perform edit operation");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
     if (permissionMapping[serviceAccessValue] && permissionMapping[serviceAccessValue].indexOf(accessType) > -1) {
       return true;
     }
