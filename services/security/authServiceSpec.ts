@@ -12,11 +12,17 @@ const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, e
 
 describe("AuthService", () => {
   describe("#hasConnectionBasedAccess()", () => {
+    beforeEach(() => {
+      spyOn(AuthService, "getResourceAccessLevel").and.callFake(() => {
+        return false;
+      });
+    });
     it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
       // dataFetch can throw ForbiddenResult error when it invalidates the provided IDs
       spyOn(DataFetch, "getUserProfile").and.callFake(() => {
         throw expectedError;
       });
+
       try {
         await AuthService.authorizeConnectionBased("any_id", "any_id", null, Constants.ACCESS_READ);
       } catch (err) {
@@ -67,6 +73,7 @@ describe("AuthService", () => {
         // the requester profile in access must be present
         return DataFetchStub.getUserAccess(requesterProfile, requesteeProfile);
       });
+
       try {
         await AuthService.authorizeConnectionBased(requesterProfile.id, requesteeProfile.id, null, Constants.ACCESS_READ);
       } catch (err) {
@@ -82,6 +89,7 @@ describe("AuthService", () => {
         // the requester profile in access must be present
         return DataFetchStub.getUserAccess(requesterProfile, requesteeProfile);
       });
+
       spyOn(AuthService, "hasConnection").and.callFake(() => {
         // returning any array greater than length one will allow access
         return [{}];
@@ -102,6 +110,7 @@ describe("AuthService", () => {
         // the requester profile in access must be present
         return DataFetchStub.getUserAccess(requesterProfile, requesteeProfile);
       });
+
       spyOn(AuthService, "hasConnection").and.callFake(() => {
         // returning any array greater than length one will allow access
         return [];
@@ -116,12 +125,17 @@ describe("AuthService", () => {
       done.fail("Should have thrown a Forbidden error");
     });
   });
-
   describe("#authorizeRequest()", () => {
+    beforeEach(() => {
+      spyOn(AuthService, "getResourceAccessLevel").and.callFake(() => {
+        return false;
+      });
+    });
     it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
       spyOn(DataFetch, "getUserProfile").and.callFake(() => {
         throw expectedError;
       });
+
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
@@ -136,6 +150,7 @@ describe("AuthService", () => {
     it("Do not allow access if DataFetch throws unexpected internal error", async (done) => {
       const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
       spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
+
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         await AuthService.authorizeRequest("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
@@ -155,6 +170,7 @@ describe("AuthService", () => {
         DataFetchStub.getUserAccess(testPatientOwnerProfile),
         DataFetchStub.getUserAccess(testSystemOwnerProfile)
       );
+
       // test 1, Patient owner will be forbidden
       let actualError;
       try {
@@ -287,7 +303,6 @@ describe("AuthService", () => {
         const testOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         const testRequesterProfile = { id: "999", type: "UNSUPPORTED" };
-
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
 
         try {
@@ -316,7 +331,6 @@ describe("AuthService", () => {
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -343,7 +357,6 @@ describe("AuthService", () => {
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[1];
         const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -370,7 +383,6 @@ describe("AuthService", () => {
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
         const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -399,7 +411,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -426,7 +437,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -453,7 +463,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size=0 to prove no connection
         spyOn(AuthService, "hasConnection").and.returnValue([]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -482,7 +491,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size=0 to prove no connection
         spyOn(AuthService, "hasConnection").and.returnValue([]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequest(
@@ -522,11 +530,16 @@ describe("AuthService", () => {
       done();
     });
   });
-
   describe("#hasConnection()", () => {
+    beforeEach(() => {
+      spyOn(AuthService, "getResourceAccessLevel").and.callFake(() => {
+        return false;
+      });
+    });
     it("Should throw the error if the DAO does.", async (done) => {
       const expectedErrorMessage = "any internal error";
       spyOn(DAOService, "search").and.throwError(expectedErrorMessage);
+
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         await AuthService.hasConnection("pqr", "UserProfile/abc", [], []);
@@ -596,12 +609,17 @@ describe("AuthService", () => {
       done();
     });
   });
-
   describe("#authorizeRequestSharingRules()", () => {
+    beforeEach(() => {
+      spyOn(AuthService, "getResourceAccessLevel").and.callFake(() => {
+        return false;
+      });
+    });
     it("Do not allow access if DataFetch throws ForbiddenResult error", async (done) => {
       spyOn(DataFetch, "getUserProfile").and.callFake(() => {
         throw expectedError;
       });
+
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
@@ -616,6 +634,7 @@ describe("AuthService", () => {
     it("Do not allow access if DataFetch throws unexpected internal error", async (done) => {
       const unexpectedInternalErrorMsg = "unexpectedInternalErrorMsg";
       spyOn(DataFetch, "getUserProfile").and.throwError(unexpectedInternalErrorMsg);
+
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
@@ -635,6 +654,7 @@ describe("AuthService", () => {
         DataFetchStub.getUserAccess(testPatientOwnerProfile),
         DataFetchStub.getUserAccess(testSystemOwnerProfile)
       );
+
       // test 1, Patient owner will be forbidden
       let actualError;
       try {
@@ -679,6 +699,7 @@ describe("AuthService", () => {
         DataFetchStub.getUserAccess(testPractitionerOwnerProfile),
         DataFetchStub.getUserAccess(testSystemOwnerProfile)
       );
+
       // test 1, Practitioner owner will be forbidden
       let actualError;
       try {
@@ -759,7 +780,6 @@ describe("AuthService", () => {
       }
       done.fail("Should have thrown an internal error.");
     });
-
     it(
       "Do not allow access if provided profiles are valid, requester is not the owner or informationSource " +
         "and requester's profileType is unknown or unsupported",
@@ -796,7 +816,6 @@ describe("AuthService", () => {
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[1];
         const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -823,7 +842,6 @@ describe("AuthService", () => {
         const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
         const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -852,7 +870,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -879,7 +896,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -906,7 +922,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size=0 to prove no connection
         spyOn(AuthService, "hasConnection").and.returnValue([]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -935,7 +950,6 @@ describe("AuthService", () => {
         spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
         // hasConnection has to return any array size=0 to prove no connection
         spyOn(AuthService, "hasConnection").and.returnValue([]);
-
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
           await AuthService.authorizeRequestSharingRules(
@@ -984,6 +998,7 @@ describe("AuthService", () => {
         // returning any array greater than length one will allow access
         return [{}];
       });
+
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
         await AuthService.authorizeRequestSharingRules(

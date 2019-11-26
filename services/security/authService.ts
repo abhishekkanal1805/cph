@@ -3,14 +3,12 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
-import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
 import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
-DataSource.addModel(OrganizationLevelDefaults);
 export class AuthService {
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
@@ -49,7 +47,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. is requester the System user. A system user can submit request on its or someone else's behalf
-    if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       log.info("requester is a system user and it is submitting request for a valid owner");
       return [];
     }
@@ -128,7 +126,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. is requester the System user. A system user can submit request on its or someone else's behalf
-    if (fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       log.info("requester is a system user and it is submitting request for a valid owner");
       return [];
     }
@@ -186,7 +184,7 @@ export class AuthService {
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1: if requester should be system user then allow access
-    if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+    if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: hasConnectionBasedAccess");
       return [];
     }
@@ -235,7 +233,7 @@ export class AuthService {
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // reaches here if requester and requestee are both valid
     // check 1: if requester should be system user then allow access
-    if (fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+    if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
       return [];
     }
