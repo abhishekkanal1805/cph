@@ -11,7 +11,6 @@ import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
 DataSource.addModel(OrganizationLevelDefaults);
-
 export class AuthService {
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
@@ -285,7 +284,8 @@ export class AuthService {
         "from.reference": from,
         "to.reference": to,
         "type": type,
-        "status": status
+        "status": status,
+        "meta.isDeleted": false
       }
     };
     let result = await DAOService.search(Connection, queryOptions);
@@ -354,10 +354,6 @@ export class AuthService {
       return false;
     }
     const serviceAccessValue = _.map(result, Constants.ACCESS_TYPE)[0];
-    if (serviceAccessValue == Constants.PUBLIC_ACCESS_READ_ONLY && accessType == Constants.ACCESS_EDIT) {
-      log.error("Resource accessType is public-read-only and trying to perform edit operation");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
     if (permissionMapping[serviceAccessValue] && permissionMapping[serviceAccessValue].indexOf(accessType) > -1) {
       return true;
     }

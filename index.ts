@@ -64,6 +64,8 @@ export * from "./models/CPH/connection/connectionDataResource";
 export { Device } from "./models/CPH/device/device";
 export * from "./models/CPH/device/deviceDataResource";
 export * from "./models/CPH/researchSubject/researchSubject";
+export * from "./models/CPH/researchSubject/researchSubjectDataResource";
+export * from "./models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 
 export * from "./common/constants/constants";
 export * from "./common/constants/error-codes-map";

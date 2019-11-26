@@ -32,7 +32,8 @@ export class DataFetch {
     const queryObject = {
       where: {
         id: profiles,
-        status: Constants.ACTIVE
+        status: Constants.ACTIVE,
+        [Constants.META_IS_DELETED_KEY]: false
       }
     };
     const result = await DAOService.search(UserProfile, queryObject);
@@ -118,7 +119,8 @@ export class DataFetch {
   public static async getConnections(searchObject: any, requestExpirationDate?: string) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
-      [Op.ne]: null
+      [Op.ne]: null,
+      [Constants.META_IS_DELETED_KEY]: false
     };
     if (requestExpirationDate) {
       const exiporationMomentObject = moment(requestExpirationDate, Constants.DATE);
