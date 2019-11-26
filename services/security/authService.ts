@@ -3,12 +3,14 @@ import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
+import { DataSource } from "../../dataSource";
 import { Connection } from "../../models/CPH/connection/connection";
 import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
 import { DataFetch } from "../utilities/dataFetch";
 
+DataSource.addModel(OrganizationLevelDefaults);
 export class AuthService {
   /**
    * TODO: Why do we need a reference when we need to extract id anyways.
@@ -282,7 +284,8 @@ export class AuthService {
         "from.reference": from,
         "to.reference": to,
         "type": type,
-        "status": status
+        "status": status,
+        "meta.isDeleted": false
       }
     };
     let result = await DAOService.search(Connection, queryOptions);
