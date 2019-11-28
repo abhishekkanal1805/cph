@@ -227,32 +227,32 @@ export class TimingEventsGenerator {
           .add(365, "d")
           .toISOString();
       }
-      if (typeOfTiming === "undefined" && !(moment(startDate, "YYYY-MM-DD", true).isValid() && moment(endDate, "YYYY-MM-DD", true).isValid())) {
+      if (typeOfTiming === "undefined" && !(moment(startDate, Constants.DATE, true).isValid() && moment(endDate, Constants.DATE, true).isValid())) {
         events = _.filter(events, (date) => {
           if (
-            moment(startDate, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid() &&
-            moment(endDate, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid() &&
+            moment(startDate, Constants.DATE_TIME, true).isValid() &&
+            moment(endDate, Constants.DATE_TIME, true).isValid() &&
             startDate <= date.toISOString() &&
             endDate >= date.toISOString()
           ) {
             return date;
           }
           if (
-            moment(startDate, "YYYY-MM-DD", true).isValid() &&
-            moment(endDate, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid() &&
+            moment(startDate, Constants.DATE, true).isValid() &&
+            moment(endDate, Constants.DATE_TIME, true).isValid() &&
             startDate <= date.toISOString() &&
             endDate >= date.toISOString()
           ) {
             return date;
           }
           if (
-            moment(startDate, "YYYY-MM-DDTHH:mm:ss.SSSSZ", true).isValid() &&
-            moment(endDate, "YYYY-MM-DD", true).isValid() &&
+            moment(startDate, Constants.DATE_TIME, true).isValid() &&
+            moment(endDate, Constants.DATE, true).isValid() &&
             startDate <= date.toISOString() &&
             moment
               .utc(endDate)
               .add(1, "d")
-              .format("YYYY-MM-DD")
+              .format(Constants.DATE)
               .toString() >= date.toISOString()
           ) {
             return date;
@@ -275,7 +275,7 @@ export class TimingEventsGenerator {
     eventArray = [...new Set(eventArray)];
     const events = [];
     for (let date of eventArray) {
-      date = moment.utc(date).format(Constants.FORMAT_DATE_TIME);
+      date = moment.utc(date).format(Constants.DATE_TIME);
       if (limitEvents && moment(start).isBefore(date) && moment(end).isAfter(date)) {
         events.push(new Date(date));
       } else if (!limitEvents) {
@@ -298,7 +298,7 @@ export class TimingEventsGenerator {
     const dayOfCycle = TimingUtility.convertPeriodIntervalToCycle(start, end, period);
     const events = [];
     let prevDay = 0;
-    start = moment.utc(start).format("YYYY-MM-DD");
+    start = moment.utc(start).format(Constants.DATE);
     // for each time in the array
     for (const time of timeOfDay) {
       // for each cycle of days
@@ -307,7 +307,7 @@ export class TimingEventsGenerator {
         currentDate.setDate(currentDate.getDate() + (cycleDay - prevDay));
         events.push(currentDate);
         start = currentDate.toISOString();
-        start = moment.utc(start).format("YYYY-MM-DD");
+        start = moment.utc(start).format(Constants.DATE);
         prevDay = cycleDay;
       }
     }
@@ -328,8 +328,8 @@ export class TimingEventsGenerator {
     log.info("Entering TimingEventsGenerator.generateSDCEvents()");
     let nextDay;
     const events = [];
-    const startDate = moment.utc(start).format("YYYY-MM-DD");
-    const endDate = moment.utc(end).format("YYYY-MM-DD");
+    const startDate = moment.utc(start).format(Constants.DATE);
+    const endDate = moment.utc(end).format(Constants.DATE);
     for (const time of timeOfDay) {
       start = new Date(new Date(startDate + " " + time + " UTC").toISOString());
       end = new Date(new Date(endDate + " " + time + " UTC").toISOString());
@@ -395,8 +395,8 @@ export class TimingEventsGenerator {
   public static generateSDYEvents(start, end, timeOfDay) {
     log.info("Entering TimingEventsGenerator.generateSDYEvents()");
     const events = [];
-    start = moment.utc(start).format("YYYY-MM-DD");
-    end = moment.utc(end).format("YYYY-MM-DD");
+    start = moment.utc(start).format(Constants.DATE);
+    end = moment.utc(end).format(Constants.DATE);
     for (const time of timeOfDay) {
       const dates = TimingUtility.getDates(
         new Date(new Date(start + " " + time + " UTC").toISOString()),

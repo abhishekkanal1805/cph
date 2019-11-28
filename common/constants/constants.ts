@@ -269,7 +269,7 @@ class Constants {
 
   public static readonly TIMING_CODE = "timing.code";
   public static readonly TIMING_TIME_OF_DAY = "timing.repeat.timeOfDay";
-  public static readonly FORMAT_DATE_TIME = "YYYY-MM-DDTHH:mm:ss.SSSSZ";
-  public static readonly FORMAT_DATE = "YYYY-MM-DD";
+  public static readonly INTERNAL_DATE_FORMAT = "DD.MM.YYYY";
+
 }
 export { Constants };

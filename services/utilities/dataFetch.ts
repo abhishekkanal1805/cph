@@ -119,11 +119,11 @@ export class DataFetch {
   public static async getConnections(searchObject: any, requestExpirationDate?: string) {
     // Remove empty data resource object
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
-      [Op.ne]: null,
-      [Constants.META_IS_DELETED_KEY]: false
+      [Op.ne]: null
     };
+    searchObject[Constants.META_IS_DELETED_KEY] = false;
     if (requestExpirationDate) {
-      const exiporationMomentObject = moment(requestExpirationDate, Constants.DATE);
+      const expirationMomentObject = moment(requestExpirationDate, Constants.DATE);
       if (!searchObject[Op.or]) {
         searchObject[Op.or] = [];
       }
@@ -136,12 +136,12 @@ export class DataFetch {
         },
         {
           [Constants.REQUEST_EXPIRATION_DATE]: {
-            [Op.eq]: exiporationMomentObject.format(Constants.YEAR_MONTH)
+            [Op.eq]: expirationMomentObject.format(Constants.YEAR_MONTH)
           }
         },
         {
           [Constants.REQUEST_EXPIRATION_DATE]: {
-            [Op.eq]: exiporationMomentObject.format(Constants.YEAR)
+            [Op.eq]: expirationMomentObject.format(Constants.YEAR)
           }
         },
         {

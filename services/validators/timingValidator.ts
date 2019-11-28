@@ -30,7 +30,7 @@ export class TimingValidator {
    * @returns {boolean}
    */
   public static validateTime(timeOfDay) {
-    log.info("inside GeneratePlannedActivitiesHelper.validateTime()");
+    log.info("Entering TimingValidator.validateTime()");
     if (!timeOfDay) {
       throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_TIME_OF_DAY);
     }
@@ -49,12 +49,12 @@ export class TimingValidator {
    * @param end
    */
   public static validateStartEndDates(start, end) {
-    log.info("Inside MedicationPlanService: validateStartEndDates()");
+    log.info("Entering TimingValidator: validateStartEndDates()");
     if (start > end) {
       throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.repeat.boundsPeriod.start");
     }
-    const startDate = moment(new Date(start), "DD.MM.YYYY");
-    const endDate = moment(new Date(end), "DD.MM.YYYY");
+    const startDate = moment(new Date(start), Constants.INTERNAL_DATE_FORMAT);
+    const endDate = moment(new Date(end), Constants.INTERNAL_DATE_FORMAT);
     if (endDate.diff(startDate, "d") > 365) {
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
     }
