@@ -266,5 +266,10 @@ class Constants {
   public static readonly HEADER_CONTENT_SECURITY_POLICY_VALUE = "default-src 'self'; object-src 'none';";
   public static readonly USER_ATTRIBUTE = "user";
   public static readonly USER_REFERENCE_KEY = "user.reference";
+
+  public static readonly TIMING_CODE = "timing.code";
+  public static readonly TIMING_TIME_OF_DAY = "timing.repeat.timeOfDay";
+  public static readonly INTERNAL_DATE_FORMAT = "DD.MM.YYYY";
+
 }
 export { Constants };
