@@ -16,7 +16,7 @@ export class TimingEventsGenerator {
    * @returns events array
    */
   public static generateDateEventsFromTiming(timing: any, start: string, end: string) {
-    log.info("In TimingEventsGenerator.generateDateEventsFromTiming()");
+    log.info("Entering TimingEventsGenerator.generateDateEventsFromTiming()");
     let events: any = [];
     let startDate: any;
     let endDate: any;
@@ -53,6 +53,7 @@ export class TimingEventsGenerator {
       }
     }
     events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
+    log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
     return events;
   }
 
@@ -220,47 +221,48 @@ export class TimingEventsGenerator {
     log.info("Entering TimingEventsGenerator.filterEvents()");
     if (events.length == 0) {
       log.info("No events created");
-    } else {
-      if (!endDate) {
-        endDate = moment
-          .utc(startDate)
-          .add(365, "d")
-          .toISOString();
-      }
-      if (typeOfTiming === "undefined" && !(moment(startDate, Constants.DATE, true).isValid() && moment(endDate, Constants.DATE, true).isValid())) {
-        events = _.filter(events, (date) => {
-          if (
-            moment(startDate, Constants.DATE_TIME, true).isValid() &&
-            moment(endDate, Constants.DATE_TIME, true).isValid() &&
-            startDate <= date.toISOString() &&
-            endDate >= date.toISOString()
-          ) {
-            return date;
-          }
-          if (
-            moment(startDate, Constants.DATE, true).isValid() &&
-            moment(endDate, Constants.DATE_TIME, true).isValid() &&
-            startDate <= date.toISOString() &&
-            endDate >= date.toISOString()
-          ) {
-            return date;
-          }
-          if (
-            moment(startDate, Constants.DATE_TIME, true).isValid() &&
-            moment(endDate, Constants.DATE, true).isValid() &&
-            startDate <= date.toISOString() &&
-            moment
-              .utc(endDate)
-              .add(1, "d")
-              .format(Constants.DATE)
-              .toString() >= date.toISOString()
-          ) {
-            return date;
-          }
-        });
-        events = events.filter((date) => date != null);
-      }
+      return events;
     }
+    if (!endDate) {
+      endDate = moment
+        .utc(startDate)
+        .add(365, "d")
+        .toISOString();
+    }
+    if (typeOfTiming === "undefined" && !(moment(startDate, Constants.DATE, true).isValid() && moment(endDate, Constants.DATE, true).isValid())) {
+      events = _.filter(events, (date) => {
+        if (
+          moment(startDate, Constants.DATE_TIME, true).isValid() &&
+          moment(endDate, Constants.DATE_TIME, true).isValid() &&
+          startDate <= date.toISOString() &&
+          endDate >= date.toISOString()
+        ) {
+          return date;
+        }
+        if (
+          moment(startDate, Constants.DATE, true).isValid() &&
+          moment(endDate, Constants.DATE_TIME, true).isValid() &&
+          startDate <= date.toISOString() &&
+          endDate >= date.toISOString()
+        ) {
+          return date;
+        }
+        if (
+          moment(startDate, Constants.DATE_TIME, true).isValid() &&
+          moment(endDate, Constants.DATE, true).isValid() &&
+          startDate <= date.toISOString() &&
+          moment
+            .utc(endDate)
+            .add(1, "d")
+            .format(Constants.DATE)
+            .toString() >= date.toISOString()
+        ) {
+          return date;
+        }
+      });
+      events = events.filter((date) => date != null);
+    }
+
     log.info("Existing TimingEventsGenerator.filterEvents()");
     return events;
   }

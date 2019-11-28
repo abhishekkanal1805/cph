@@ -12,7 +12,7 @@ export class TimingUtility {
    * @param previousEndDate
    */
   public static calculateStartDateForMedActivity(requestStart, repeat, previousEndDate) {
-    log.info("Calculating start Date for MedActivity");
+    log.info("Entering TimingUtility.calculateStartDateForMedActivity()");
     let dateArray = [];
     if (requestStart) {
       dateArray.push(new Date(requestStart));
@@ -40,6 +40,7 @@ export class TimingUtility {
         return TimingUtility.addDays(previousEndDate, 1);
       }
     }
+    log.info("Existing TimingUtility.calculateStartDateForMedActivity()");
   }
 
   /**
@@ -50,7 +51,7 @@ export class TimingUtility {
    * @param code
    */
   public static calculateEndDateForMedActivity(startDate, requestEnd, repeat, code) {
-    log.info("Calculating end Date for MedActivity");
+    log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
     let dateArray = [];
     if (requestEnd) {
       dateArray.push(new Date(requestEnd));
@@ -94,6 +95,7 @@ export class TimingUtility {
       log.info("Date Array is " + JSON.stringify(dateArray)); // TODO: remove log
       return dateArray[0];
     }
+    log.info("Exiting TimingUtility.calculateEndDateForMedActivity()");
   }
 
   /**
@@ -102,7 +104,7 @@ export class TimingUtility {
    * @returns {Date}
    */
   public static addDays(cDate, days) {
-    log.info("inside GeneratePlannedActivitiesHelper.addDays()");
+    log.info("Entering TimingUtility.addDays()");
     try {
       const date = new Date(cDate);
       date.setDate(date.getDate() + days);
@@ -119,7 +121,7 @@ export class TimingUtility {
    * @returns {any[]}
    */
   public static getDates(startDate, endDate) {
-    log.info("inside GeneratePlannedActivitiesHelper.getDates()");
+    log.info("Entering TimingUtility.getDates()");
     const dates = [];
     let currentDate = startDate;
     try {
@@ -139,7 +141,7 @@ export class TimingUtility {
    * @returns {boolean}
    */
   public static validateTime(timeOfDay) {
-    log.info("inside GeneratePlannedActivitiesHelper.validateTime()");
+    log.info("Entering TimingUtility.validateTime()");
     let validated = true;
     if (!timeOfDay) {
       throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_TIME_OF_DAY);
@@ -184,7 +186,7 @@ export class TimingUtility {
    * @returns {any[]}
    */
   public static convertPeriodIntervalToCycle(start, end, period) {
-    log.info("inside GeneratePlannedActivitiesHelper.convertPeriodIntervalToCycle()");
+    log.info("Entering TimingUtility.convertPeriodIntervalToCycle()");
     let nextDay;
     const cycle = [];
     let startCycle = period;
