@@ -1,6 +1,5 @@
 import * as log from "lambda-log";
 import * as moment from "moment";
-import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 
@@ -12,7 +11,7 @@ export class TimingUtility {
    * @param previousEndDate
    */
   public static calculateStartDateForMedActivity(requestStart, repeat, previousEndDate) {
-    log.info("Entering TimingUtility.calculateStartDateForMedActivity()");
+    log.info("Calculating start Date for MedActivity");
     let dateArray = [];
     if (requestStart) {
       dateArray.push(new Date(requestStart));
@@ -22,7 +21,6 @@ export class TimingUtility {
       boundsPeriodPresent = true;
       dateArray.push(new Date(repeat.boundsPeriod.start));
     }
-
     dateArray = dateArray
       .sort((a, b) => {
         return a.getTime() - b.getTime();
@@ -31,16 +29,12 @@ export class TimingUtility {
     if (dateArray.length == 0 && !previousEndDate) {
       log.error("startDate is neither present in request nor in boundsPeriod.start object");
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
-    } else {
-      if (boundsPeriodPresent) {
-        log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
-        return dateArray[dateArray.length - 1];
-      } else {
-        log.info("start date calculated as :: " + TimingUtility.addDays(previousEndDate, 1));
-        return TimingUtility.addDays(previousEndDate, 1);
-      }
+    } else if (dateArray.length == 0 && previousEndDate) {
+      return TimingUtility.addDays(previousEndDate, 1);
+    } else if (boundsPeriodPresent) {
+      log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
+      return dateArray[dateArray.length - 1];
     }
-    log.info("Existing TimingUtility.calculateStartDateForMedActivity()");
   }
 
   /**
@@ -92,10 +86,8 @@ export class TimingUtility {
       return TimingUtility.addDays(startDate, TimingUtility.calculateDaysInFullYear(startDate));
     } else {
       log.info("End date is " + dateArray[0]);
-      log.info("Date Array is " + JSON.stringify(dateArray)); // TODO: remove log
       return dateArray[0];
     }
-    log.info("Exiting TimingUtility.calculateEndDateForMedActivity()");
   }
 
   /**
@@ -134,28 +126,6 @@ export class TimingUtility {
       return [];
     }
     return dates;
-  }
-
-  /**
-   * @param timeOfDay
-   * @returns {boolean}
-   */
-  public static validateTime(timeOfDay) {
-    log.info("Entering TimingUtility.validateTime()");
-    let validated = true;
-    if (!timeOfDay) {
-      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_TIME_OF_DAY);
-    }
-    for (const time of timeOfDay) {
-      const dateRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
-      const validationCheck = dateRegex.test(time);
-
-      if (!validationCheck) {
-        validated = false;
-        break;
-      }
-    }
-    return validated;
   }
 
   /**
