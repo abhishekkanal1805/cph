@@ -28,7 +28,13 @@ export class BasePost {
    * @param {RequestParams} requestParams
    * @returns {Promise<GenericResponse<T>>}
    */
-  public static async saveResource<T>(requestPayload, payloadModel: T, payloadDataResourceModel, requestParams: RequestParams): Promise<GenericResponse<T>> {
+  public static async saveResource<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResource()");
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     log.info("Record Array created succesfully in :: saveResource()");
     const model = payloadModel as any;
@@ -44,7 +50,6 @@ export class BasePost {
           }`
         );
         throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
-        // Both should be there else throw error, discuss error type with team
       }
       keysToFetch.set(requestParams.ownerElement, []);
       keysToFetch.set(requestParams.informationSourceElement, []);
@@ -61,12 +66,13 @@ export class BasePost {
       // perform user validation for owner reference
       const ownerReferences = [...new Set(keysMap.get(requestParams.ownerElement))].filter(Boolean);
       RequestValidator.validateSingularUserReference(ownerReferences);
-      log.info("OwnerElement validation is successful :: saveResource()");
+      log.info(`OwnerElement: ${requestParams.ownerElement} validation is successful :: saveResource()`);
 
-      // perform user validation for owner reference
+      // perform user validation for informationSource reference
       const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))].filter(Boolean);
       RequestValidator.validateSingularUserReference(informationSourceReferences);
-      log.info("InformationSourceElement validation is successful :: saveResource()");
+      log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: saveResource()`);
+
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       await AuthService.authorizeRequestSharingRules(
         requestParams.requestorProfileId,
@@ -100,6 +106,7 @@ export class BasePost {
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
       saveResponse.savedRecords = savedResources;
     }
+    log.info("Exiting BasePost :: saveResource()");
     return saveResponse;
   }
 
@@ -113,7 +120,12 @@ export class BasePost {
    * @param {MetaDataElements} resourceMetaData Resource metadata for save record
    * @return {Promise<any>}
    */
-  public static async prepareModelAndSave(requestPayload, model, modelDataResource, resourceMetaData: MetaDataElements) {
+  public static async prepareModelAndSave(
+    requestPayload: any,
+    model: any,
+    modelDataResource: any,
+    resourceMetaData: MetaDataElements) {
+    log.info("Entering BasePost :: prepareModelAndSave()");
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, resourceMetaData);
       record.id = uuid();
@@ -125,6 +137,7 @@ export class BasePost {
     const savedRecords = requestPayload.map((record) => {
       return record.dataResource;
     });
+    log.info("Exiting BasePost :: prepareModelAndSave()");
     return savedRecords;
   }
 }
