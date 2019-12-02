@@ -121,7 +121,7 @@ export class DataFetch {
     searchObject[Constants.DEFAULT_SEARCH_ATTRIBUTES] = {
       [Op.ne]: null
     };
-    searchObject[Constants.META_IS_DELETED_KEY] = false;
+    searchObject[Constants.META_IS_DELETED_KEY] = false;
     if (requestExpirationDate) {
       const expirationMomentObject = moment(requestExpirationDate, Constants.DATE);
       if (!searchObject[Op.or]) {

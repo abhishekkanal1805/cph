@@ -20,8 +20,10 @@ export class TimingEventsGenerator {
     let events: any = [];
     let startDate: any;
     let endDate: any;
+    let count;
     // timing element is mandatory
     if (timing) {
+      count = timing.repeat && timing.repeat.count ? timing.repeat.count : 0;
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
@@ -50,6 +52,9 @@ export class TimingEventsGenerator {
           TimingValidator.validateStartEndDates(startDate, endDate);
         }
         events = TimingEventsGenerator.generateEventsFromCode(startDate, endDate, timing);
+      }
+      if (events.length > 0 && count > 0 ) {
+        events = events.slice(0, count);
       }
     }
     events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
@@ -269,7 +274,10 @@ export class TimingEventsGenerator {
 
   /**
    * @param eventArray
-   * @returns {Promise<{data: any[]; error: string}>}
+   * @param start
+   * @param end
+   * @param limitEvents
+   * @returns events
    */
   public static generateSDTEvents(eventArray, start, end, limitEvents) {
     log.info("Entering TimingEventsGenerator.generateSDTEvents()");
@@ -324,7 +332,7 @@ export class TimingEventsGenerator {
    * @param dayOfCycle
    * @param timeOfDay
    * @param duration
-   * @returns {{data: any[]; error: string}}
+   * @returns events
    */
   public static generateSDCEvents(start, end, dayOfCycle, timeOfDay, duration) {
     log.info("Entering TimingEventsGenerator.generateSDCEvents()");
@@ -392,7 +400,7 @@ export class TimingEventsGenerator {
    * @param start
    * @param end
    * @param timeOfDay
-   * @returns {Promise<{data: any[]; error: string}>}
+   * @returns events
    */
   public static generateSDYEvents(start, end, timeOfDay) {
     log.info("Entering TimingEventsGenerator.generateSDYEvents()");
