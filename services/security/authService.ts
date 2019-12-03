@@ -147,16 +147,22 @@ export class AuthService {
       return [];
     }
     // check 5. Check for connection between requester and requestee
-    log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
-    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
-    const connectionStatus = [Constants.ACTIVE];
-    const connection = await AuthService.hasConnection(ownerId, requester, connectionType, connectionStatus);
-    // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
-    if (connection.length < 1) {
-      log.error("No connection found between from user and to user");
+    if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER) {
+      log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
+      const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+      const connectionStatus = [Constants.ACTIVE];
+      const connection = await AuthService.hasConnection(ownerId, requester, connectionType, connectionStatus);
+      // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+      if (connection.length < 1) {
+        log.error("No connection found between from user and to user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      return connection;
+    } else {
+      // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
+      log.error("Received a user of unknown profile type");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    return connection;
   }
 
   /**
