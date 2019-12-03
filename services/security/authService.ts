@@ -46,15 +46,15 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. is requester the System user. A system user can submit request on its or someone else's behalf
-    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
-      log.info("requester is a system user and it is submitting request for a valid owner");
-      return [];
-    }
-    // check 2. if ownerType is provided check if ownerReference is a valid profile of specified type
+    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
+    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+      log.info("requester is a system user and it is submitting request for a valid owner");
+      return [];
     }
     // check 3. is user submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
@@ -125,15 +125,15 @@ export class AuthService {
     const requestProfileIds = [requester, informationSourceId, ownerId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. is requester the System user. A system user can submit request on its or someone else's behalf
-    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
-      log.info("requester is a system user and it is submitting request for a valid owner");
-      return [];
-    }
-    // check 2. if ownerType is provided check if ownerReference is a valid profile of specified type
+    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
       log.error("Owner is not a valid " + ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
+    if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
+      log.info("requester is a system user and it is submitting request for a valid owner");
+      return [];
     }
     // check 3. is Patient submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
@@ -146,22 +146,17 @@ export class AuthService {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
-    if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER && requester === informationSourceId) {
-      log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
-      const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
-      const connectionStatus = [Constants.ACTIVE];
-      const connection = await AuthService.hasConnection(ownerReference, informationSourceReference, connectionType, connectionStatus);
-      // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
-      if (connection.length < 1) {
-        log.error("No connection found between from user and to user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
-      return connection;
-    } else {
-      // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
-      log.error("Received a user of unknown profile type");
+    // check 5. Check for connection between requester and requestee
+    log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
+    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    const connection = await AuthService.hasConnection(ownerId, requester, connectionType, connectionStatus);
+    // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+    if (connection.length < 1) {
+      log.error("No connection found between from user and to user");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
+    return connection;
   }
 
   /**
