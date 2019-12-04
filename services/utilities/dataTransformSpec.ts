@@ -69,12 +69,12 @@ describe("DataTransform", () => {
         created: "1110111",
         lastUpdated: "2110111",
         createdBy: "createdByUserId",
-        lastUpdatedBy: "prevUpdatedByUserId"
+        lastUpdatedBy: newUpdatedByUserId,
+        isDeleted: false
       };
-      const updatedMeta = { clientRequestId: "222", deviceId: "22", source: "mobile", created: "2220222" };
+      const updatedMeta = { lastUpdatedBy: "prevUpdatedByUserId", clientRequestId: "222", deviceId: "22", source: "mobile", created: "2220222" };
       const updatedRecord = { meta: updatedMeta };
-
-      const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta, newUpdatedByUserId, updateRecordToBeDeleted);
+      const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta);
 
       // verify the fields retained from existing
       expect(result.created).toEqual(existingProvidedMeta.created);
@@ -102,12 +102,13 @@ describe("DataTransform", () => {
         created: "1110111",
         lastUpdated: "2110111",
         createdBy: "createdByUserId",
-        lastUpdatedBy: "prevUpdatedByUserId"
+        lastUpdatedBy: newUpdatedByUserId,
+        isDeleted: true
       };
       const updatedMeta = {};
       const updatedRecord = { meta: updatedMeta };
 
-      const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta, newUpdatedByUserId, updateRecordToBeDeleted);
+      const result = DataTransform.getUpdateMetaData(updatedRecord, existingProvidedMeta);
 
       // verify the fields retained from existing
       expect(result.created).toEqual(existingProvidedMeta.created);

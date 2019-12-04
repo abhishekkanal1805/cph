@@ -120,11 +120,7 @@ export class BasePost {
    * @param {MetaDataElements} resourceMetaData Resource metadata for save record
    * @return {Promise<any>}
    */
-  public static async prepareModelAndSave(
-    requestPayload: any,
-    model: any,
-    modelDataResource: any,
-    resourceMetaData: MetaDataElements) {
+  public static async prepareModelAndSave(requestPayload: any, model: any, modelDataResource: any, resourceMetaData: MetaDataElements) {
     log.info("Entering BasePost :: prepareModelAndSave()");
     requestPayload.forEach((record, index) => {
       record.meta = DataTransform.getRecordMetaData(record, resourceMetaData);
