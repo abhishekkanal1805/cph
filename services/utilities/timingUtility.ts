@@ -31,9 +31,12 @@ export class TimingUtility {
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
     } else if (dateArray.length == 0 && previousEndDate) {
       return TimingUtility.addDays(previousEndDate, 1);
-    } else if (boundsPeriodPresent) {
+    } else if (requestStart && boundsPeriodPresent) {
       log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
       return dateArray[dateArray.length - 1];
+    } else if ((requestStart && !boundsPeriodPresent) || (!requestStart && boundsPeriodPresent)) {
+      log.info("start date calculated as :: " + dateArray[0]);
+      return dateArray[0];
     }
   }
 
