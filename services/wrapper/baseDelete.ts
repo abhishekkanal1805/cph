@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
-import { DeleteCriteriaRequestParams, DeleteRequestParams } from "../../common/interfaces/baseInterfaces";
+import { DeleteCriteriaRequestParams, DeleteObjectParams, DeleteRequestParams } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
@@ -68,7 +68,11 @@ export class BaseDelete {
       await DataFetch.getUserProfile([requestParams.requestorProfileId]);
       log.info("User Authorization is successful ");
     }
-    await BaseDelete.deleteObject(record, model, modelDataResource, requestParams);
+    const deleteOptions: DeleteObjectParams = {
+      permanent: requestParams.permanent,
+      requestId: requestParams.requestId
+    };
+    await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
     log.info("Exiting BaseDelete :: deleteResource()");
   }
 
@@ -101,7 +105,7 @@ export class BaseDelete {
    * @param permanent true or "true" for parmanent delete. false or "false" for soft delete
    * @returns {Promise<void>}
    */
-  public static async deleteObject(record, model, modelDataResource, requestParams: DeleteRequestParams) {
+  public static async deleteObject(record, model, modelDataResource, requestParams: DeleteObjectParams) {
     log.info("Entering BaseDelete :: deleteObject()");
     if (requestParams.permanent === true || requestParams.permanent === "true") {
       log.info("Permanently deleting the item" + record.id);

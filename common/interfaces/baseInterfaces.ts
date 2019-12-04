@@ -33,6 +33,11 @@ export interface DeleteRequestParams {
   permanent: string | boolean;
 }
 
+export interface DeleteObjectParams {
+  permanent: string | boolean;
+  requestId?: string;
+}
+
 export interface DeleteCriteriaRequestParams {
   requestId?: string;
   permanent: string | boolean;
