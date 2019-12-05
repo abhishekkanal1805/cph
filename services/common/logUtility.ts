@@ -24,4 +24,19 @@ export class LogUtility {
   public static getLogEventInternalInvocation(serviceName: string, serviceOperation: string): string {
     return "method:" + serviceOperation + ", service:" + serviceName;
   }
+
+  /**
+   * Returns Request id for each api invoke
+   *
+   * @static
+   * @param {ApiEvent} event AWS event Object
+   * @param {ApiContext} context AWS context Object
+   * @returns {string}
+   * @memberof LogUtility
+   */
+  public static getRequestId(apiEvent: ApiEvent, apiContext: ApiContext): string {
+    const gatewayRequestId = APIRequestUtility.getGatewayRequestId(apiEvent);
+    const lambdaRequestId = APIRequestUtility.getAwsRequestId(apiContext);
+    return [gatewayRequestId, lambdaRequestId].filter(Boolean).join(".");
+  }
 }

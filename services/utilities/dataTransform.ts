@@ -1,4 +1,4 @@
-import { MetaDataElements } from "../../common/interfaces/baseInterfaces";
+import { MetaDataElements, UpdateMetaDataElements } from "../../common/interfaces/baseInterfaces";
 export class DataTransform {
   /**
    * Generates record's metadata as per information passed to it.
@@ -30,22 +30,22 @@ export class DataTransform {
     return metaDataObject;
   }
 
-  // TODO: we dont need the entire record, only the updatedRecord.meta will do.
-  public static getUpdateMetaData(updateRecord, existingRecordMetadata, modifiedByUser: string, isDeleted: boolean) {
+  public static getUpdateMetaData(record: any, resourceMetaData: UpdateMetaDataElements) {
     const timestamp = new Date().toISOString();
     const metaDataObject: any = {
-      versionId: existingRecordMetadata.versionId + 1,
-      created: existingRecordMetadata.created,
+      versionId: resourceMetaData.versionId + 1,
+      created: resourceMetaData.created,
       lastUpdated: timestamp,
-      createdBy: existingRecordMetadata.createdBy,
-      lastUpdatedBy: modifiedByUser,
-      isDeleted
+      createdBy: resourceMetaData.createdBy,
+      lastUpdatedBy: resourceMetaData.lastUpdatedBy,
+      isDeleted: resourceMetaData.isDeleted
     };
-
-    metaDataObject.clientRequestId = updateRecord.meta.clientRequestId ? updateRecord.meta.clientRequestId : existingRecordMetadata.clientRequestId;
-    metaDataObject.deviceId = updateRecord.meta.deviceId ? updateRecord.meta.deviceId : existingRecordMetadata.deviceId;
-    metaDataObject.source = updateRecord.meta.source ? updateRecord.meta.source : existingRecordMetadata.source;
-
+    if (resourceMetaData.requestId) {
+      metaDataObject.requestId = resourceMetaData.requestId;
+    }
+    metaDataObject.clientRequestId = record.meta.clientRequestId ? record.meta.clientRequestId : resourceMetaData.clientRequestId;
+    metaDataObject.deviceId = record.meta.deviceId ? record.meta.deviceId : resourceMetaData.deviceId;
+    metaDataObject.source = record.meta.source ? record.meta.source : resourceMetaData.source;
     return metaDataObject;
   }
 

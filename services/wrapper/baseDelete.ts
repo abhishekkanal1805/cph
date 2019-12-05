@@ -4,10 +4,13 @@ import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ResourceCategory } from "../../common/constants/resourceCategory";
+import { DeleteCriteriaRequestParams, DeleteObjectParams, DeleteRequestParams } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
+import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
+import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
@@ -30,29 +33,47 @@ export class BaseDelete {
    * @returns
    * @memberof BaseDelete
    */
-  public static async deleteResource(id, model, modelDataResource, requesterProfileId: string, patientElement, permanent) {
-    log.info("In BaseDelete :: deleteResource()");
-    // getResource will always return the record. if nothing found it throws NotFound error.
-    const queryObject = { id, "meta.isDeleted": false };
+  public static async deleteResource(id: string, model: any, modelDataResource: any, requestParams: DeleteRequestParams) {
+    log.info("Entering BaseDelete :: deleteResource()");
+    const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const isDefinitionalResource = model.resourceCategory ? model.resourceCategory == ResourceCategory.DEFINITION : Constants.FALSE;
+    // If Resource is non-Definitional, then there will be validation for ownerElement
+    if (!isDefinitionalResource) {
+      if (!requestParams.ownerElement) {
+        log.error(`Resource category is non-Definitional and ownerElement is ${requestParams.ownerElement}`);
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      }
+      const ownerIds = JsonParser.findValuesForKey([record], requestParams.ownerElement, false);
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requesterProfileId, patientIds[0], serviceName, Constants.ACCESS_EDIT);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules(
+        requestParams.requestorProfileId,
+        ownerIds[0],
+        serviceName,
+        Constants.ACCESS_EDIT
+      );
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
         if (_.isEmpty(whereClause[Op.and])) {
-          log.info("Sharing rules not present for requested user");
+          log.error("Sharing rules not present for requested user :: deleteResource()");
           throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
         }
         record = await DAOService.fetchOne(model, { where: whereClause });
         record = record.dataResource;
       }
+    } else {
+      await DataFetch.getUserProfile([requestParams.requestorProfileId]);
+      log.info("User Authorization is successful ");
     }
-    await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
+    const deleteOptions: DeleteObjectParams = {
+      permanent: requestParams.permanent,
+      requestId: requestParams.requestId
+    };
+    await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
+    log.info("Exiting BaseDelete :: deleteResource()");
   }
 
   /**
@@ -66,11 +87,11 @@ export class BaseDelete {
    * @param permanent
    * @returns {Promise<void>}
    */
-  public static async deleteResourceWithoutAuthorization(id, model, modelDataResource, permanent) {
+  public static async deleteResourceWithoutAuthorization(id, model, modelDataResource, requestParams: DeleteRequestParams) {
     log.info("In BaseDelete :: deleteResourceWithoutAuthorization()");
     // getResource will always return the record. if nothing found it throws NotFound error.
     const record = await BaseGet.getResourceWithoutAuthorization(id, model);
-    await BaseDelete.deleteObject(record, model, modelDataResource, permanent);
+    await BaseDelete.deleteObject(record, model, modelDataResource, requestParams);
   }
 
   /**
@@ -84,20 +105,25 @@ export class BaseDelete {
    * @param permanent true or "true" for parmanent delete. false or "false" for soft delete
    * @returns {Promise<void>}
    */
-  public static async deleteObject(record, model, modelDataResource, permanent) {
-    if (permanent === true || permanent === "true") {
+  public static async deleteObject(record, model, modelDataResource, requestParams: DeleteObjectParams) {
+    log.info("Entering BaseDelete :: deleteObject()");
+    if (requestParams.permanent === true || requestParams.permanent === "true") {
       log.info("Permanently deleting the item" + record.id);
       await DAOService.delete(record.id, model);
-    } else if (permanent === false || permanent === "false") {
+    } else if (requestParams.permanent === false || requestParams.permanent === "false") {
       log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
+      if (requestParams.requestId) {
+        record.meta.requestId = requestParams.requestId;
+      }
       record = DataTransform.convertToModel(record, model, modelDataResource);
       await DAOService.softDelete(record.id, record, model);
     } else {
-      log.info("Invalid parameter value for permanent flag :: deleteResource()");
+      log.info("Invalid parameter value for permanent flag :: deleteObject()");
       throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
     }
+    log.info("Exiting BaseDelete :: deleteObject()");
   }
 
   /**
@@ -112,17 +138,20 @@ export class BaseDelete {
    * @returns
    * @memberof BaseDelete
    */
-  public static async deleteResources(resourcesToBeDeleted, criteriaToDelete, model, modelDataResource, permanent) {
+  public static async deleteResourceWithCriteria(resourcesToBeDeleted, model, modelDataResource, requestParams: DeleteCriteriaRequestParams) {
     /* TODO: endpoint has to be removed from function contract as per new search implementation */
-    log.info("In BaseDelete :: deleteResource()");
-    if (permanent === true || permanent === "true") {
+    log.info("Entering BaseDelete :: deleteResources()");
+    if (requestParams.permanent === true || requestParams.permanent === "true") {
       log.info("Deleting item Permanently");
-      await DAOService.deleteWithCriteria(criteriaToDelete, model);
-    } else if (permanent === false || permanent === "false") {
+      await DAOService.deleteWithCriteria(requestParams.criteria, model);
+    } else if (requestParams.permanent === false || requestParams.permanent === "false") {
       for (let eachRecord of resourcesToBeDeleted) {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
         eachRecord.meta.lastUpdated = new Date().toISOString();
+        if (requestParams.requestId) {
+          eachRecord.meta.requestId = requestParams.requestId;
+        }
         eachRecord = DataTransform.convertToModel(eachRecord, model, modelDataResource);
         await DAOService.softDelete(eachRecord.id, eachRecord, model);
       }
@@ -130,5 +159,6 @@ export class BaseDelete {
       log.info("Invalid parameter value for permanent flag :: deleteResource()");
       throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + Constants.PERMANENT);
     }
+    log.info("Exiting BaseDelete :: deleteResources()");
   }
 }

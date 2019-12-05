@@ -224,7 +224,13 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBasedSharingRules(requesterId: string, requesteeReference: string, resourceType: string, accessType: string) {
+  public static async authorizeConnectionBasedSharingRules(
+    requesterId: string,
+    requesteeReference: string,
+    resourceType: string,
+    accessType: string,
+    ownerType?: string
+  ) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
     requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
@@ -232,24 +238,29 @@ export class AuthService {
     const requestProfileIds = [requesterId, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
+    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
+    if (ownerType && fetchedProfiles[requesteeId].profileType !== ownerType) {
+      log.error("Owner is not a valid " + ownerType);
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
     // reaches here if requester and requestee are both valid
-    // check 1: if requester should be system user then allow access
+    // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
       return [];
     }
-    // check 2. if requester and requestee are the same users then allow access
+    // check 3. if requester and requestee are the same users then allow access
     if (requesterId == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
-    // check 3. If resourceType publically accessable, then no connection check required
+    // check 4. If resourceType publically accessable, then no connection check required
     const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
     if (isResoucePublicAccessable) {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
-    // check 4. if we reached here then a connection has to exist between requester and requestee
+    // check 5. if we reached here then a connection has to exist between requester and requestee
     log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];

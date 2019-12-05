@@ -16,8 +16,47 @@ export interface RequestParams {
   ownerType?: string;
 }
 
+export interface UpdateRequestParams {
+  requestId?: string;
+  requestorProfileId: string;
+  requestPrimaryIds: string[];
+  referenceValidationModel?: any;
+  referenceValidationElement?: string;
+  uniquesReferenceIds?: any;
+  ownerElement?: string;
+}
+
+export interface DeleteRequestParams {
+  requestorProfileId: string;
+  requestId?: string;
+  ownerElement?: string;
+  permanent: string | boolean;
+}
+
+export interface DeleteObjectParams {
+  permanent: string | boolean;
+  requestId?: string;
+}
+
+export interface DeleteCriteriaRequestParams {
+  requestId?: string;
+  permanent: string | boolean;
+  criteria: any;
+}
 export interface MetaDataElements {
   createdBy: string;
   lastUpdatedBy: string;
   requestId?: string;
+}
+
+export interface UpdateMetaDataElements {
+  versionId: number;
+  created: string;
+  createdBy: string;
+  lastUpdatedBy: string;
+  isDeleted: boolean;
+  requestId?: string;
+  clientRequestId?: string;
+  deviceId?: string;
+  source?: string;
 }
