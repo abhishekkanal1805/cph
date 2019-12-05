@@ -50,7 +50,7 @@ export class BasePut {
     // additional reference validataion if present
     const isValidReferenceElement: boolean = requestParams.referenceValidationModel && requestParams.referenceValidationElement ? true : false;
     if (isValidReferenceElement) {
-      keysToFetch.set(requestParams.referenceValidationModel, []);
+      keysToFetch.set(requestParams.referenceValidationElement, []);
     }
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
@@ -215,7 +215,7 @@ export class BasePut {
         log.error("reference model validation failed for record id : " + record.id);
         const badRequest = new BadRequestResult(
           errorCodeMap.InvalidReference.value,
-          errorCodeMap.InvalidReference.description + requestParams.referenceValidationModel.split(Constants.DOT_VALUE)[0]
+          errorCodeMap.InvalidReference.description + requestParams.referenceValidationElement.split(Constants.DOT_VALUE)[0]
         );
         badRequest.clientRequestId = record.meta.clientRequestId;
         result.errorRecords.push(badRequest);

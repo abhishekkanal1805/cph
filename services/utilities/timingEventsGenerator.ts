@@ -26,14 +26,10 @@ export class TimingEventsGenerator {
       count = timing.repeat && timing.repeat.count ? timing.repeat.count : 0;
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
+        startDate = start;
+        endDate = end ? end : moment.utc(startDate).add(365, "d").toISOString();
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
-          let code;
-          if (timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code) {
-            code = timing.code.coding[0].code;
-          }
-          startDate = TimingUtility.calculateStartDateForMedActivity(start, timing.repeat, end);
-          endDate = TimingUtility.calculateEndDateForMedActivity(startDate, end, timing.repeat, code);
           log.info("EVENT:generateSDTEvents with: " + timing.event);
           events = TimingEventsGenerator.generateSDTEvents(timing.event, startDate, endDate, true);
           endDate = events[events.length - 1];
@@ -52,9 +48,9 @@ export class TimingEventsGenerator {
           TimingValidator.validateStartEndDates(startDate, endDate);
         }
         events = TimingEventsGenerator.generateEventsFromCode(startDate, endDate, timing);
-      }
-      if (events.length > 0 && count > 0 ) {
-        events = events.slice(0, count);
+        if (events.length > 0 && count > 0 ) {
+          events = events.slice(0, count);
+        }
       }
     }
     events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
