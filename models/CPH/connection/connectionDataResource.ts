@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Reference } from "../../common/reference";
 import { ResourceMetadata } from "../../common/resourceMetadata";
 import { StringObject } from "../../common/stringObject";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export class DeviceName {
   /**
    * The name identifying the device.

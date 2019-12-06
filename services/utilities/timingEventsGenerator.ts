@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
@@ -27,7 +31,12 @@ export class TimingEventsGenerator {
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         startDate = start;
-        endDate = end ? end : moment.utc(startDate).add(365, "d").toISOString();
+        endDate = end
+          ? end
+          : moment
+              .utc(startDate)
+              .add(365, "d")
+              .toISOString();
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
           log.info("EVENT:generateSDTEvents with: " + timing.event);
@@ -48,7 +57,7 @@ export class TimingEventsGenerator {
           TimingValidator.validateStartEndDates(startDate, endDate);
         }
         events = TimingEventsGenerator.generateEventsFromCode(startDate, endDate, timing);
-        if (events.length > 0 && count > 0 ) {
+        if (events.length > 0 && count > 0) {
           events = events.slice(0, count);
         }
       }

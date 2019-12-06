@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { MetaDataElements, UpdateMetaDataElements } from "../../common/interfaces/baseInterfaces";
 export class DataTransform {
   /**

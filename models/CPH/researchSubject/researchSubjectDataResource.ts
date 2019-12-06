@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Identifier } from "../../common/identifier";
 import { Period } from "../../common/period";
 import { Reference } from "../../common/reference";

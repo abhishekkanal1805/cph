@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export { Utility } from "./services/common/Utility";
 export * from "./services/aggregation/aggregationHelperService";
 export { FieldVisitor } from "./services/common/fieldVisitor";

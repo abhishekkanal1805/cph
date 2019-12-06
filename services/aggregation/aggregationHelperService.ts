@@ -1,8 +1,7 @@
-/**
- * Author: Vivek Mishra, Ganesh , Vadim, Deba
- * Summary: This file contains all helper functions that are needed before making a call to database
- * E.g.: functions to update records or prepare search query
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
  */
+
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";

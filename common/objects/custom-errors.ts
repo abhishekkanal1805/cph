@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export abstract class ErrorResult extends Error {
   public errorLogRef: string;
   public clientRequestId: string;

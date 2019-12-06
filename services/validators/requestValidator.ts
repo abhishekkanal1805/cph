@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as log from "lambda-log";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";

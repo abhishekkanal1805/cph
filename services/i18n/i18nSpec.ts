@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import "jasmine";
 import { LanguageExtension } from "../../models/common/extension";
 import { I18N } from "./i18n";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import "jasmine";
 import { Op } from "sequelize";
 import { SharingRulesHelper } from "./sharingRulesHelper";

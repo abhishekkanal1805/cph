@@ -1,7 +1,7 @@
-/**
- * Author: Vadim Galatsky
- * Summary: This file does the Sequelize initialization.
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
  */
+
 import * as log from "lambda-log";
 import { ISequelizeConfig, Model, Sequelize } from "sequelize-typescript";
 import { errorCodeMap } from "./common/constants/error-codes-map";

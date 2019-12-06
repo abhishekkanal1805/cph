@@ -13,6 +13,14 @@
     "forin": false,
     "radix": false,
     "no-string-literal": false,
+    "file-header": [
+      true,
+      {
+        "match": "Copyright © 2019 Deloitte. All rights reserved.",
+        "allow-single-line-comments": true,
+        "default": "Copyright © 2019 Deloitte. All rights reserved."
+      }
+    ],
     "max-line-length": [
       true,
       {

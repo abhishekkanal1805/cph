@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export const tableNameToResourceTypeMapping = {
   FHIRAllergyIntolerance: "FHIR_AllergyIntolerance",
   FHIRCondition: "FHIR_Condition",

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Op } from "sequelize";
@@ -226,7 +230,7 @@ export class BasePut {
         versionId: existingRecord.meta.versionId,
         created: existingRecord.meta.created,
         createdBy: existingRecord.meta.createdBy,
-        lastUpdatedBy: existingRecord.meta.lastUpdatedBy,
+        lastUpdatedBy: requestParams.requestorProfileId,
         isDeleted: false,
         requestId: requestParams.requestId,
         clientRequestId: existingRecord.meta.clientRequestId,

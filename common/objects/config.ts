@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 const data = {
   validDatePrefixes: ["gt", "ge", "lt", "le", "eq", ""],
   consent: {

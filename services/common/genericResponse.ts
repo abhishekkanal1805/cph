@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { ErrorResult } from "../../common/objects/custom-errors";
 
 export class GenericResponse<T> {

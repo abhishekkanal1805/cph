@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { APIGatewayEvent, Context, ProxyCallback, ProxyResult } from "aws-lambda";
 export type ApiCallback = ProxyCallback;
 export type ApiContext = Context;

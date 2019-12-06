@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { CriteriaExpression } from "./criteriaExpression";
 import { CriteriaValue } from "./criteriaValue";
 
