@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export class PlatformToken {
   /**
    * Value of platform specific token that can uniquely identify the device and app combination on a platform like APNS, GCM or others.

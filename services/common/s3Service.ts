@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as AWS from "aws-sdk";
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Quantity } from "./quantity";
 
 interface Ratio {

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 import { FieldVisitor } from "../../../services/common/fieldVisitor";
 import { Additional } from "../../common/additional";

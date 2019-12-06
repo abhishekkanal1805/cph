@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as Hashids from "hashids";
 import * as log from "lambda-log";
 import * as lodash from "lodash";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Duration } from "../../common/duration";
 import { Period } from "../../common/period";
 

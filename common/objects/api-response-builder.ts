@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as HttpStatusCode from "http-status-codes";
 import { Constants } from "../constants/constants";
 import { ApiCallback, ApiResponse } from "./api-interfaces";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Coding } from "./coding";
 import { Extension } from "./extension";
 

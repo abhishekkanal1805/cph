@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 /**
  * Author: Vivek Mishra, Ganesh , Vadim, Deba
  * Summary: This file contains all data validator functions

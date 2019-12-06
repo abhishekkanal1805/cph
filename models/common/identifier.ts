@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { CodeableConcept } from "./codeableConcept";
 import { Period } from "./period";
 import { Reference } from "./reference";

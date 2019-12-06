@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import "jasmine";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as log from "lambda-log";
 import { ApiContext, ApiEvent } from "../../common/objects/api-interfaces";
 import { APIRequestUtility } from "./apiRequestUtility";

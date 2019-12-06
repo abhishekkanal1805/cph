@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as sequelize from "sequelize";
@@ -248,7 +252,7 @@ export class DAOService {
         } else {
           dataResources = await DataSource.getDataSource()
             .query(
-              'SELECT \"dataResource\" FROM "' + tableName + '" WHERE id in (:id) and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';",
+              'SELECT "dataResource" FROM "' + tableName + '" WHERE id in (:id) and ' + "cast(\"dataResource\" -> 'meta' ->> 'isDeleted' as text) = 'false';",
               {
                 replacements: { id: resourceIds },
                 type: sequelize.QueryTypes.SELECT

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Constants } from "../../common/constants/constants";
 
 export class UserProfileRepositoryStub {

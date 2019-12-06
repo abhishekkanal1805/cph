@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { CodeableConcept } from "../../common/codeableConcept";
 import { Identifier } from "../../common/identifier";
 import { InformationSource } from "../../common/informationSource";

@@ -1,7 +1,7 @@
-/**
- *  Author: Pankaj Thadani
- *  Summary : Enumeration to distinguish behaviour based of type of resource.
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
  */
+
 export enum ResourceCategory {
   EVENT = "Event",
   REQUEST = "Request",

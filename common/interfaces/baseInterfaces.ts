@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 export interface GetOptions {
   acceptLanguage: string;
 }

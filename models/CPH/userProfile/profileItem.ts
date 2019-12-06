@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 import { Option } from "../../common/option";
 import { Answer } from "./answer";
 import { EnableWhen } from "./enableWhen";

@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 /**
  * Contains information about device hardware and operating system.
  * Reference:

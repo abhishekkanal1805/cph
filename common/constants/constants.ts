@@ -1,3 +1,7 @@
+/*!
+ * Copyright © 2019 Deloitte. All rights reserved.
+ */
+
 class Constants {
   public static readonly BUNDLE = "Bundle";
   public static readonly BUNDLE_TYPE = "searchset";
