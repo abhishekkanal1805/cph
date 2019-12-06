@@ -4,6 +4,7 @@
 
 import { Additional } from "../../common/additional";
 import { Address } from "../../common/address";
+import { CodeableConcept } from "../../common/codeableConcept";
 import { ContactPoint } from "../../common/contactPoint";
 import { HumanName } from "../../common/humanName";
 import { Identifier } from "../../common/identifier";
@@ -27,6 +28,9 @@ class UserProfileDataResource {
   preferences: Preference;
   identifier: Identifier;
   additionalAttributes: Additional[];
+  locale: CodeableConcept;
+  currentTimeZone: CodeableConcept;
+  defaultTimeZone: CodeableConcept;
 }
 
 export { UserProfileDataResource };

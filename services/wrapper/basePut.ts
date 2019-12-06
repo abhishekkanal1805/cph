@@ -230,7 +230,7 @@ export class BasePut {
         versionId: existingRecord.meta.versionId,
         created: existingRecord.meta.created,
         createdBy: existingRecord.meta.createdBy,
-        lastUpdatedBy: existingRecord.meta.lastUpdatedBy,
+        lastUpdatedBy: requestParams.requestorProfileId,
         isDeleted: false,
         requestId: requestParams.requestId,
         clientRequestId: existingRecord.meta.clientRequestId,
