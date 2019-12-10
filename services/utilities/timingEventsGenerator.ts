@@ -39,6 +39,12 @@ export class TimingEventsGenerator {
               .toISOString();
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
+          let code;
+          if (timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code) {
+            code = timing.code.coding[0].code;
+          }
+          startDate = TimingUtility.calculateStartDateForMedActivity(startDate, timing.repeat, endDate);
+          endDate = TimingUtility.calculateEndDateForMedActivity(startDate, endDate, timing.repeat, code);
           log.info("EVENT:generateSDTEvents with: " + timing.event);
           events = TimingEventsGenerator.generateSDTEvents(timing.event, startDate, endDate, true);
           endDate = events[events.length - 1];
@@ -61,8 +67,8 @@ export class TimingEventsGenerator {
           events = events.slice(0, count);
         }
       }
+      events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
     }
-    events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
     log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
     return events;
   }
