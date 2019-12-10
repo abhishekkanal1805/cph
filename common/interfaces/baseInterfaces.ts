@@ -38,11 +38,13 @@ export interface DeleteRequestParams {
 }
 
 export interface DeleteObjectParams {
+  requestorProfileId: string;
   permanent: string | boolean;
   requestId?: string;
 }
 
 export interface DeleteCriteriaRequestParams {
+  requestorProfileId: string;
   requestId?: string;
   permanent: string | boolean;
   criteria: any;

@@ -74,7 +74,8 @@ export class BaseDelete {
     }
     const deleteOptions: DeleteObjectParams = {
       permanent: requestParams.permanent,
-      requestId: requestParams.requestId
+      requestId: requestParams.requestId,
+      requestorProfileId: requestParams.requestorProfileId
     };
     await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
     log.info("Exiting BaseDelete :: deleteResource()");
@@ -121,6 +122,9 @@ export class BaseDelete {
       if (requestParams.requestId) {
         record.meta.requestId = requestParams.requestId;
       }
+      if (requestParams.requestorProfileId) {
+        record.meta.lastUpdatedBy = requestParams.requestorProfileId;
+      }
       record = DataTransform.convertToModel(record, model, modelDataResource);
       await DAOService.softDelete(record.id, record, model);
     } else {
@@ -155,6 +159,9 @@ export class BaseDelete {
         eachRecord.meta.lastUpdated = new Date().toISOString();
         if (requestParams.requestId) {
           eachRecord.meta.requestId = requestParams.requestId;
+        }
+        if (requestParams.requestorProfileId) {
+          eachRecord.meta.lastUpdatedBy = requestParams.requestorProfileId;
         }
         eachRecord = DataTransform.convertToModel(eachRecord, model, modelDataResource);
         await DAOService.softDelete(eachRecord.id, eachRecord, model);
