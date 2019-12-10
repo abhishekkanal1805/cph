@@ -61,8 +61,8 @@ export class TimingEventsGenerator {
           events = events.slice(0, count);
         }
       }
+      events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
     }
-    events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
     log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
     return events;
   }
@@ -212,7 +212,7 @@ export class TimingEventsGenerator {
         break;
 
       default:
-        log.error("Invalid timing.code provided in Medication Plan");
+        log.error("Invalid timing.code provided");
         throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_CODE);
     }
     log.info("Exiting TimingEventsGenerator.generateEventsFromCode()");
