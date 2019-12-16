@@ -4,6 +4,7 @@
 
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
@@ -40,7 +41,8 @@ export class AuthService {
   ) {
     log.info("Entering AuthService :: performAuthorization()");
     // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
+    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
     informationSourceReference = researchSubjectProfiles[informationSourceReference]
       ? researchSubjectProfiles[informationSourceReference]
       : informationSourceReference;
@@ -119,7 +121,8 @@ export class AuthService {
     ownerType?: string
   ) {
     log.info("Entering AuthService :: authorizeRequestSharingRules()");
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference);
+    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
     informationSourceReference = researchSubjectProfiles[informationSourceReference]
       ? researchSubjectProfiles[informationSourceReference]
       : informationSourceReference;
@@ -182,7 +185,8 @@ export class AuthService {
    */
   public static async authorizeConnectionBased(requesterId: string, requesteeReference: string, resourceType: string, accessType: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
+    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference, null, researchSubjectCriteria);
     requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
@@ -236,7 +240,8 @@ export class AuthService {
     ownerType?: string
   ) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference);
+    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference, null, researchSubjectCriteria);
     requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requesterId, requesteeId];
@@ -317,7 +322,7 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async getResearchSubjectProfiles(ownerReference: string, informationSourceReference?: string) {
+  public static async getResearchSubjectProfiles(ownerReference: string, informationSourceReference?: string, criteria?: any) {
     const reasearchSubjectProfiles: any = {};
     const reasearchSubjectToUserProfiles: any = {};
     let researchProfileIdx = -1;
@@ -328,14 +333,15 @@ export class AuthService {
       reasearchSubjectProfiles[informationSourceReference] = informationSourceReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
     }
     const uniqueProfileIds = _.uniq(Object.values(reasearchSubjectProfiles));
+    let whereClause = {
+      [Constants.ID]: uniqueProfileIds,
+      [Constants.META_IS_DELETED_KEY]: false
+    };
+    if (criteria) {
+      whereClause = Object.assign(whereClause, criteria);
+    }
     if (uniqueProfileIds.length) {
-      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(
-        {
-          [Constants.ID]: uniqueProfileIds,
-          [Constants.META_IS_DELETED_KEY]: false
-        },
-        ResearchSubject
-      );
+      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(whereClause, ResearchSubject);
       if (uniqueProfileIds.length != researchSubjectIdsProfiles.length) {
         log.error("Error in DataFetch: Record doesn't exists for all requested Reasearch ids");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -372,5 +378,16 @@ export class AuthService {
       return true;
     }
     return false;
+  }
+  public static getResearchSubjectFilterCriteria(accessType: string) {
+    let researchSubjectCriteria;
+    if (accessType === Constants.ACCESS_EDIT) {
+      researchSubjectCriteria = {
+        [Constants.STATUS]: {
+          [Op.notIn]: Constants.RESEARCH_SUBJECT_WITHDRAW_STATUS
+        }
+      };
+    }
+    return researchSubjectCriteria;
   }
 }
