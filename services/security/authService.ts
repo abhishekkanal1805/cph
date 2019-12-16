@@ -359,6 +359,19 @@ export class AuthService {
     return reasearchSubjectToUserProfiles;
   }
 
+  /**
+   * It will determine accessLevel for a resourceType
+   * It will Query OrganizationLevelDefaults, to get accessType for a resource
+   * public-read-write: valid user can perform read/write operation without connection
+   * public-read-only: valid user can perform read operation without connection
+   * private: valid user can perform read/write operation based on sharing rules
+   *
+   * @static
+   * @param {string} resourceType service name
+   * @param {string} accessType accessType it will specify endpoint type, which can be read or edit
+   * @returns
+   * @memberof AuthService
+   */
   public static async getResourceAccessLevel(resourceType: string, accessType: string) {
     const permissionMapping = {
       [Constants.PUBLIC_ACCESS_READ_WRITE]: [Constants.ACCESS_READ, Constants.ACCESS_EDIT],
@@ -379,6 +392,17 @@ export class AuthService {
     }
     return false;
   }
+
+  /**
+   * returns addtional filter criteria for researchSubject based on accesstype
+   * If AccessType is read, then it won't add any additional criteria
+   * If AccessType is edit, then it will add additional criteria for ResearchSubject where status shouldn't be part of Constants.RESEARCH_SUBJECT_WITHDRAW_STATUS
+   *
+   * @static
+   * @param {string} accessType it will specify endpoint type, which can be read or edit
+   * @returns
+   * @memberof AuthService
+   */
   public static getResearchSubjectFilterCriteria(accessType: string) {
     let researchSubjectCriteria;
     if (accessType === Constants.ACCESS_EDIT) {
