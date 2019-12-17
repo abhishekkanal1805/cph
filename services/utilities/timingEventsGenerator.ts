@@ -291,7 +291,7 @@ export class TimingEventsGenerator {
     const events = [];
     for (let date of eventArray) {
       date = moment.utc(date).format(Constants.DATE_TIME);
-      if (limitEvents && moment(start).isBefore(date) && moment(end).isAfter(date)) {
+      if (limitEvents && moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
         events.push(new Date(date));
       } else if (!limitEvents) {
         events.push(new Date(date));
