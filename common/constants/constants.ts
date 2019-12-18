@@ -175,7 +175,7 @@ class Constants {
   public static readonly RESOURCES_ACCESSIBLE_TO_ALL = ["Questionnaire"];
   public static readonly DEFAULT_SEARCH_ATTRIBUTES = "dataResource";
   public static readonly DEFAULT_ORDER_BY = [["meta.lastUpdated", "DESC"]];
-  public static readonly RESEARCH_SUBJECT_WITHDRAW_STATUS = ["withdrawn", "off-study", "ineligible", "not-registered"];
+  public static readonly RESEARCH_SUBJECT_WITHDRAW_STATUS = ["withdrawn", "ineligible", "not-registered"];
 
   public static readonly PRIVATE_RESOURCE_TYPE = "private";
   public static readonly ACCESS_TYPE = "accessType";
