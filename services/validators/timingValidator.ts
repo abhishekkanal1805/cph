@@ -39,7 +39,7 @@ export class TimingValidator {
       throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_TIME_OF_DAY);
     }
     for (const time of timeOfDay) {
-      const dateRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+      const dateRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
       if (!dateRegex.test(time)) {
         return false;
       }
