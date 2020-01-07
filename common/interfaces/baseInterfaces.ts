@@ -7,7 +7,7 @@ export interface GetOptions {
 }
 
 export interface SearchOptions {
-  acceptLanguage: string;
+  acceptLanguage?: string;
   fetchLimit?: number;
 }
 export interface RequestParams {
