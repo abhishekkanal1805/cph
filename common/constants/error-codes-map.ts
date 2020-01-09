@@ -57,6 +57,5 @@ export const errorCodeMap = {
     value: "InvalidAcceptLanguage",
     description: "Multiple languages are not allowed in Accept-Language header"
   },
-  // OperationFailed: { value: "OperationFailed", description: "The resource contains an invalid value of element " },
-  InvalidRange: { value: "InvalidRange", description: "The contains invalid range between start and end date." }
+  InvalidRange: { value: "InvalidRange", description: "The resource contains invalid range between start and end date." }
 };
