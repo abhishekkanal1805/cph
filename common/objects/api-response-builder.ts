@@ -31,39 +31,39 @@ export class APIResponseBuilder {
     APIResponseBuilder.base64Encoding = flag;
   }
 
-  public static badRequest(errorResult: BadRequestResult, callback: ApiCallback, origin: string): void {
+  public static badRequest(errorResult: BadRequestResult, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<BadRequestResult>(errorResult, HttpStatusCode.BAD_REQUEST, callback, origin);
   }
 
-  public static forbidden(errorResult: ForbiddenResult | InsufficientAccountPermissions, callback: ApiCallback, origin: string): void {
+  public static forbidden(errorResult: ForbiddenResult | InsufficientAccountPermissions, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<ForbiddenResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.FORBIDDEN, callback, origin);
   }
 
-  public static internalServerError(errorResult: InternalServerErrorResult, callback: ApiCallback, origin: string): void {
+  public static internalServerError(errorResult: InternalServerErrorResult, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<InternalServerErrorResult>(errorResult, HttpStatusCode.INTERNAL_SERVER_ERROR, callback, origin);
   }
 
-  public static notFound(errorResult: NotFoundResult, callback: ApiCallback, origin: string): void {
+  public static notFound(errorResult: NotFoundResult, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<NotFoundResult>(errorResult, HttpStatusCode.NOT_FOUND, callback, origin);
   }
 
-  public static unauthorized(errorResult: UnAuthorizedResult, callback: ApiCallback, origin: string): void {
+  public static unauthorized(errorResult: UnAuthorizedResult, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<UnAuthorizedResult>(errorResult, HttpStatusCode.UNAUTHORIZED, callback, origin);
   }
 
-  public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback, origin: string): void {
+  public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(errorResult, HttpStatusCode.UNPROCESSABLE_ENTITY, callback, origin);
   }
 
-  public static ok<T>(result: T, callback: ApiCallback, origin: string): void {
+  public static ok<T>(result: T, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback, origin);
   }
 
-  public static nocontent<T>(result: T, callback: ApiCallback, origin: string): void {
+  public static nocontent<T>(result: T, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs(result, HttpStatusCode.NO_CONTENT, callback, origin);
   }
 
-  public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback, origin: string): void {
+  public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback, origin);
   }
   private static defaultHeaders = {
