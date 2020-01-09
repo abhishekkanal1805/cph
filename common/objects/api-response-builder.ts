@@ -79,12 +79,14 @@ export class APIResponseBuilder {
 
   private static base64Encoding: boolean = false;
 
-  private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback, origin: string): void {
+  private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback, origin?: string): void {
     let bodyObject: any;
     const responseHeaders = APIResponseBuilder.defaultHeaders;
 
-    // Adding CORS response headers
-    responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = origin;
+    if (origin) {
+      // Adding CORS response headers
+      responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = origin;
+    }
     responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS] = Constants.TRUE;
 
     if (result instanceof ErrorResult) {
