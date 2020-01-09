@@ -141,34 +141,24 @@ export class BaseGet {
     attributesToRetrieve?: string[],
     searchOptions?: SearchOptions
   ) {
-    // Perform User validation
-    let connection;
+    let connections = [];
     let isSharingRuleCheckRequired: boolean = true;
-    // TODO: move RESOURCES_ACCESSIBLE_TO_ALL to model parameter based
     if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
       log.info("Search for resource accessible to all: " + model.name);
       isSharingRuleCheckRequired = false;
     } else {
-      if (!queryParams[resourceOwnerElement]) {
-        log.debug("id is not present in queryParams");
-        // If loggedin id is not present in queryParams, then return loggedin user data only
+      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
+        log.info("queryParams is empty or resourceOwnerElement not present");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
       }
-      // CHCONHUB-4267: if only id present then we will search in userprofile table only
-      const resourceOwnerReference = queryParams[resourceOwnerElement][0];
-      if (queryParams[resourceOwnerElement][0].indexOf(Constants.FORWARD_SLASH) == -1) {
-        queryParams[resourceOwnerElement][0] = [Constants.USER_PROFILE, resourceOwnerReference].join(Constants.FORWARD_SLASH);
-      }
+      let requestedProfiles =
+        queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      connection = await AuthService.authorizeConnectionBasedSharingRules(
-        requestorProfileId,
-        queryParams[resourceOwnerElement][0],
-        serviceName,
-        Constants.ACCESS_READ
-      );
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      isSharingRuleCheckRequired = connection.length > 0;
+      requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
+        return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
+      });
+      connections = await AuthService.authorizeMultipleConnectionsBasedSharingRules(requestorProfileId, requestedProfiles, serviceName, Constants.ACCESS_READ);
     }
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
@@ -201,17 +191,30 @@ export class BaseGet {
     // Validate query parameter data type and value
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
-    let whereClause: any;
-    const queryObject: any = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+    const whereClause: any = {
+      [Op.or]: []
+    };
+    let queryObject: any = {};
     /*
      * Below line of code calls SharingRuleHelper class function to generate
      * and append SharingRule query clause along with queryObject
      */
-    log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
-    whereClause = isSharingRuleCheckRequired ? SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ) : queryObject;
-    if (isSharingRuleCheckRequired && _.isEmpty(whereClause[Op.and])) {
-      log.info("Sharing rules not present for requested user");
-      return [];
+    if (connections.length == 0) {
+      queryObject = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+      whereClause[Op.or].push(queryObject);
+    } else {
+      log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
+      for (const idx in connections) {
+        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(connections[idx], Constants.FROM_REFERENCE_KEY)] });
+        queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
+        const sharingRulesClause = isSharingRuleCheckRequired
+          ? SharingRulesHelper.addSharingRuleClause(queryObject, connections[idx], model, Constants.ACCESS_READ)
+          : queryObject;
+        if (isSharingRuleCheckRequired && !_.isEmpty(sharingRulesClause[Op.and])) {
+          log.info("Sharing rules not present for requested user");
+          whereClause[Op.or].push(sharingRulesClause);
+        }
+      }
     }
     // fetch data from db with all conditions
     const searchQuery = {
