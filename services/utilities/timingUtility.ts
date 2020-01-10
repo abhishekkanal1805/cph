@@ -6,6 +6,7 @@ import * as log from "lambda-log";
 import * as moment from "moment";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
+import {TimingValidator} from "../validators/timingValidator";
 
 export class TimingUtility {
   /**
@@ -14,7 +15,7 @@ export class TimingUtility {
    * @param repeat
    * @param previousEndDate
    */
-  public static calculateStartDateForMedActivity(requestStart, repeat, previousEndDate) {
+  public static calculateStartDate(requestStart, repeat, previousEndDate) {
     log.info("Calculating start Date for MedActivity");
     let dateArray = [];
     if (requestStart) {
@@ -51,7 +52,7 @@ export class TimingUtility {
    * @param repeat
    * @param code
    */
-  public static calculateEndDateForMedActivity(startDate, requestEnd, repeat, code) {
+  public static calculateEndDate(startDate, requestEnd, repeat, code) {
     log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
     let dateArray = [];
     if (requestEnd) {
@@ -68,19 +69,34 @@ export class TimingUtility {
     if (code && repeat.count) {
       switch (code) {
         case "SDY":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count - 1));
+          dateArray.push(TimingUtility.addDuration(startDate, repeat.count - 1, "d"));
           break;
         case "SDT":
           break;
         case "SDC":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * repeat.duration - 1));
+          if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
+            dateArray.push(TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit));
+          }
           break;
         case "SDW":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * 7 - 1));
+          if (repeat.period && repeat.periodUnit) {
+            if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
+              dateArray.push(TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d"));
+            } else {
+              dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
+            }
+          }
           break;
         case "SID":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * repeat.period - 1));
+          if (repeat.period && repeat.periodUnit) {
+            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
+          }
           break;
+        case "Custom":
+          const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
+          if (date) {
+            dateArray.push(date);
+          }
       }
     }
     dateArray = dateArray
@@ -95,6 +111,46 @@ export class TimingUtility {
       log.info("End date is " + dateArray[0]);
       return dateArray[0];
     }
+  }
+
+  /**
+   * Generates end date for activity generation
+   * @param startDate
+   * @param requestEnd
+   * @param repeat
+   * @param code
+   */
+  public static calculateEndDateForCustomCode(repeat, startDate) {
+    log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
+    let date;
+    if (repeat.count) {
+      if (repeat.dayOfWeek && Array.isArray(repeat.dayOfWeek) && repeat.dayOfWeek.length != 0) {
+        if (repeat.period && repeat.periodUnit) {
+          if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
+            date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
+          } else {
+            date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+          }
+        } else {
+          date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
+        }
+      } else if (repeat.dayOfCycle &&
+        Array.isArray(repeat.dayOfCycle) &&
+        repeat.dayOfCycle.length != 0 &&
+        TimingValidator.validateNumberValue(repeat.dayOfCycle) &&
+        repeat.duration &&
+        TimingValidator.validateNumberValue(repeat.duration) &&
+        repeat.duration >= repeat.dayOfCycle.length) {
+        if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
+          date = TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
+        }
+      } else {
+        if (repeat.period && repeat.periodUnit) {
+          date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+        }
+      }
+    }
+    return date;
   }
 
   /**
@@ -181,5 +237,31 @@ export class TimingUtility {
       nextDay = this.addDays(nextDay, period);
     } while (nextDay <= end);
     return cycle;
+  }
+
+  public static addDuration(cDate, period, periodUnit) {
+    log.info("Entering TimingUtility.addDuration()");
+    const date = new Date(cDate);
+    try {
+      if (periodUnit == "s") {
+        date.setSeconds(date.getSeconds() + period);
+      } else if (periodUnit == "min") {
+        date.setMinutes(date.getMinutes() + period);
+      } else if (periodUnit == "h") {
+        date.setHours(date.getHours() + period);
+      } else if (periodUnit == "d") {
+        date.setDate(date.getDate() + period);
+      } else if (periodUnit == "wk") {
+        date.setDate(date.getDate() + period * 7);
+      } else if (periodUnit == "mo") {
+        date.setMonth(date.getMonth() + period);
+      } else {
+        throw new Error();
+      }
+      return date;
+    } catch (err) {
+      log.info("error in addDays():" + err);
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "period or periodUnit");
+    }
   }
 }
