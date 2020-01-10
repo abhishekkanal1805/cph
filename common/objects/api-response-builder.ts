@@ -2,6 +2,7 @@
  * Copyright © 2019 Deloitte. All rights reserved.
  */
 
+import * as log from "lambda-log";
 import * as HttpStatusCode from "http-status-codes";
 import { Constants } from "../constants/constants";
 import { ApiCallback, ApiResponse } from "./api-interfaces";
@@ -86,6 +87,8 @@ export class APIResponseBuilder {
     if (origin) {
       // Adding CORS response headers
       responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = origin;
+    } else if (responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN]) {
+      delete responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN];
     }
     responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS] = Constants.TRUE;
 
@@ -101,6 +104,7 @@ export class APIResponseBuilder {
       body: outputBody,
       isBase64Encoded: APIResponseBuilder.base64Encoding
     };
+    log.info(">>>>>>>" + JSON.stringify(response.headers));
     callback(null, response);
   }
 }
