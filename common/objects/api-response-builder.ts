@@ -2,7 +2,6 @@
  * Copyright © 2019 Deloitte. All rights reserved.
  */
 
-import * as log from "lambda-log";
 import * as HttpStatusCode from "http-status-codes";
 import { Constants } from "../constants/constants";
 import { ApiCallback, ApiResponse } from "./api-interfaces";
@@ -104,7 +103,6 @@ export class APIResponseBuilder {
       body: outputBody,
       isBase64Encoded: APIResponseBuilder.base64Encoding
     };
-    log.info(">>>>>>>" + JSON.stringify(response.headers));
     callback(null, response);
   }
 }
