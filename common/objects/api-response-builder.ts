@@ -86,6 +86,8 @@ export class APIResponseBuilder {
     if (origin) {
       // Adding CORS response headers
       responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = origin;
+    } else if (responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN]) {
+      delete responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN];
     }
     responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS] = Constants.TRUE;
 
