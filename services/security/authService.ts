@@ -427,19 +427,19 @@ export class AuthService {
   public static async validateProfiles(profileReferences: string[], criteria?: any) {
     log.info("Entering AuthService :: validateProfiles()");
     const userProfileReferences = _.uniq(
-      _.filter(profileReferences, (d) => {
-        return d.indexOf(Constants.USERPROFILE_REFERENCE) > -1;
+      _.filter(profileReferences, (profileReference) => {
+        return profileReference.indexOf(Constants.USERPROFILE_REFERENCE) > -1;
       })
     );
     const researchSubjectReferences = _.uniq(
-      _.filter(profileReferences, (d) => {
-        return d.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
+      _.filter(profileReferences, (profileReference) => {
+        return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
       })
     );
     if (researchSubjectReferences.length) {
       let whereClause = {
-        [Constants.ID]: _.map(researchSubjectReferences, (d) => {
-          return d.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+        [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
+          return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
         }),
         [Constants.META_IS_DELETED_KEY]: false
       };
@@ -453,10 +453,11 @@ export class AuthService {
     if (userProfileReferences.length) {
       validUserProfiles = await DataFetch.getUserProfiles({
         [Constants.ID]: _.uniq(
-          _.map(userProfileReferences, (d) => {
-            return d.split(Constants.USERPROFILE_REFERENCE)[1];
+          _.map(userProfileReferences, (userProfileReference) => {
+            return userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
           })
         ),
+        status: Constants.ACTIVE,
         [Constants.META_IS_DELETED_KEY]: false
       });
       validUserProfiles = _.map(validUserProfiles, Constants.ID);
@@ -525,8 +526,8 @@ export class AuthService {
   public static async getConnections(from: string[], to: string, type: string[], status: string[]) {
     log.info("Entering AuthService :: getConnections()");
     // In connection we store from and to attribute in UserProfile/uuid
-    from = from.map((d) => {
-      return d.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + d : d;
+    from = from.map((userReference) => {
+      return userReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + userReference : userReference;
     });
     to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
     const queryOptions = {

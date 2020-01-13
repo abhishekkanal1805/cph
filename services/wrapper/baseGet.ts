@@ -204,17 +204,17 @@ export class BaseGet {
       whereClause[Op.or].push(queryObject);
     } else {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
-      for (const idx in connections) {
-        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(connections[idx], Constants.FROM_REFERENCE_KEY)] });
+      connections.forEach((eachConnection: any) => {
+        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(eachConnection, Constants.FROM_REFERENCE_KEY)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
-          ? SharingRulesHelper.addSharingRuleClause(queryObject, connections[idx], model, Constants.ACCESS_READ)
+          ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)
           : queryObject;
         if (isSharingRuleCheckRequired && !_.isEmpty(sharingRulesClause[Op.and])) {
           log.info("Sharing rules not present for requested user");
           whereClause[Op.or].push(sharingRulesClause);
         }
-      }
+      });
     }
     // fetch data from db with all conditions
     const searchQuery = {
