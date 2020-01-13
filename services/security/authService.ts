@@ -414,4 +414,136 @@ export class AuthService {
     }
     return researchSubjectCriteria;
   }
+
+  /**
+   * Validate UserProfiles and ResearchSubject profiles
+   *
+   * @static
+   * @param {string[]} profileReferences
+   * @param {*} [criteria]
+   * @returns
+   * @memberof AuthService
+   */
+  public static async validateProfiles(profileReferences: string[], criteria?: any) {
+    log.info("Entering AuthService :: validateProfiles()");
+    const userProfileReferences = _.uniq(
+      _.filter(profileReferences, (profileReference) => {
+        return profileReference.indexOf(Constants.USERPROFILE_REFERENCE) > -1;
+      })
+    );
+    const researchSubjectReferences = _.uniq(
+      _.filter(profileReferences, (profileReference) => {
+        return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
+      })
+    );
+    if (researchSubjectReferences.length) {
+      let whereClause = {
+        [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
+          return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+        }),
+        [Constants.META_IS_DELETED_KEY]: false
+      };
+      if (criteria) {
+        whereClause = Object.assign(whereClause, criteria);
+      }
+      const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(whereClause, ResearchSubject);
+      userProfileReferences.push(..._.map(researchSubjectIdsProfiles, Constants.INDIVIDUAL_REFERENCE_KEY).filter(Boolean));
+    }
+    let validUserProfiles = [];
+    if (userProfileReferences.length) {
+      validUserProfiles = await DataFetch.getUserProfiles({
+        [Constants.ID]: _.uniq(
+          _.map(userProfileReferences, (userProfileReference) => {
+            return userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
+          })
+        ),
+        status: Constants.ACTIVE,
+        [Constants.META_IS_DELETED_KEY]: false
+      });
+      validUserProfiles = _.map(validUserProfiles, Constants.ID);
+    }
+    log.info("Exiting AuthService :: validateProfiles()");
+    return validUserProfiles;
+  }
+
+  /**
+   * Validate connectionbased sharing rules between loggedin user and requested user
+   *
+   * @static
+   * @param {string} requesterId
+   * @param {string[]} requesteeIds
+   * @param {string} resourceType
+   * @param {string} accessType
+   * @returns
+   * @memberof AuthService
+   */
+  public static async authorizeMultipleConnectionsBasedSharingRules(requesterId: string, requesteeIds: string[], resourceType: string, accessType: string) {
+    log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
+    // 1 - Check loggedin user
+    const fetchedProfiles = await DataFetch.getUserProfile([requesterId]);
+    // check 2: if requester should be system user then allow access
+    if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
+      return [];
+    }
+    // check 3. if requester and requestee are the same users then allow access
+    if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0] == requesterId) {
+      log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
+      return [];
+    }
+    // check 4. If resourceType publically accessable, then no connection check required
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isResoucePublicAccessable) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeMultipleConnectionsBasedSharingRules()");
+      return [];
+    }
+    // check 5. validate connection between requester and requestee
+    log.info("Requester is not a system user. validating connection between requester and requestee.");
+    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    const connections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);
+    if (connections.length < 1) {
+      log.error("No connection found between from user and to user");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("Exiting AuthService, requester and requestee are connected  :: authorizeMultipleConnectionsBasedSharingRules");
+    return connections;
+  }
+
+  /**
+   * Validate connection between requested users with loggedin user
+   *
+   * @static
+   * @param {string[]} from requested users
+   * @param {string} to loggedin user
+   * @param {string[]} type connection type
+   * @param {string[]} status connection status
+   * @returns
+   * @memberof AuthService
+   */
+  public static async getConnections(from: string[], to: string, type: string[], status: string[]) {
+    log.info("Entering AuthService :: getConnections()");
+    // In connection we store from and to attribute in UserProfile/uuid
+    from = from.map((userReference) => {
+      return userReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + userReference : userReference;
+    });
+    to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
+    const queryOptions = {
+      where: {
+        "from.reference": {
+          [Op.in]: from
+        },
+        "to.reference": to,
+        "type": type,
+        "status": status,
+        "meta.isDeleted": false
+      }
+    };
+    let result = await DAOService.search(Connection, queryOptions);
+    result = result.map((eachRecord: any) => eachRecord[Constants.DEFAULT_SEARCH_ATTRIBUTES]);
+    log.info("Exiting AuthService :: getConnections()");
+    return result;
+  }
 }
