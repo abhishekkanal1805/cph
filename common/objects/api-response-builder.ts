@@ -31,40 +31,40 @@ export class APIResponseBuilder {
     APIResponseBuilder.base64Encoding = flag;
   }
 
-  public static badRequest(errorResult: BadRequestResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<BadRequestResult>(errorResult, HttpStatusCode.BAD_REQUEST, callback);
+  public static badRequest(errorResult: BadRequestResult, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<BadRequestResult>(errorResult, HttpStatusCode.BAD_REQUEST, callback, origin);
   }
 
-  public static forbidden(errorResult: ForbiddenResult | InsufficientAccountPermissions, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<ForbiddenResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.FORBIDDEN, callback);
+  public static forbidden(errorResult: ForbiddenResult | InsufficientAccountPermissions, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<ForbiddenResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.FORBIDDEN, callback, origin);
   }
 
-  public static internalServerError(errorResult: InternalServerErrorResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<InternalServerErrorResult>(errorResult, HttpStatusCode.INTERNAL_SERVER_ERROR, callback);
+  public static internalServerError(errorResult: InternalServerErrorResult, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<InternalServerErrorResult>(errorResult, HttpStatusCode.INTERNAL_SERVER_ERROR, callback, origin);
   }
 
-  public static notFound(errorResult: NotFoundResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<NotFoundResult>(errorResult, HttpStatusCode.NOT_FOUND, callback);
+  public static notFound(errorResult: NotFoundResult, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<NotFoundResult>(errorResult, HttpStatusCode.NOT_FOUND, callback, origin);
   }
 
-  public static unauthorized(errorResult: UnAuthorizedResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<UnAuthorizedResult>(errorResult, HttpStatusCode.UNAUTHORIZED, callback);
+  public static unauthorized(errorResult: UnAuthorizedResult, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<UnAuthorizedResult>(errorResult, HttpStatusCode.UNAUTHORIZED, callback, origin);
   }
 
-  public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(errorResult, HttpStatusCode.UNPROCESSABLE_ENTITY, callback);
+  public static unprocessableEntity(errorResult: UnprocessableEntityErrorResult, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<UnprocessableEntityErrorResult>(errorResult, HttpStatusCode.UNPROCESSABLE_ENTITY, callback, origin);
   }
 
-  public static ok<T>(result: T, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback);
+  public static ok<T>(result: T, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback, origin);
   }
 
-  public static nocontent<T>(result: T, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs(result, HttpStatusCode.NO_CONTENT, callback);
+  public static nocontent<T>(result: T, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs(result, HttpStatusCode.NO_CONTENT, callback, origin);
   }
 
-  public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback): void {
-    APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback);
+  public static multistatus(errorResult: MultiStatusResult | InsufficientAccountPermissions, callback: ApiCallback, origin?: string): void {
+    APIResponseBuilder._returnAs<MultiStatusResult | InsufficientAccountPermissions>(errorResult, HttpStatusCode.MULTI_STATUS, callback, origin);
   }
   private static defaultHeaders = {
     [Constants.CONTENT_TYPE]: config.data.headers.contentTypes.json,
@@ -79,8 +79,18 @@ export class APIResponseBuilder {
 
   private static base64Encoding: boolean = false;
 
-  private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback): void {
+  private static _returnAs<T>(result: T, responseCode: number, callback: ApiCallback, origin?: string): void {
     let bodyObject: any;
+    const responseHeaders = APIResponseBuilder.defaultHeaders;
+
+    if (origin) {
+      // Adding CORS response headers
+      responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = origin;
+    } else if (responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN]) {
+      delete responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN];
+    }
+    responseHeaders[Constants.HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS] = Constants.TRUE;
+
     if (result instanceof ErrorResult) {
       bodyObject = { errors: [result] };
     } else {
@@ -89,7 +99,7 @@ export class APIResponseBuilder {
     const outputBody: any = APIResponseBuilder.base64Encoding ? bodyObject : JSON.stringify(bodyObject);
     const response: ApiResponse = {
       statusCode: responseCode,
-      headers: APIResponseBuilder.defaultHeaders,
+      headers: responseHeaders,
       body: outputBody,
       isBase64Encoded: APIResponseBuilder.base64Encoding
     };

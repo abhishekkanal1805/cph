@@ -31,6 +31,7 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly INDIVIDUAL_REFERENCE_KEY = "individual.reference";
   public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
@@ -269,6 +270,8 @@ class Constants {
   public static readonly HEADER_CACHE_CONTROL_VALUE = "no-store, no-cache, max-age=0, must-revalidate";
   public static readonly HEADER_CONTENT_SECURITY_POLICY = "Content-Security-Policy";
   public static readonly HEADER_CONTENT_SECURITY_POLICY_VALUE = "default-src 'self'; object-src 'none';";
+  public static readonly HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+  public static readonly HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
   public static readonly USER_ATTRIBUTE = "user";
   public static readonly USER_REFERENCE_KEY = "user.reference";
 
