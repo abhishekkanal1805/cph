@@ -78,6 +78,7 @@ export class BasePost {
       log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: saveResource()`);
 
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      // TODO: If this returns a connection should we check the sharing rules to make sure if the requester is authorized to perform this action
       await AuthService.authorizeRequestSharingRules(
         requestParams.requestorProfileId,
         informationSourceReferences[0],

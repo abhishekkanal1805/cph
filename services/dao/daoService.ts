@@ -133,8 +133,8 @@ export class DAOService {
   }
 
   /**
-   *  Bulk create records for given Model
-   *
+   *  Search records for given Model
+   *  TODO: can we enforce the query to be IFindOptions<Model> instead of any
    * @static
    * @param {*} query
    * @param {*} model

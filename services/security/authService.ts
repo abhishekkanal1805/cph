@@ -5,6 +5,7 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Op } from "sequelize";
+import {IFindOptions} from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
@@ -39,7 +40,7 @@ export class AuthService {
     accessType: string,
     ownerType?: string
   ) {
-    log.info("Entering AuthService :: performAuthorization()");
+    log.info("Entering AuthService :: authorizeRequest()");
     // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
@@ -59,17 +60,17 @@ export class AuthService {
     }
     // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
     if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
-      log.info("requester is a system user and it is submitting request for a valid owner");
+      log.info("Exiting AuthService, requester is a system user and submitting request for a valid owner :: authorizeRequest()");
       return [];
     }
     // check 3. is user submitting its own request
     if (requester === informationSourceId && requester === ownerId) {
-      log.info("Exiting AuthService, Patient is submitting its own request :: hasConnectionBasedAccess()");
+      log.info("Exiting AuthService, user is submitting request for self :: authorizeRequest()");
       return [];
     }
-    // check 4. If resourceType publically accessable, then no connection check required
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isResoucePublicAccessable) {
+    // check 4. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
@@ -90,6 +91,7 @@ export class AuthService {
         log.error("No connection found between from user and to user");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      log.info("Exiting AuthService, found a conncetion :: authorizeRequest()");
       return connection;
     } else {
       // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
@@ -111,6 +113,8 @@ export class AuthService {
    * @param {string} ownerType optional. if provided can be used to enforce the profileType of ownerReference. Forbidden error is throw if
    * they dont matach. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
+   * @returns error is throw for any access violation. If [] is return means the requester has unrestricted access.
+   *  If [connection] is returned then the access should be determined be evaluating the connection's sharing rules
    */
   public static async authorizeRequestSharingRules(
     requester: string,
@@ -121,16 +125,18 @@ export class AuthService {
     ownerType?: string
   ) {
     log.info("Entering AuthService :: authorizeRequestSharingRules()");
-    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    // builds a condition for querying ResearchSubject. Example: status: { [Op.notIn]: ["withdrawn", "ineligible", "not-registered"] }
+    const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
     informationSourceReference = researchSubjectProfiles[informationSourceReference]
       ? researchSubjectProfiles[informationSourceReference]
       : informationSourceReference;
     ownerReference = researchSubjectProfiles[ownerReference] ? researchSubjectProfiles[ownerReference] : ownerReference;
+    // by now the ownerRef and infoSrcRef are both UserProfile
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [requester, informationSourceId, ownerId];
-    // query userprofile for the unique profile ids
+    // make sure all provided profiles are active and not deleted. throws error if requestProfileIds was empty
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (ownerType && fetchedProfiles[ownerId].profileType !== ownerType) {
@@ -138,6 +144,7 @@ export class AuthService {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
+    // QUESTION: seems like fetchedProfiles[requester] can be null. is this an error state when requests profile was not found?
     if (fetchedProfiles[requester] && fetchedProfiles[requester].profileType === Constants.SYSTEM_USER) {
       log.info("requester is a system user and it is submitting request for a valid owner");
       return [];
@@ -147,13 +154,15 @@ export class AuthService {
       log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
       return [];
     }
-    // check 4. If resourceType publically accessable, then no connection check required
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isResoucePublicAccessable) {
+    // QUESTION: Can inforSource be different from requester? is this an error state?
+    // check 4. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
     // check 5. Check for connection between requester and requestee
+    // the IF is redundant? profileType will always be non SYSTEM here as per check2
     if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER) {
       log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
@@ -166,6 +175,7 @@ export class AuthService {
       }
       return connection;
     } else {
+      // QUESTION: is this block reachable? request==System is handled in check2
       // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
       log.error("Received a user of unknown profile type");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -202,9 +212,9 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: hasConnectionBasedAccess");
       return [];
     }
-    // check 3. If resourceType publically accessable, then no connection check required
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isResoucePublicAccessable) {
+    // check 3. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
@@ -263,9 +273,9 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
-    // check 4. If resourceType publically accessable, then no connection check required
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isResoucePublicAccessable) {
+    // check 4. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
@@ -297,14 +307,20 @@ export class AuthService {
     // In connection we store from and to attribute in UserProfile/uuid
     from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
     to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
-    // TODO: use IFindOption<Connection>
-    const queryOptions = {
+    // TODO: should we check on the requestExpirationDate
+    const queryOptions: IFindOptions<Connection> = {
       where: {
-        "from.reference": from,
-        "to.reference": to,
-        "type": type,
-        "status": status,
-        "meta.isDeleted": false
+        from: {
+          reference: from
+        },
+        to: {
+          reference: to
+        },
+        type,
+        status,
+        meta: {
+          isDeleted: false
+        }
       }
     };
     let result = await DAOService.search(Connection, queryOptions);
@@ -315,7 +331,9 @@ export class AuthService {
 
   /**
    * Validates ResearchSubject profiles reference and returns mapped UserProfile Reference
-   *
+   * TODO: should this function be in AuthService?
+   * TODO: can this function take in one reference and return one reference? but we will have the query the table again.
+   * TODO: rename this and add an example of input / output
    * @static
    * @param {string} ownerReference userReference value will be Reference/1234
    * @param {string} informationSourceReference practionerReference value will be Reference/1234

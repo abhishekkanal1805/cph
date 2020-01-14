@@ -6,6 +6,7 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Op } from "sequelize";
+import {IFindOptions} from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
@@ -20,7 +21,21 @@ export class DataFetch {
    * FIXME: rename this getUserAccess. Also define a class for the return
    * @static
    * @param {*} authorizerData
-   * @returns {Promise<any>}
+   * @returns {Promise<Map<profileId, profileInfo>>} returns a Map of profileID: profileInfo
+   * only if all the provided profiles were found active, un-deleted.
+   * the profileInfo contains display name, profileType, profileStatus. Example:
+   * {
+   *     "1111111": {
+   *         "displayName": "Tony Stark",
+   *         "profileType": "patient",
+   *         "profileStatus": "active",
+   *     },
+   *     "2222222": {
+   *         "displayName": "Steve Rogers",
+   *         "profileType": "practitioner",
+   *         "profileStatus": "active",
+   *     }
+   * }
    * @memberof DataFetch
    */
   public static async getUserProfile(profiles: string[]): Promise<any> {
@@ -33,11 +48,13 @@ export class DataFetch {
     // Take uniq values and get records and validate count
     // FIXME: can we re-use from other functions
     profiles = _.uniq(profiles);
-    const queryObject = {
+    const queryObject: IFindOptions<UserProfile> = {
       where: {
         id: profiles,
         status: Constants.ACTIVE,
-        [Constants.META_IS_DELETED_KEY]: false
+        meta: {
+          isDeleted: false
+        }
       }
     };
     const result = await DAOService.search(UserProfile, queryObject);
@@ -97,15 +114,13 @@ export class DataFetch {
    * @return {Promise<any[]>}
    */
   public static getValidUserProfileIds(recordIds: string[]): Promise<any[]> {
-    // TODO: "id": recordIds would achieve the same
-    // TODO: Use type IFindOption<UserProfile> for query
-    const query = {
+    const query: IFindOptions<UserProfile> = {
       where: {
-        "id": {
-          [Op.or]: recordIds
-        },
-        "meta.isDeleted": false,
-        "status": UserProfile.STATUS_ACTIVE
+        id: recordIds,
+        status: UserProfile.STATUS_ACTIVE,
+        meta: {
+          isDeleted: false
+        }
       },
       attributes: ["id"]
     };
@@ -173,6 +188,7 @@ export class DataFetch {
    * TODO: Review if this is used anywhere, else remove
    * @static
    * @param {*} searchObject
+   * @param {*} model This is optional param, can be either UserProfile or ResearchSubject
    * @returns
    * @memberof DataFetch
    */
