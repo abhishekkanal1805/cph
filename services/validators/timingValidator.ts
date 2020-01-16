@@ -50,7 +50,7 @@ export class TimingValidator {
   /**
    * Validates that start and end are actual date strings and their difference is <= 365
    * @param start
-   * @param end
+   * @param endtiming.repeat.boundsPeriod.start
    */
   public static validateStartEndDates(start, end) {
     log.info("Entering TimingValidator: validateStartEndDates()");
