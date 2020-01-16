@@ -143,28 +143,7 @@ export class BaseGet {
   ) {
     let connections = [];
     let isSharingRuleCheckRequired: boolean = true;
-    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
-      log.info("Search for resource accessible to all: " + model.name);
-      isSharingRuleCheckRequired = false;
-    } else {
-      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
-        log.info("queryParams is empty or resourceOwnerElement not present");
-        queryParams[resourceOwnerElement] = [requestorProfileId];
-        isSharingRuleCheckRequired = false;
-      }
-      let requestedProfiles =
-        queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
-        return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
-      });
-      connections = await AuthService.authorizeMultipleConnectionsBasedSharingRules(requestorProfileId, requestedProfiles, serviceName, Constants.ACCESS_READ);
-    }
-    // if isDeleted attribute not present in query parameter then return active records
-    if (!queryParams[Constants.IS_DELETED]) {
-      queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
-    }
-
+    let filteredQueryParameter = {};
     let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
@@ -188,6 +167,57 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
+    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
+      log.info("Search for resource accessible to all: " + model.name);
+      isSharingRuleCheckRequired = false;
+    } else {
+      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
+        log.info("queryParams is empty or resourceOwnerElement not present");
+        queryParams[resourceOwnerElement] = [requestorProfileId];
+        isSharingRuleCheckRequired = false;
+      }
+      let requestedProfiles =
+        queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
+      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+      requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
+        return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
+      });
+      try {
+        connections = await AuthService.authorizeMultipleConnectionsBasedSharingRules(
+          requestorProfileId,
+          requestedProfiles,
+          serviceName,
+          Constants.ACCESS_READ
+        );
+        // validate if loggedin user present in searchParams or not and filter query parameter
+        filteredQueryParameter = await AuthService.getFilteredQueryParameter(
+          requestorProfileId,
+          resourceOwnerElement,
+          queryParams,
+          requestedProfiles,
+          Constants.ACCESS_READ
+        );
+      } catch (err) {
+        log.error("Error occoured during connection check" + err.stack, err);
+        if (err.errorCode === errorCodeMap.Forbidden.value) {
+          // validate if loggedin user present in searchParams or not and filter query parameter
+          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
+            requestorProfileId,
+            resourceOwnerElement,
+            queryParams,
+            requestedProfiles,
+            Constants.ACCESS_READ
+          );
+          if (filteredQueryParameter[resourceOwnerElement] && filteredQueryParameter[resourceOwnerElement].length == 0) {
+            return [];
+          }
+        }
+      }
+    }
+    // if isDeleted attribute not present in query parameter then return active records
+    if (!queryParams[Constants.IS_DELETED]) {
+      queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
+    }
     // Validate query parameter data type and value
     QueryValidator.validateQueryParams(queryParams, attributesMapping);
     // Generate Search Query based on query parameter & config settings
@@ -200,7 +230,8 @@ export class BaseGet {
      * and append SharingRule query clause along with queryObject
      */
     if (connections.length == 0) {
-      queryObject = QueryGenerator.getFilterCondition(queryParams, attributesMapping);
+      const searchQueryParams = Object.assign({}, queryParams, filteredQueryParameter);
+      queryObject = QueryGenerator.getFilterCondition(searchQueryParams, attributesMapping);
       whereClause[Op.or].push(queryObject);
     } else {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
@@ -215,6 +246,10 @@ export class BaseGet {
           whereClause[Op.or].push(sharingRulesClause);
         }
       });
+      if (isSharingRuleCheckRequired && !_.isEmpty(filteredQueryParameter)) {
+        queryObject = QueryGenerator.getFilterCondition(filteredQueryParameter, attributesMapping);
+        whereClause[Op.or].push(queryObject);
+      }
     }
     // fetch data from db with all conditions
     const searchQuery = {
