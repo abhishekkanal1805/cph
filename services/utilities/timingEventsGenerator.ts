@@ -432,7 +432,6 @@ export class TimingEventsGenerator {
     const unit = config.unitsMap[repeat.periodUnit]; // map FHIR unit to standard unit
     if (
       ([1, 7].includes(repeat.period) && repeat.periodUnit == Constants.FHIR_DAY_UNIT) ||
-      (repeat.period == 1 && repeat.periodUnit == Constants.FHIR_WEEK_UNIT) ||
       [Constants.FHIR_DAY_UNIT, Constants.FHIR_WEEK_UNIT, Constants.FHIR_MONTH_UNIT, Constants.FHIR_YEAR_UNIT].includes(repeat.periodUnit)
     ) {
       // set timeOfDay to every day from dayOfWeek array
