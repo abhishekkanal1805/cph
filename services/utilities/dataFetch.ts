@@ -15,6 +15,7 @@ import { UserProfile } from "../../models/CPH/userProfile/userProfile";
 import { DAOService } from "../dao/daoService";
 
 // FIXME: add documentation to all functions. example: will it search for deleted ones, active ones, exceptions thrown, what attributes are returned etc.
+// FIXME: fix the circular dependency with daoService
 export class DataFetch {
   /**
    * Retrieves UserProfile information by reading profile ID from authorizer data coming from request.
