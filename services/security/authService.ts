@@ -546,7 +546,7 @@ export class AuthService {
       return [];
     }
     // check 3. if requester and requestee are the same users then allow access
-    if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0] == requesterId) {
+    if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0].split(Constants.FORWARD_SLASH)[1] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return [];
     }
@@ -556,10 +556,15 @@ export class AuthService {
       log.info("Exiting AuthService, Resource type is public :: authorizeMultipleConnectionsBasedSharingRules()");
       return [];
     }
-    // check 5. validate connection between requester and requestee
     log.info("Requester is not a system user. validating connection between requester and requestee.");
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    // check 5. if requester accessing his own ResearchSubject then allow access
+    if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
+      log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
+      return [];
+    }
+    // check 6. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     const connections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);
@@ -604,5 +609,61 @@ export class AuthService {
     result = result.map((eachRecord: any) => eachRecord[Constants.DEFAULT_SEARCH_ATTRIBUTES]);
     log.info("Exiting AuthService :: getConnections()");
     return result;
+  }
+
+  /**
+   * Validate if loggedin user is part of search attribute
+   *
+   * @static
+   * @param {string} requestorProfileId loggedin user Id
+   * @param {string} resourceOwnerElement Owner element for a resource
+   * @param {*} queryParams queryParams received from api
+   * @param {string[]} requestedProfiles requested search profiles
+   * @param {*} accessType service access type
+   * @returns
+   * @memberof AuthService
+   */
+  public static async getFilteredQueryParameter(
+    requestorProfileId: string,
+    resourceOwnerElement: string,
+    queryParams: any,
+    requestedProfiles: string[],
+    accessType
+  ) {
+    let researchSubjectProfiles = [];
+    const filteredQueryParameter = Object.assign({}, queryParams);
+    const researchSubjectReferences = _.uniq(
+      _.filter(requestedProfiles, (profileReference) => {
+        return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
+      })
+    );
+    const requestorProfileIdReference =
+      requestorProfileId.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + requestorProfileId : requestorProfileId;
+    if (researchSubjectReferences.length) {
+      const individualReference = [Constants.DEFAULT_SEARCH_ATTRIBUTES, Constants.INDIVIDUAL_REFERENCE_KEY].join(Constants.DOT_VALUE);
+      let whereClause = {
+        [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
+          return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
+        }),
+        [individualReference]: requestorProfileIdReference,
+        [Constants.META_IS_DELETED_KEY]: false
+      };
+      const criteria = this.getResearchSubjectFilterCriteria(accessType);
+      if (criteria) {
+        whereClause = Object.assign(whereClause, criteria);
+      }
+      researchSubjectProfiles = await DAOService.search(ResearchSubject, { where: whereClause });
+      researchSubjectProfiles = _.map(researchSubjectProfiles, Constants.ID).filter(Boolean);
+      researchSubjectProfiles = researchSubjectProfiles.map((researchSubjectProfile) => {
+        return researchSubjectProfile.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) == -1
+          ? Constants.RESEARCHSUBJECT_REFERENCE + researchSubjectProfile
+          : researchSubjectProfile;
+      });
+    }
+    if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
+      researchSubjectProfiles.push(requestorProfileIdReference);
+    }
+    filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)];
+    return filteredQueryParameter;
   }
 }
