@@ -2,7 +2,7 @@
  * Copyright © 2019 Deloitte. All rights reserved.
  */
 
-import {Column, DataType} from "sequelize-typescript";
+import {Column, DataType, Model, Table} from "sequelize-typescript";
 import {ResourceMetadata} from "../../common/resourceMetadata";
 
 /**
@@ -20,7 +20,9 @@ import {ResourceMetadata} from "../../common/resourceMetadata";
  * 4 ----- userProfile/222 ----- Policy/siteCRC ----- StudySite/222
  * 5 ----- userProfile/222 ----- Policy/siteCRC ----- StudySite/222
  */
-class PolicyAssignment {
+
+@Table({ tableName: "PolicyAssignment" })
+class PolicyAssignment extends Model<PolicyAssignment> {
     @Column({ type: DataType.UUID, primaryKey: true })
     id: string;
 
