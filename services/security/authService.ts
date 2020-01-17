@@ -13,6 +13,8 @@ import { Connection } from "../../models/CPH/connection/connection";
 import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
+import {PolicyManager} from "../policy/policyManager";
+import {SubjectAccessRequest} from "../policy/subjectAccessRequest";
 import { DataFetch } from "../utilities/dataFetch";
 
 export class AuthService {
@@ -108,13 +110,14 @@ export class AuthService {
    * if requester is not system user, a valid connection is expected between informationSource and patient
    * @static
    * @param {string} requester profileId of logged in User
-   * @param {string} informationSourceReference Reference in format UserProfile/123 for the user who is the submittingor requesting the record
-   * @param {string} ownerReference Reference in format UserProfile/123 for the user who is the record owner
+   * @param {string} informationSourceReference Reference in format UserProfile/123 for the user who is the submitting or requesting the record
+   * @param {string} ownerReference User reference who is the record owner - can be UserProfile or ResearchSubject reference
    * @param {string} ownerType optional. if provided can be used to enforce the profileType of ownerReference. Forbidden error is throw if
-   * they dont matach. If not provided owner profileType is not checked/enforced.
+   * they dont match. If not provided owner profileType is not checked/enforced.
    * @memberof AuthService
    * @returns error is throw for any access violation. If [] is return means the requester has unrestricted access.
    *  If [connection] is returned then the access should be determined be evaluating the connection's sharing rules
+   *  FIXME: add resourceAction to the args
    */
   public static async authorizeRequestSharingRules(
     requester: string,
@@ -122,15 +125,20 @@ export class AuthService {
     ownerReference: string,
     resourceType: string,
     accessType: string,
+    resourceAction: string,
     ownerType?: string
   ) {
-    log.info("Entering AuthService :: authorizeRequestSharingRules()");
+    log.info("Entering AuthService :: authorizeRequestSharingRules() requester=" + requester +
+        ", ownerReference=" + ownerReference + ", ");
+    // if ownerReference is researchSubject save it for policy check
+    const ownerOrignalSubjectReference: string = (ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) ? ownerReference : null;
     // builds a condition for querying ResearchSubject. Example: status: { [Op.notIn]: ["withdrawn", "ineligible", "not-registered"] }
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(accessType);
+    // returns a maps of RS reference to the corresponding profile
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
-    informationSourceReference = researchSubjectProfiles[informationSourceReference]
-      ? researchSubjectProfiles[informationSourceReference]
-      : informationSourceReference;
+    informationSourceReference = researchSubjectProfiles[informationSourceReference] ?
+        researchSubjectProfiles[informationSourceReference] :
+        informationSourceReference;
     ownerReference = researchSubjectProfiles[ownerReference] ? researchSubjectProfiles[ownerReference] : ownerReference;
     // by now the ownerRef and infoSrcRef are both UserProfile
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
@@ -161,6 +169,28 @@ export class AuthService {
       log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
       return [];
     }
+
+    // check 4.5 study/site based access control can only be determined if the owner is ResearchSubject
+    if (ownerOrignalSubjectReference) {
+        log.info("AuthService::authorizeRequest() Owner is ResearchSubject, checking for policy based access.");
+        // FIXME: get this resourceAction from Controller
+        const accessRequest: SubjectAccessRequest = {
+            requestorReference: requester,
+            subjectReference: ownerOrignalSubjectReference,
+            resourceAction
+        };
+        const grantedPolicies = await PolicyManager.requestSubjectAccess(accessRequest);
+        log.info("Granted policies = " + JSON.stringify(grantedPolicies));
+        if (grantedPolicies && grantedPolicies.length > 0) {
+            log.info("Exiting AuthService, Policy based access was granted :: authorizeRequest()");
+            return [];
+        } else {
+            log.info("AuthService::authorizeRequest() Policy based access was not granted, checking for connection based access.");
+        }
+    } else {
+        log.info("AuthService::authorizeRequest() Owner is not ResearchSubject, skipping to check Connection based access.");
+    }
+
     // check 5. Check for connection between requester and requestee
     // the IF is redundant? profileType will always be non SYSTEM here as per check2
     if (fetchedProfiles[requester].profileType != Constants.SYSTEM_USER) {
@@ -337,7 +367,18 @@ export class AuthService {
    * @static
    * @param {string} ownerReference userReference value will be Reference/1234
    * @param {string} informationSourceReference practionerReference value will be Reference/1234
-   * @returns
+   * @returns examples:
+   * 1) if ownerReference:ResearchSubject/12345 and informationSourceReference:ResearchSubject/67890
+   *    returns {
+   *        "ResearchSubject/12345": "UserProfile/1111",
+   *        "ResearchSubject/67890": "UserProfile/2222"
+   *    }
+   * 2) if ownerReference:ResearchSubject/12345 and informationSourceReference:UserProfile/2222
+   *    returns {
+   *        "ResearchSubject/12345": "UserProfile/1111"
+   *    }
+   * 3) if ownerReference:UserProfile/1111 and informationSourceReference:UserProfile/2222
+   *    returns { }
    * @memberof AuthService
    */
   public static async getResearchSubjectProfiles(ownerReference: string, informationSourceReference?: string, criteria?: any) {

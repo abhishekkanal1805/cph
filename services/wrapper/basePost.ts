@@ -40,12 +40,13 @@ export class BasePost {
   ): Promise<GenericResponse<T>> {
     log.info("Entering BasePost :: saveResource()");
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
-    log.info("Record Array created succesfully in :: saveResource()");
+    log.info("Record Array created successfully in :: saveResource()");
     const model = payloadModel as any;
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     const isDefinitionalResource = model.resourceCategory ? model.resourceCategory == ResourceCategory.DEFINITION : Constants.FALSE;
-    // If Resource is non-Definitional, then there will be validation for ownerElement & informationSourceElement
+
+    // for non-Definitional resource the owner & informationSource both references must be provided
     if (!isDefinitionalResource) {
       if (!requestParams.ownerElement || !requestParams.informationSourceElement) {
         log.error(
@@ -79,12 +80,14 @@ export class BasePost {
 
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       // TODO: If this returns a connection should we check the sharing rules to make sure if the requester is authorized to perform this action
+      // we are here means we have exactly one owner and infoSource reference
       await AuthService.authorizeRequestSharingRules(
         requestParams.requestorProfileId,
         informationSourceReferences[0],
         ownerReferences[0],
         serviceName,
         Constants.ACCESS_EDIT,
+        requestParams.resourceAction,
         requestParams.ownerType
       );
       log.info("User Authorization is successful ");

@@ -626,7 +626,8 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc",
+            "UserProfile/xyz", null, null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -641,7 +642,8 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz", null, Constants.ACCESS_READ);
+        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz",
+            null, null, Constants.ACCESS_READ);
       } catch (err) {
         expect(err.message).toEqual(unexpectedInternalErrorMsg);
         done();
@@ -667,7 +669,7 @@ describe("AuthService", () => {
           "any",
           "UserProfile/dontcare",
           "UserProfile/" + testPatientOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ,
           allowedOwnerType
         );
@@ -683,7 +685,7 @@ describe("AuthService", () => {
           "any",
           "UserProfile/dontcare",
           "UserProfile/" + testSystemOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ,
           allowedOwnerType
         );
@@ -712,7 +714,7 @@ describe("AuthService", () => {
           "any",
           "UserProfile/dontcare",
           "UserProfile/" + testPractitionerOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ,
           allowedOwnerType
         );
@@ -728,7 +730,7 @@ describe("AuthService", () => {
           "any",
           "UserProfile/dontcare",
           "UserProfile/" + testSystemOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ,
           allowedOwnerType
         );
@@ -753,7 +755,7 @@ describe("AuthService", () => {
           testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ
         );
       } catch (err) {
@@ -773,7 +775,7 @@ describe("AuthService", () => {
           testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
           "UserProfile/" + testOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ,
           allowedOwnerType
         );
@@ -800,7 +802,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -827,7 +829,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -854,7 +856,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -882,7 +884,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -908,7 +910,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -934,7 +936,7 @@ describe("AuthService", () => {
             testRequesterProfile.id,
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
-            null,
+            null, null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -963,6 +965,7 @@ describe("AuthService", () => {
             "UserProfile/" + testInformationSourceProfile.id,
             "UserProfile/" + testOwnerProfile.id,
             null,
+              null,
             Constants.ACCESS_READ
           );
         } catch (err) {
@@ -986,7 +989,7 @@ describe("AuthService", () => {
           testRequesterProfile.id,
           "UserProfile/" + testInformationSourceProfile.id,
           "UserProfile/" + testOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ
         );
       } catch (err) {
@@ -1011,7 +1014,7 @@ describe("AuthService", () => {
           testRequesterProfile.id,
           "UserProfile/" + testInformationSourceProfile.id,
           "UserProfile/" + testOwnerProfile.id,
-          null,
+          null, null,
           Constants.ACCESS_READ
         );
       } catch (err) {
