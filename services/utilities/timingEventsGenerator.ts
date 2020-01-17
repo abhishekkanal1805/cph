@@ -226,6 +226,7 @@ export class TimingEventsGenerator {
         break;
 
       case "Custom":
+        events = this.generateCustomEvents(startDate, endDate, repeat);
         break;
 
       default:
@@ -493,6 +494,20 @@ export class TimingEventsGenerator {
   }
 
   /**
+   * Format start date
+   * @param startDate
+   * @returns startDate
+   */
+  public static formatStartDate(startDate) {
+    if (moment(startDate, Constants.DATE, true).isValid()) {
+      startDate = moment.utc(startDate, Constants.DATE);
+    } else {
+      startDate = moment.utc(startDate, Constants.DATE_TIME);
+    }
+    return startDate;
+  }
+
+  /**
    * Format end date
    * @param endDate
    * @returns endDate
@@ -515,19 +530,85 @@ export class TimingEventsGenerator {
    */
   public static generateCustomEvents(start, end, repeat) {
     log.info("Entering TimingEventsGenerator.generateSDYEvents()");
-    const events = [];
-    start = moment.utc(start).format(Constants.DATE);
-    end = moment.utc(end).format(Constants.DATE);
-    for (const time of repeat.timeOfDay) {
-      const dates = TimingUtility.getDates(
-        new Date(new Date(start + " " + time + " UTC").toISOString()),
-        new Date(new Date(end + " " + time + " UTC").toISOString())
-      );
-      for (const date of dates) {
-        events.push(date);
-      }
+    let events = [];
+    if (repeat.dayOfWeek && Array.isArray(repeat.dayOfWeek) && repeat.dayOfWeek.length != 0) {
+      log.info("Generate events based on dayOfWeek");
+    } else if (
+      repeat.dayOfCycle &&
+      Array.isArray(repeat.dayOfCycle) &&
+      repeat.dayOfCycle.length != 0 &&
+      TimingValidator.validateNumberValue(repeat.dayOfCycle) &&
+      repeat.duration &&
+      TimingValidator.validateNumberValue(repeat.duration) &&
+      repeat.duration >= repeat.dayOfCycle.length
+    ) {
+      log.info("Generate events based on dayOfCycle");
+    } else if (repeat.period && repeat.periodUnit) {
+      events = this.generateEventsBasedOnPeriod(start, end, repeat);
     }
     log.info("Exiting TimingEventsGenerator.generateSDYEvents()");
     return events;
+  }
+
+  /**
+   * Generate events based on period and periodUnit
+   * @param start
+   * @param end
+   * @param repeat
+   * @returns events
+   */
+  public static generateEventsBasedOnPeriod(start, end, repeat) {
+    log.info("Entering TimingEventsGenerator.generateEventsBasedOnPeriod()");
+    const events = [];
+    start = this.formatStartDate(start);
+    end = this.formatEndDate(end);
+    log.info("Start: " + start.toISOString());
+    log.info("End: " + end.toISOString());
+    const unit = config.unitsMap[repeat.periodUnit];
+    const dateFormat =
+      ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+    // for each time in the timeOfDay array generate dates for given period
+    let count = 0;
+    let date = start;
+    while (moment(date).isSameOrBefore(end)) {
+      if (repeat.frequency && repeat.period && repeat.periodUnit) {
+        for (let frequency = 0; frequency < repeat.frequency; frequency++) {
+          date = this.generateDate(start, end, unit, repeat.period, dateFormat, count);
+          if (date) {
+            events.push(date);
+          }
+        }
+      } else {
+        date = this.generateDate(start, end, unit, repeat.period, dateFormat, count);
+        if (date) {
+          events.push(date);
+        }
+      }
+      count++;
+    }
+    log.info("Exiting TimingEventsGenerator.generateEventsBasedOnPeriod()");
+    return events;
+  }
+
+  /**
+   * Generated Date
+   * @param start
+   * @param end
+   * @param periodUnit
+   * @param period
+   * @param dateFormat
+   * @param count
+   * @returns date
+   */
+  public static generateDate(start, end, periodUnit, period, dateFormat, count) {
+    const date = moment
+      .utc(start, dateFormat)
+      .add(periodUnit, count * period) // add period given in request
+      .toISOString();
+    log.info("Date : " + date);
+    if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
+      return date;
+    }
+    return null;
   }
 }
