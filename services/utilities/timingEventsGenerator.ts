@@ -46,10 +46,26 @@ export class TimingEventsGenerator {
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
         }
       } else {
-        if (!(timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code)) {
-          timing = TimingEventsGenerator.generateCode(timing);
+        let code;
+        // if code present then validate code related attributes
+        if (timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code) {
+          // validate the attributes required with code to generate events
+          this.validateAttributesRequiredWithCode(timing);
+        } else {
+          if (timing.repeat.timeOfDay) {
+            // if code attribute is not present then try to identify code by looking at relevant attributes
+            code = TimingEventsGenerator.identifyCodeBasedOnAttributes(timing);
+            _.set(timing, "code.coding[0].code", code);
+            this.validateAttributesRequiredWithCode(timing);
+          } else {
+            // set code as NA for custom implementation
+            code = "NA";
+            _.set(timing, "code.coding[0].code", code);
+            // validate attributes of repeat attribute for custom implementation
+            this.validateAttributesRequiredForCustomCode(timing);
+          }
         }
-        log.info("Code: " + timing.code.coding[0].code + " was specified.");
+        log.info("Code identified as: " + code);
         startDate = TimingUtility.calculateStartDate(startDate, timing.repeat, endDate);
         endDate = TimingUtility.calculateEndDate(startDate, endDate, timing.repeat, timing.code.coding[0].code);
         if (startDate && endDate) {
@@ -68,47 +84,24 @@ export class TimingEventsGenerator {
    * @param repeat
    * @returns code
    */
-  public static generateProgrammaticCode(repeat) {
-    log.info("Entering TimingEventsGenerator.generateProgrammaticCode () :: Generating code programmatically");
-    let code;
-    if (repeat.dayOfWeek && Array.isArray(repeat.dayOfWeek) && repeat.dayOfWeek.length != 0) {
-      // TODO: check if period is required and periodUnit should be wk or not
-      code = "SDW";
-    } else if (
-      repeat.dayOfCycle &&
-      Array.isArray(repeat.dayOfCycle) &&
-      repeat.dayOfCycle.length != 0 &&
-      TimingValidator.validateNumberValue(repeat.dayOfCycle) &&
-      repeat.duration &&
-      TimingValidator.validateNumberValue(repeat.duration) &&
-      repeat.duration >= repeat.dayOfCycle.length
-    ) {
-      code = "SDC";
-    } else if (repeat.timeOfDay && repeat.period && repeat.period == 1 && repeat.periodUnit === "d") {
-      code = "SDY";
-    } else if (repeat.period && ["d", "wk", "mo", "a"].includes(repeat.periodUnit)) {
-      code = "SID";
-    }
-    log.info("Existing TimingEventsGenerator.generateProgrammaticCode()");
-    return code;
-  }
-  /**
-   * This function generate code from timing object if code is not present
-   * @param timing
-   * @returns  updated timing object
-   */
-  public static generateCode(timing: any) {
-    log.info("Entering TimingEventsGenerator.generateCode()");
+  public static identifyCodeBasedOnAttributes(timing: any) {
+    log.info("Entering TimingEventsGenerator.identifyCodeBasedOnAttributes ()");
     const repeat = timing.repeat;
-    log.info("Timing code is being programmatically generated");
-    if (repeat.timeOfDay && Array.isArray(repeat.timeOfDay) && repeat.timeOfDay.length > 0 && TimingValidator.validateTime(repeat.timeOfDay)) {
-      const code = TimingEventsGenerator.generateProgrammaticCode(repeat);
-      _.set(timing, "code.coding[0].code", code);
+    let code;
+    if (repeat.dayOfWeek) {
+      code = "SDW";
+    } else if (repeat.dayOfCycle) {
+      code = "SDC";
+    } else if (repeat.timeOfDay) {
+      code = "SDY";
+    } else if (repeat.period && repeat.periodUnit) {
+      code = "SID";
     } else {
-      _.set(timing, "code.coding[0].code", "Custom");
+      log.error("Invalid timing.code provided");
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_CODE);
     }
-    log.info("Existing TimingEventsGenerator.generateCode()");
-    return timing;
+    log.info("Existing TimingEventsGenerator.identifyCodeBasedOnAttributes()");
+    return code;
   }
 
   /**
@@ -124,40 +117,13 @@ export class TimingEventsGenerator {
     let events: any = [];
     switch (timing.code.coding[0].code) {
       case "SDY":
-        if (!repeat.timeOfDay || !Array.isArray(repeat.timeOfDay) || repeat.timeOfDay.length == 0 || !TimingValidator.validateTime(repeat.timeOfDay)) {
-          log.error("timeOfDay is not present or not an array or of 0 length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.timeOfDay");
-        }
-        if (!repeat.period && !repeat.periodUnit) {
-          log.error("repeat.period is not present ");
-          throw new BadRequestResult(
-            errorCodeMap.InvalidElementValue.value,
-            errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
-          );
-        }
         log.info("SDY:generateSDYEvents with: " + startDate + ", " + endDate + ", " + repeat.timeOfDay);
         events = this.generateSDYEvents(startDate, endDate, repeat);
         break;
       case "SDW":
-        if (!repeat.timeOfDay || !Array.isArray(repeat.timeOfDay) || repeat.timeOfDay.length == 0 || !TimingValidator.validateTime(repeat.timeOfDay)) {
-          log.error("timeOfDay is not present or not an array or of 0 length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.timeOfDay");
-        }
-        if (!repeat.dayOfWeek || !Array.isArray(repeat.dayOfWeek) || repeat.dayOfWeek.length == 0) {
-          log.error("dayOfWeek is not present or not an array or of 0 length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.dayOfWeek");
-        }
-        if (!repeat.period && !repeat.periodUnit) {
-          log.error("repeat.period is not present ");
-          throw new BadRequestResult(
-            errorCodeMap.InvalidElementValue.value,
-            errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
-          );
-        }
         log.info("SDW:generateSDWEvents with: " + startDate + ", " + endDate + ", " + repeat.dayOfWeek + ", " + repeat.timeOfDay);
         events = this.generateSDWEvents(startDate, endDate, repeat);
         break;
-
       case "SDT":
         if (!timing.event || !Array.isArray(timing.event) || timing.event.length == 0) {
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
@@ -170,12 +136,72 @@ export class TimingEventsGenerator {
         events = this.generateSDTEvents(timing.event, startDate, endDate, limitEvents);
         endDate = events[events.length - 1];
         break;
+      case "SDC":
+        log.info("SDC:generateCycleEvents with: " + startDate + ", " + endDate + ", " + repeat.dayOfCycle + ", " + repeat.timeOfDay + ", " + repeat.duration);
+        events = this.generateSDCEvents(startDate, endDate, repeat);
+        break;
+      case "SID":
+        log.info("SID:generateSIDEvents with: " + startDate + ", " + endDate);
+        events = this.generateSIDEvents(startDate, endDate, repeat);
+        break;
+      case "NA":
+        log.info("Generate events with custom implementation: " + startDate + ", " + endDate);
+        events = this.generateCustomEvents(startDate, endDate, repeat);
+        break;
+      default:
+        log.error("Invalid timing.code provided");
+        throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_CODE);
+    }
+    log.info("Exiting TimingEventsGenerator.generateEventsFromCode()");
+    return events;
+  }
+
+  /**
+   * This function validates attributes required with code to generate events
+   * @param timing
+   */
+
+  public static validateAttributesRequiredWithCode(timing: any) {
+    log.info("Entering TimingEventsGenerator.validateAttributesRequiredWithCode()");
+    const repeat = timing.repeat;
+    if (!repeat.timeOfDay || !Array.isArray(repeat.timeOfDay) || repeat.timeOfDay.length == 0 || !TimingValidator.validateTime(repeat.timeOfDay)) {
+      log.error("timeOfDay is not present or not an array or of 0 length");
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.timeOfDay");
+    }
+    switch (timing.code.coding[0].code) {
+      case "SDY":
+        if (!repeat.period && !repeat.periodUnit && !(repeat.period == 1) && !(repeat.periodUnit == Constants.FHIR_DAY_UNIT)) {
+          log.error("repeat.period is not present ");
+          throw new BadRequestResult(
+            errorCodeMap.InvalidElementValue.value,
+            errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
+          );
+        }
+        log.info("SDY Code attributes validated successfully.");
+        break;
+      case "SDW":
+        if (!repeat.dayOfWeek || !Array.isArray(repeat.dayOfWeek) || repeat.dayOfWeek.length == 0) {
+          log.error("dayOfWeek is not present or not an array or of 0 length");
+          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.dayOfWeek");
+        }
+        if (!repeat.period && !repeat.periodUnit) {
+          log.error("repeat.period is not present ");
+          throw new BadRequestResult(
+            errorCodeMap.InvalidElementValue.value,
+            errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
+          );
+        }
+        log.info("SDW Code attributes validated successfully.");
+        break;
+
+      case "SDT":
+        if (!timing.event || !Array.isArray(timing.event) || timing.event.length == 0) {
+          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
+        }
+        log.info("SDT Code attributes validated successfully.");
+        break;
 
       case "SDC":
-        if (!repeat.timeOfDay || !Array.isArray(repeat.timeOfDay) || repeat.timeOfDay.length == 0 || !TimingValidator.validateTime(repeat.timeOfDay)) {
-          log.error("timeOfDay is not present or not an array or of 0 length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.timeOfDay");
-        }
         if (
           !repeat.dayOfCycle ||
           !Array.isArray(repeat.dayOfCycle) ||
@@ -193,23 +219,10 @@ export class TimingEventsGenerator {
           log.error("repeat.durationUnit is invalid. DurationUnit can be in days, weeks, months and year");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
         }
-
-        /*if (repeat.duration < repeat.dayOfCycle.length) {
-          log.error("duration is less than dayOfCycle.length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.dayOfCycle");
-        }*/
-        log.info("SDC:generateCycleEvents with: " + startDate + ", " + endDate + ", " + repeat.dayOfCycle + ", " + repeat.timeOfDay + ", " + repeat.duration);
-
-        events = this.generateSDCEvents(startDate, endDate, repeat);
-
+        log.info("SDC Code attributes validated successfully.");
         break;
 
       case "SID":
-        if (!repeat.timeOfDay || !Array.isArray(repeat.timeOfDay) || repeat.timeOfDay.length == 0 || !TimingValidator.validateTime(repeat.timeOfDay)) {
-          log.error("timeOfDay is not present or not an array or of 0 length");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.timeOfDay");
-        }
-        log.info("SID:generateSIDEvents with: " + startDate + ", " + endDate);
         if (!repeat.period && !repeat.periodUnit) {
           log.error("repeat.period is not present ");
           throw new BadRequestResult(
@@ -217,26 +230,50 @@ export class TimingEventsGenerator {
             errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
           );
         }
-        // TODO : check if we can restrict periodUnit to "h", "d", "wk", "mo" and "a"
-        /*if (repeat.periodUnit != "d") {
-          log.error("repeat.periodUnit is not present in days");
-          throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.periodUnit");
-        }*/
-        events = this.generateSIDEvents(startDate, endDate, repeat);
+        log.info("SID Code attributes validated successfully.");
         break;
-
-      case "Custom":
-        events = this.generateCustomEvents(startDate, endDate, repeat);
-        break;
-
       default:
         log.error("Invalid timing.code provided");
         throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_CODE);
     }
-    log.info("Exiting TimingEventsGenerator.generateEventsFromCode()");
-    return events;
+    log.info("Exiting TimingEventsGenerator.validateAttributesRequiredWithCode()");
   }
 
+  /**
+   * This function validates repeat attributes required for custom implementation to generate events
+   * @param timing
+   */
+
+  public static validateAttributesRequiredForCustomCode(timing: any) {
+    log.info("Entering TimingEventsGenerator.validateAttributesRequiredForCustomCode()");
+    const repeat = timing.repeat;
+    if (!repeat.frequency && !repeat.period && !repeat.periodUnit) {
+      log.error("repeat.frequency or repeat.period or repeat.periodUnit is not present");
+      throw new BadRequestResult(
+        errorCodeMap.InvalidElementValue.value,
+        errorCodeMap.InvalidElementValue.description + "repeat.frequency or repeat.period or repeat.periodUnit"
+      );
+    }
+    if (repeat.dayOfWeek && (!Array.isArray(repeat.dayOfWeek) || repeat.dayOfWeek.length == 0)) {
+      log.error("dayOfWeek is not present or not an array or of 0 length");
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.dayOfWeek");
+    }
+    if (repeat.dayOfCycle) {
+      if (!Array.isArray(repeat.dayOfCycle) || repeat.dayOfCycle.length == 0 || !TimingValidator.validateNumberValue(repeat.dayOfCycle)) {
+        log.error("dayOfCycle is not present or not an array or of 0 length");
+        throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.dayOfCycle");
+      }
+      if (!repeat.duration || !TimingValidator.validateNumberValue(repeat.duration)) {
+        log.error("repeat.duration is not present or not a valid number");
+        throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.duration");
+      }
+      if (!repeat.durationUnit || ["s", "min", "h"].includes(repeat.durationUnit)) {
+        log.error("repeat.durationUnit is invalid. DurationUnit can be in days, weeks, months and year");
+        throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
+      }
+    }
+    log.info("Exiting TimingEventsGenerator.validateAttributesRequiredForCustomCode()");
+  }
   /**
    * This function filters generated events
    * @param events
@@ -257,8 +294,11 @@ export class TimingEventsGenerator {
         .add(365, "d")
         .toISOString();
     }
-    if (typeOfTiming === "undefined" && !(moment(startDate, Constants.DATE, true).isValid() && moment(endDate, Constants.DATE, true).isValid())) {
+    if (typeOfTiming === "undefined") {
       events = _.filter(events, (date) => {
+        if (moment(startDate, Constants.DATE, true).isValid() && moment(endDate, Constants.DATE, true).isValid()) {
+          return date;
+        }
         if (
           moment(startDate, Constants.DATE_TIME, true).isValid() &&
           moment(endDate, Constants.DATE_TIME, true).isValid() &&
@@ -472,9 +512,11 @@ export class TimingEventsGenerator {
     const events = [];
     start = moment.utc(start).format(Constants.DATE);
     end = this.formatEndDate(end);
-    let date = start;
+    log.info("Start for SDY:  " + start);
+    log.info("End for SDY: " + end);
     for (const time of repeat.timeOfDay) {
       let count = 0;
+      let date = start;
       while (moment(date).isSameOrBefore(end)) {
         const unit = config.unitsMap[repeat.periodUnit]; // map FHIR unit to standard unit
         date = moment
@@ -482,6 +524,7 @@ export class TimingEventsGenerator {
           .add(unit, count * repeat.period) // add period which will be always 1 for SDY
           .add(moment.duration(time)) // set timeOfDay
           .toISOString();
+        log.info("Generated Date: " + date);
         // check if generated date falls within start and end date range
         if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
           events.push(date);
@@ -531,6 +574,7 @@ export class TimingEventsGenerator {
   public static generateCustomEvents(start, end, repeat) {
     log.info("Entering TimingEventsGenerator.generateSDYEvents()");
     let events = [];
+    // TODO: check if frequency, period and periodUnit are mandatory, if so then what to do if not specified
     if (repeat.dayOfWeek && Array.isArray(repeat.dayOfWeek) && repeat.dayOfWeek.length != 0) {
       log.info("Generate events based on dayOfWeek");
     } else if (
@@ -587,6 +631,68 @@ export class TimingEventsGenerator {
       count++;
     }
     log.info("Exiting TimingEventsGenerator.generateEventsBasedOnPeriod()");
+    return events;
+  }
+
+  /**
+   * Generate events based on period and periodUnit
+   * @param start
+   * @param end
+   * @param repeat
+   * @returns events
+   */
+  public static generateEventsBasedOnDayOfWeek(start, end, repeat) {
+    log.info("Entering TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
+    const events = [];
+    start = this.formatStartDate(start);
+    end = this.formatEndDate(end);
+    log.info("Start: " + start.toISOString());
+    log.info("End: " + end.toISOString());
+    const unit = config.unitsMap[repeat.periodUnit];
+    const dateFormat =
+      ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+    // for each time in the timeOfDay array generate dates for given period
+    for (const day of repeat.dayOfWeek) {
+      let count = 0;
+      let date = start;
+      while (moment(date).isSameOrBefore(end)) {
+        if (repeat.frequency && repeat.period && repeat.periodUnit) {
+          const dayEndTime = moment.utc(start, Constants.DATE_TIME).endOf("day");
+          if (["s", "min", "h"].includes(repeat.periodUnit)) {
+            for (let frequency = 0; frequency < repeat.frequency; frequency++) {
+              while (moment(date).isSameOrBefore(dayEndTime)) {
+                date = moment
+                  .utc(start, Constants.DATE_TIME)
+                  .add(unit, count * repeat.period) // add period
+                  .day(day)
+                  .toISOString();
+                // check if generated date falls within start and end date range
+                if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
+                  events.push(date);
+                }
+              }
+            }
+          } else {
+            date = moment
+              .utc(start, Constants.DATE_TIME)
+              .add(unit, count * repeat.period) // add period
+              .day(day)
+              .toISOString();
+            // check if generated date falls within start and end date range
+            if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
+              events.push(date);
+            }
+          }
+        } else {
+          date = this.generateDate(start, end, unit, repeat.period, dateFormat, count);
+          if (date) {
+            events.push(date);
+          }
+        }
+        count++;
+      }
+    }
+    log.info("Exiting TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
     return events;
   }
 

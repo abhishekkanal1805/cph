@@ -7,7 +7,6 @@ import * as moment from "moment";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
-import { TimingValidator } from "../validators/timingValidator";
 
 export class TimingUtility {
   /**
@@ -93,7 +92,7 @@ export class TimingUtility {
             dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
           }
           break;
-        case "Custom":
+        case "NA":
           const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
           if (date) {
             dateArray.push(date);
@@ -124,7 +123,7 @@ export class TimingUtility {
   public static calculateEndDateForCustomCode(repeat, startDate) {
     log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
     let date;
-    if (repeat.dayOfWeek && Array.isArray(repeat.dayOfWeek) && repeat.dayOfWeek.length != 0) {
+    if (repeat.dayOfWeek) {
       if (repeat.period && repeat.periodUnit) {
         if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
           date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
@@ -135,15 +134,7 @@ export class TimingUtility {
         // TODO: error needs to be thrown if period and periodUnit is not specified
         date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
       }
-    } else if (
-      repeat.dayOfCycle &&
-      Array.isArray(repeat.dayOfCycle) &&
-      repeat.dayOfCycle.length != 0 &&
-      TimingValidator.validateNumberValue(repeat.dayOfCycle) &&
-      repeat.duration &&
-      TimingValidator.validateNumberValue(repeat.duration) &&
-      repeat.duration >= repeat.dayOfCycle.length
-    ) {
+    } else if (repeat.dayOfCycle) {
       if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
         date = TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
       } // TODO: check if durationUnit specified as "s", "min", "h" error needs to be thrown or not
