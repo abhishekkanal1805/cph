@@ -79,18 +79,14 @@ export class TimingUtility {
           }
           break;
         case "SDW":
-          if (repeat.period && repeat.periodUnit) {
-            if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
-              dateArray.push(TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d"));
-            } else {
-              dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
-            }
+          if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
+            dateArray.push(TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d"));
+          } else {
+            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
           }
           break;
         case "SID":
-          if (repeat.period && repeat.periodUnit) {
-            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
-          }
+          dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
           break;
         case "NA":
           const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
