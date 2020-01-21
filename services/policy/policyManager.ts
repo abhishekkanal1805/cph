@@ -3,7 +3,7 @@
  */
 
 import * as log from "lambda-log";
-import {PolicyAssignment} from "../../models/CPH/policy/policyAssignment";
+import {PolicyAssignmentDataResource} from "../../models/CPH/policy/policyAssignmentDataResource";
 import {ResearchSubjectDataResource} from "../../models/CPH/researchSubject/researchSubjectDataResource";
 import {PolicyAssignmentDAO} from "../dao/policyAssignmentDAO";
 import {PolicyDAO} from "../dao/policyDAO";
@@ -41,8 +41,8 @@ class PolicyManager {
         const resourcesAccessed = [researchSubject.study.reference, researchSubject.studySite.reference];
 
         // looking up policy assignments
-        const grantedPolicyAssignments: PolicyAssignment[] = await PolicyAssignmentDAO.findAll(accessRequest.requestorReference, resourcesAccessed);
-        const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy);
+        const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(accessRequest.requestorReference, resourcesAccessed);
+        const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
         // looking up policy
         return await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceAction);
         // TODO: return a grant object to specify all the resources requester has access to. This might be useful in filtering search results

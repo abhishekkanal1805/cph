@@ -3,7 +3,7 @@
  */
 
 import {Column, DataType, Model, Table} from "sequelize-typescript";
-import {ResourceMetadata} from "../../common/resourceMetadata";
+import {PolicyAssignmentDataResource} from "./policyAssignmentDataResource";
 
 /**
  * Internal table for managing policy assignments to a user
@@ -27,19 +27,13 @@ class PolicyAssignment extends Model<PolicyAssignment> {
     id: string;
 
     @Column({ type: DataType.STRING, allowNull: false})
-    assignee: string; // we need only reference without type and display
+    principal: string;
 
     @Column({ type: DataType.STRING, allowNull: false})
-    policy: string;
+    resourceScopeReference: string;
 
-    @Column({ type: DataType.STRING, allowNull: false})
-    resource: string; // references to accessed resources
-
-    @Column({ type: DataType.STRING})
-    resourceType: string;
-
-    @Column({ type: DataType.JSONB})
-    meta?: ResourceMetadata;
+    @Column({ type: DataType.JSONB })
+    dataResource: PolicyAssignmentDataResource;
 
 }
 

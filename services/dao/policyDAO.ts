@@ -27,6 +27,8 @@ class PolicyDAO {
         const policyQuery: IFindOptions<Policy> = {
             where: {
                 id: policyIds,
+                effect: Constants.POLICY_EFFECT_ALLOW,
+                status: Constants.POLICY_STATUS_ACTIVE,
                 dataResource: {
                     action
                 }

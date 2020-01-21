@@ -3,13 +3,16 @@
  */
 
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import {IFindOptions} from "sequelize-typescript";
+import {Constants} from "../../common/constants/constants";
 import {PolicyAssignment} from "../../models/CPH/policy/policyAssignment";
+import {PolicyAssignmentDataResource} from "../../models/CPH/policy/policyAssignmentDataResource";
 import {DAOService} from "./daoService";
 
 class PolicyAssignmentDAO {
 
-    public static async findAll(userReference: string, resources: string[]): Promise<PolicyAssignment[]> {
+    public static async findAll(userReference: string, resources: string[]): Promise<PolicyAssignmentDataResource[]> {
         log.info ("PolicyAssignmentDAO - getting assignments for user=" + userReference + " scoped in resource=" + JSON.stringify(resources));
 
         if (!resources || resources.length < 1) {
@@ -19,14 +22,14 @@ class PolicyAssignmentDAO {
 
         const policyAssignmentQuery: IFindOptions<PolicyAssignment> = {
             where: {
-                assignee: userReference,
-                resource: resources
+                principal: userReference,
+                resourceScopeReference: resources
             }
         };
         log.info ("PolicyAssignmentDAO - query=" + JSON.stringify(policyAssignmentQuery));
 
-        return DAOService.search(PolicyAssignment, policyAssignmentQuery);
-        // no need to use _.map as all fields are flattened. if we add dataResource then we may need to change this
+        const assignments = await DAOService.search(PolicyAssignment, policyAssignmentQuery);
+        return _.map(assignments, Constants.DEFAULT_SEARCH_ATTRIBUTES);
     }
 }
 
