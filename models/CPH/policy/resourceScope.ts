@@ -5,7 +5,7 @@
 import {Reference} from "../../common/reference";
 
 class ResourceScope {
-    resourceScope: Reference;
+    resource: Reference;
     include: string[];
     revInclude: string[];
 }
