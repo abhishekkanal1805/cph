@@ -604,7 +604,9 @@ export class AuthService {
     if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
       researchSubjectProfiles.push(requestorProfileIdReference);
     }
-    filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)];
+    if (researchSubjectProfiles && researchSubjectProfiles.length > 0) {
+      filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)].filter(Boolean);
+    }
     return filteredQueryParameter;
   }
 }
