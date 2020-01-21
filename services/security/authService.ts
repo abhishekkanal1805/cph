@@ -663,7 +663,8 @@ export class AuthService {
     if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
       researchSubjectProfiles.push(requestorProfileIdReference);
     }
-    filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)];
+    filteredQueryParameter[resourceOwnerElement] =
+      researchSubjectProfiles && researchSubjectProfiles.length > 0 ? [researchSubjectProfiles.join(Constants.COMMA_VALUE)].filter(Boolean) : [];
     return filteredQueryParameter;
   }
 }
