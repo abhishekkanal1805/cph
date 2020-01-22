@@ -12,6 +12,6 @@ class ResourceMetadata {
   clientRequestId?: string;
   deviceId?: string;
   source?: string;
-  requestId?: string;
+  requestLogRef?: string;
 }
 export { ResourceMetadata };
