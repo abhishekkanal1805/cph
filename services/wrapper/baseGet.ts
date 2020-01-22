@@ -190,13 +190,14 @@ export class BaseGet {
           Constants.ACCESS_READ
         );
         // validate if loggedin user present in searchParams or not and filter query parameter
-        filteredQueryParameter = await AuthService.getFilteredQueryParameter(
-          requestorProfileId,
-          resourceOwnerElement,
-          queryParams,
-          requestedProfiles,
-          Constants.ACCESS_READ
-        );
+        if (connections.length > 0) {
+          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
+            requestorProfileId,
+            resourceOwnerElement,
+            requestedProfiles,
+            Constants.ACCESS_READ
+          );
+        }
       } catch (err) {
         log.error("Error occoured during connection check" + err.stack, err);
         if (err.errorCode === errorCodeMap.Forbidden.value) {
@@ -204,11 +205,10 @@ export class BaseGet {
           filteredQueryParameter = await AuthService.getFilteredQueryParameter(
             requestorProfileId,
             resourceOwnerElement,
-            queryParams,
             requestedProfiles,
             Constants.ACCESS_READ
           );
-          if (filteredQueryParameter[resourceOwnerElement] && filteredQueryParameter[resourceOwnerElement].length == 0) {
+          if (_.isEmpty(filteredQueryParameter)) {
             return [];
           }
         }
