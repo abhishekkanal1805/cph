@@ -173,7 +173,6 @@ export class AuthService {
     // check 4.5 study/site based access control can only be determined if the owner is ResearchSubject
     if (ownerOrignalSubjectReference) {
         log.info("AuthService::authorizeRequest() Owner is ResearchSubject, checking for policy based access.");
-        // FIXME: get this resourceAction from Controller
         const accessRequest: SubjectAccessRequest = {
             requestorReference: requester,
             subjectReference: ownerOrignalSubjectReference,

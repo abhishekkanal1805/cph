@@ -4,6 +4,7 @@
 
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import {Op} from "sequelize";
 import {IFindOptions} from "sequelize-typescript";
 import {Constants} from "../../common/constants/constants";
 import {Policy} from "../../models/CPH/policy/policy";
@@ -21,6 +22,8 @@ class PolicyDAO {
             log.info ("PolicyDAO - no policy references provided.");
             return null;
         }
+        // getting the service name for deriving a wild card action
+        const serviceName: string = action.split(":")[0];
 
         // converting references to ids
         const policyIds: string[] = policyReferences.map((policyReference) => (policyReference.split("Policy/")[1]));
@@ -30,7 +33,9 @@ class PolicyDAO {
                 effect: Constants.POLICY_EFFECT_ALLOW,
                 status: Constants.POLICY_STATUS_ACTIVE,
                 dataResource: {
-                    action
+                    [Op.contains]: {
+                        action: [action, serviceName + ":*"]
+                    }
                 }
             }
         };

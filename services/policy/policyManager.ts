@@ -38,7 +38,7 @@ class PolicyManager {
             log.info("PolicyManager - subject reference could was not found. policy based access is denied.");
             return null;
         }
-        const resourcesAccessed = [researchSubject.study.reference, researchSubject.studySite.reference];
+        const resourcesAccessed = [researchSubject.study.reference, researchSubject.site.reference];
 
         // looking up policy assignments
         const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(accessRequest.requestorReference, resourcesAccessed);
