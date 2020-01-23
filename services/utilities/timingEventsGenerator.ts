@@ -31,9 +31,9 @@ export class TimingEventsGenerator {
       endDate = end
         ? end
         : moment
-          .utc(startDate, Constants.DATE_TIME)
-          .endOf("day")
-          .add(365, "d");
+            .utc(startDate, Constants.DATE_TIME)
+            .endOf("day")
+            .add(365, "d");
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
@@ -449,7 +449,11 @@ export class TimingEventsGenerator {
             if (repeat.period == 1 && repeat.periodUnit === Constants.FHIR_DAY_UNIT) {
               const period = 7;
               const periodUnit = Constants.DAYS;
-              date = moment.utc(startDt, Constants.DATE).add(count * period, periodUnit).add(moment.duration(time)).day(day);
+              date = moment
+                .utc(startDt, Constants.DATE)
+                .add(count * period, periodUnit)
+                .add(moment.duration(time))
+                .day(day);
               log.info("Date: " + date.toISOString());
               // check if generated date falls within start and end date range
               if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
@@ -615,8 +619,16 @@ export class TimingEventsGenerator {
         if (["s", "min", "h"].includes(repeat.periodUnit)) {
           const period = 7;
           const periodUnit = Constants.DAYS;
-          date = moment.utc(start, Constants.DATE).add(count * period, periodUnit).day(day).toISOString();
-          const dayEndTime = moment.utc(date, Constants.DATE).day(day).endOf("day").toISOString();
+          date = moment
+            .utc(start, Constants.DATE)
+            .add(count * period, periodUnit)
+            .day(day)
+            .toISOString();
+          const dayEndTime = moment
+            .utc(date, Constants.DATE)
+            .day(day)
+            .endOf("day")
+            .toISOString();
           log.info("DayTime: " + date);
           log.info("dayEndTime: " + dayEndTime);
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
@@ -633,7 +645,11 @@ export class TimingEventsGenerator {
         } else if (repeat.period == 1 && repeat.periodUnit === Constants.FHIR_DAY_UNIT) {
           const period = 7;
           const periodUnit = Constants.DAYS;
-          date = moment.utc(start, Constants.DATE).add(count * period, periodUnit).day(day).toISOString();
+          date = moment
+            .utc(start, Constants.DATE)
+            .add(count * period, periodUnit)
+            .day(day)
+            .toISOString();
           log.info("DayTime: " + date);
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
             // check if generated date falls within start and end date range
