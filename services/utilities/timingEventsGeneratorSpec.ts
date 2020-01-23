@@ -37,7 +37,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  /*describe("#generateSDWEvents()", () => {
+  describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const repeat = {
         count: 3,
@@ -46,14 +46,14 @@ describe("TimingEventsGenerator", () => {
         dayOfWeek: ["mon", "fri", "sat"],
         periodUnit: "d"
       };
-      const events = TimingEventsGenerator.generateSDWEvents("2020-01-13", "2020-04-20", repeat);
+      const events = TimingEventsGenerator.generateSDWEvents("2020-01-13", "2020-01-16", repeat);
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(5);
+      expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
+  });
 
-  describe("#generateDateEventsFromTiming()", () => {
+  /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
@@ -81,7 +81,7 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });
+  });*/
 
   /*describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
@@ -95,6 +95,23 @@ describe("TimingEventsGenerator", () => {
       const events = TimingEventsGenerator.generateEventsBasedOnPeriod("2020-01-17T10:00:00.000Z", "2020-01-18T10:00:00", timing.repeat);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
+      done();
+    });
+  });*/
+
+  /*describe("#generateDateEventsFromTiming()", () => {
+    it("generate events", async (done) => {
+      const timing = {
+        repeat: {
+          frequency: 3,
+          period: 2,
+          periodUnit: "wk",
+          dayOfWeek: ["wed", "fri"]
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-22", "2020-02-22T23:59:59.000Z");
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
       done();
     });
   });*/
