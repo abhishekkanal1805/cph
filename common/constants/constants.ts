@@ -31,6 +31,7 @@ class Constants {
   public static readonly PATIENT_REFERENCE_KEY = "patient.reference";
   public static readonly CONSENTING_PARTY_REFERENCE_KEY = "consentingParty.reference";
   public static readonly INFORMATION_SOURCE_ATTRIBUTE = "informationSource";
+  public static readonly INDIVIDUAL_REFERENCE_KEY = "individual.reference";
   public static readonly REFERENCE_ATTRIBUTE = "reference";
   public static readonly SUBJECT_ATTRIBUTE = "subject";
   public static readonly PATIENT_ATTRIBUTE = "patient";
