@@ -33,9 +33,18 @@ class PolicyDAO {
                 effect: Constants.POLICY_EFFECT_ALLOW,
                 status: Constants.POLICY_STATUS_ACTIVE,
                 dataResource: {
-                    [Op.contains]: {
-                        action: [action, serviceName + ":*"]
-                    }
+                    [Op.or]: [
+                        {
+                            [Op.contains]: {
+                                action: [action]
+                            }
+                        },
+                        {
+                            [Op.contains]: {
+                                action: [serviceName + ":*"]
+                            }
+                        }
+                    ]
                 }
             }
         };
