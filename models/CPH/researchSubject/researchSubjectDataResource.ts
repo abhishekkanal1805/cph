@@ -12,7 +12,7 @@ class ResearchSubjectDataResource {
   status: string;
   period?: Period;
   study: Reference;
-  studySite?: Reference;
+  site?: Reference;
   individual: Reference;
   assignedArm?: string;
   actualArm?: string;
