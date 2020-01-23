@@ -15,7 +15,7 @@ describe("DataTransform", () => {
       const metaData = {
         createdBy: testCreatedByUserId,
         lastUpdatedBy: testUpdatedByUserId,
-        requestId: "requestContext_requestId.context_awsRequestId"
+        requestLogRef: "requestContext_requestId.context_awsRequestId"
       };
       const result = DataTransform.getRecordMetaData(record, metaData);
 
@@ -41,7 +41,7 @@ describe("DataTransform", () => {
       const metaData = {
         createdBy: testCreatedByUserId,
         lastUpdatedBy: testUpdatedByUserId,
-        requestId: "requestContext_requestId.context_awsRequestId"
+        requestLogRef: "requestContext_requestId.context_awsRequestId"
       };
       const result = DataTransform.getRecordMetaData(record, metaData);
 
