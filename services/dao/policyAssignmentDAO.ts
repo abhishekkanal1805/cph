@@ -22,7 +22,7 @@ class PolicyAssignmentDAO {
 
         const policyAssignmentQuery: IFindOptions<PolicyAssignment> = {
             where: {
-                principal: Constants.USERPROFILE_REFERENCE + userReference,
+                principal: userReference,
                 resourceScopeReference: resources
             }
         };

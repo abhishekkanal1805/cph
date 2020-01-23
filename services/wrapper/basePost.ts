@@ -81,15 +81,15 @@ export class BasePost {
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       // TODO: If this returns a connection should we check the sharing rules to make sure if the requester is authorized to perform this action
       // we are here means we have exactly one owner and infoSource reference
-      await AuthService.authorizeRequestSharingRules(
-        requestParams.requestorProfileId,
-        informationSourceReferences[0],
-        ownerReferences[0],
-        serviceName,
-        Constants.ACCESS_EDIT,
-        requestParams.resourceAction,
-        requestParams.ownerType
-      );
+      await AuthService.authorizeRequestSharingRules( {
+        requester: requestParams.requestorProfileId,
+        informationSourceReference: informationSourceReferences[0],
+        ownerReference: ownerReferences[0],
+        resourceType: serviceName,
+        accessType: Constants.ACCESS_EDIT,
+        resourceAction: requestParams.resourceAction,
+        ownerType: requestParams.ownerType
+      });
       log.info("User Authorization is successful ");
     } else {
       await DataFetch.getUserProfile([requestParams.requestorProfileId]);

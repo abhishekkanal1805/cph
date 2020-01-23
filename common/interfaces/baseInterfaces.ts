@@ -18,7 +18,7 @@ export interface RequestParams {
   referenceValidationModel?: any;
   referenceValidationElement?: string;
   ownerType?: string;
-  resourceAction: string;
+  resourceAction?: string;
 }
 
 export interface UpdateRequestParams {

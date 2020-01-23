@@ -10,6 +10,7 @@ import { DAOService } from "../dao/daoService";
 import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataFetchStub } from "../utilities/dataFetchStub";
+import {AuthorizationRequest} from "./authorizationRequest";
 import { AuthService } from "./authService";
 
 const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
@@ -626,8 +627,15 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc",
-            "UserProfile/xyz", null, null, Constants.ACCESS_READ);
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "pqr",
+          informationSourceReference: "UserProfile/abc",
+          ownerReference: "UserProfile/xyz",
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -642,8 +650,15 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules("pqr", "UserProfile/abc", "UserProfile/xyz",
-            null, null, Constants.ACCESS_READ);
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "pqr",
+          informationSourceReference: "UserProfile/abc",
+          ownerReference: "UserProfile/xyz",
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         expect(err.message).toEqual(unexpectedInternalErrorMsg);
         done();
@@ -665,14 +680,16 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          "any",
-          "UserProfile/dontcare",
-          "UserProfile/" + testPatientOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ,
-          allowedOwnerType
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "any",
+          informationSourceReference: "UserProfile/dontcare",
+          ownerReference: "UserProfile/" + testPatientOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ,
+          ownerType: allowedOwnerType
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         actualError = err;
       }
@@ -681,14 +698,16 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided args dont matter as we are mocking the DataFetch behavior
-        await AuthService.authorizeRequestSharingRules(
-          "any",
-          "UserProfile/dontcare",
-          "UserProfile/" + testSystemOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ,
-          allowedOwnerType
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "any",
+          informationSourceReference: "UserProfile/dontcare",
+          ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ,
+          ownerType: allowedOwnerType
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -710,14 +729,16 @@ describe("AuthService", () => {
       let actualError;
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          "any",
-          "UserProfile/dontcare",
-          "UserProfile/" + testPractitionerOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ,
-          allowedOwnerType
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "any",
+          informationSourceReference: "UserProfile/dontcare",
+          ownerReference: "UserProfile/" + testPractitionerOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ,
+          ownerType: allowedOwnerType
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         actualError = err;
       }
@@ -726,14 +747,16 @@ describe("AuthService", () => {
       // test 2, System owner will be forbidden
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          "any",
-          "UserProfile/dontcare",
-          "UserProfile/" + testSystemOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ,
-          allowedOwnerType
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: "any",
+          informationSourceReference: "UserProfile/dontcare",
+          ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ,
+          ownerType: allowedOwnerType
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -751,13 +774,15 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          testOwnerProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: testOwnerProfile.id,
+          informationSourceReference: "UserProfile/" + testOwnerProfile.id,
+          ownerReference: "UserProfile/" + testOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -771,14 +796,16 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          testOwnerProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ,
-          allowedOwnerType
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: testOwnerProfile.id,
+          informationSourceReference: "UserProfile/" + testOwnerProfile.id,
+          ownerReference: "UserProfile/" + testOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ,
+          ownerType: allowedOwnerType
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         expect(err).toEqual(expectedError);
         done();
@@ -798,13 +825,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -825,13 +854,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -852,13 +883,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -880,13 +913,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
         }
@@ -906,13 +941,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([{}]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           done.fail("Unexpected error thrown: " + err.message);
         }
@@ -932,13 +969,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null, null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -960,14 +999,15 @@ describe("AuthService", () => {
         spyOn(AuthService, "hasConnection").and.returnValue([]);
         try {
           // the provided id/references need to match ones returned by the mocked DataFetch
-          await AuthService.authorizeRequestSharingRules(
-            testRequesterProfile.id,
-            "UserProfile/" + testInformationSourceProfile.id,
-            "UserProfile/" + testOwnerProfile.id,
-            null,
-              null,
-            Constants.ACCESS_READ
-          );
+          const testAuthRequest: AuthorizationRequest = {
+            requester: testRequesterProfile.id,
+            informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+            ownerReference: "UserProfile/" + testOwnerProfile.id,
+            resourceType: null,
+            resourceAction: null,
+            accessType: Constants.ACCESS_READ
+          };
+          await AuthService.authorizeRequestSharingRules(testAuthRequest);
         } catch (err) {
           expect(err).toEqual(expectedError);
           done();
@@ -985,13 +1025,15 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          testRequesterProfile.id,
-          "UserProfile/" + testInformationSourceProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: testRequesterProfile.id,
+          informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+          ownerReference: "UserProfile/" + testOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
@@ -1010,13 +1052,15 @@ describe("AuthService", () => {
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
-        await AuthService.authorizeRequestSharingRules(
-          testRequesterProfile.id,
-          "UserProfile/" + testInformationSourceProfile.id,
-          "UserProfile/" + testOwnerProfile.id,
-          null, null,
-          Constants.ACCESS_READ
-        );
+        const testAuthRequest: AuthorizationRequest = {
+          requester: testRequesterProfile.id,
+          informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
+          ownerReference: "UserProfile/" + testOwnerProfile.id,
+          resourceType: null,
+          resourceAction: null,
+          accessType: Constants.ACCESS_READ
+        };
+        await AuthService.authorizeRequestSharingRules(testAuthRequest);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
       }
