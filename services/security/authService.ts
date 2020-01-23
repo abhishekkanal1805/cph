@@ -170,11 +170,11 @@ export class AuthService {
     if (ownerOrignalSubjectReference && authorizationRequest.resourceAction) {
         log.info("AuthService::authorizeRequest() Owner is ResearchSubject, checking for policy based access.");
         const accessRequest: SubjectAccessRequest = {
-            requestorReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
+            requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
             subjectReference: ownerOrignalSubjectReference,
             resourceAction: authorizationRequest.resourceAction
         };
-        const grantedPolicies = await PolicyManager.requestSubjectAccess(accessRequest);
+        const grantedPolicies = await PolicyManager.requestSubjectScopedAccess(accessRequest);
         log.info("Granted policies = " + JSON.stringify(grantedPolicies));
         if (grantedPolicies && grantedPolicies.length > 0) {
             log.info("Exiting AuthService, Policy based access was granted :: authorizeRequest()");

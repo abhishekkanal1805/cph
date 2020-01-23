@@ -3,21 +3,23 @@
  */
 
 /**
- * Request to access to the provided subject's resource based on requester's policy assignments
+ * Request to access records by association with the provided resource based on requester's policy assignments
  */
-interface SubjectAccessRequest {
+interface ResourceAccessRequest {
     /**
      * reference of the requester. Generally will be the UserProfile reference of the logged in user
      */
     requesterReference: string;
     /**
-     * ResearchSubject reference of the subjects for determining ownership if it is clinical resource
+     * will be used to lookup the PolicyAssignment for the requester
      */
-    subjectReference: string;
+    scopedResources: string[];
     /**
      * a keyword that identifies which service:method or the handler is being access by the requester.
      * this keyword will be compare to a policyAction in Policy
      */
     resourceAction: string;
+
 }
-export {SubjectAccessRequest};
+
+export { ResourceAccessRequest };
