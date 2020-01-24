@@ -1,7 +1,6 @@
 /*!
  * Copyright © 2019 Deloitte. All rights reserved.
  */
-
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
@@ -182,7 +181,7 @@ export class TimingEventsGenerator {
           log.error("repeat.duration is not present or not a valid number");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.duration");
         }
-        if (!repeat.durationUnit || ["s", "min", "h"].includes(repeat.durationUnit)) {
+        if (!repeat.durationUnit || Constants.ALLOWED_UNITS.includes(repeat.durationUnit)) {
           log.error("repeat.durationUnit is invalid. DurationUnit can be in days, weeks, months and year");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
         }
@@ -226,7 +225,7 @@ export class TimingEventsGenerator {
         log.error("repeat.duration is not present or not a valid number");
         throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.duration");
       }
-      if (!repeat.durationUnit || ["s", "min", "h"].includes(repeat.durationUnit)) {
+      if (!repeat.durationUnit || Constants.ALLOWED_UNITS.includes(repeat.durationUnit)) {
         log.error("repeat.durationUnit is invalid. DurationUnit can be in days, weeks, months and year");
         throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
       }
@@ -536,6 +535,7 @@ export class TimingEventsGenerator {
       events = this.generateEventsBasedOnDayOfWeek(start, end, repeat);
     } else if (repeat.dayOfCycle) {
       log.info("Generate events based on dayOfCycle");
+      // TODO: need to write the logic to generate events based on dayOfCycle
     } else if (repeat.period && repeat.periodUnit) {
       events = this.generateEventsBasedOnPeriod(start, end, repeat);
     }
@@ -557,7 +557,7 @@ export class TimingEventsGenerator {
     end = this.formatEndDate(end);
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
-      ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+      Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     // for each time in the timeOfDay array generate dates for given period
     let count = 0;
     let date = start;
@@ -590,12 +590,12 @@ export class TimingEventsGenerator {
     log.info("End: " + endDate.toISOString());
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
-      ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+      Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     for (const day of repeat.dayOfWeek) {
       let count = 0;
       let date = start;
       while (moment(date).isSameOrBefore(endDate)) {
-        if (["s", "min", "h"].includes(repeat.periodUnit)) {
+        if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
           const period = 7;
           const periodUnit = Constants.DAYS;
           date = moment

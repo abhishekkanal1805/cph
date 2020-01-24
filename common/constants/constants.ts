@@ -288,7 +288,8 @@ class Constants {
   public static readonly FHIR_WEEK_UNIT = "wk";
   public static readonly FHIR_MONTH_UNIT = "mo";
   public static readonly FHIR_YEAR_UNIT = "a";
-
+  public static readonly ALLOWED_UNITS = ["s", "min", "h"];
+  public static readonly ALLOWED_DURATION_UNITS = ["d", "wk", "mo", "a"];
   public static readonly DAYS = "days";
 }
 export { Constants };

@@ -74,7 +74,7 @@ export class TimingUtility {
         case "SDT":
           break;
         case "SDC":
-          if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
+          if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
             dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.duration, repeat.durationUnit));
           }
           break;
@@ -117,14 +117,14 @@ export class TimingUtility {
     let date;
     if (repeat.dayOfWeek) {
       if (repeat.period && repeat.periodUnit) {
-        if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
+        if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
           date = TimingUtility.addDuration(startDate, (repeat.count - 1) * 7, "d");
         } else {
           date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
         }
       }
     } else if (repeat.dayOfCycle) {
-      if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
+      if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
         date = TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
       } // TODO: check if durationUnit specified as "s", "min", "h" error needs to be thrown or not
     } else {
