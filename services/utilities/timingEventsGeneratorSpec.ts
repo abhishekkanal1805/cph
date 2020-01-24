@@ -37,7 +37,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  describe("#generateSDWEvents()", () => {
+  /*describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const repeat = {
         count: 3,
@@ -51,7 +51,7 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });
+  });*/
 
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
@@ -99,20 +99,20 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  /*describe("#generateDateEventsFromTiming()", () => {
+  describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
-          frequency: 3,
-          period: 2,
-          periodUnit: "wk",
+          frequency: 1,
+          period: 8,
+          periodUnit: "h",
           dayOfWeek: ["wed", "fri"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-22", "2020-02-22T23:59:59.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-22T12:00:00.000Z", "2020-02-22T23:59:59.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
+  });
 });

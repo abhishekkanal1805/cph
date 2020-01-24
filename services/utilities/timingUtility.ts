@@ -75,15 +75,11 @@ export class TimingUtility {
           break;
         case "SDC":
           if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {
-            dateArray.push(TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit));
+            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.duration, repeat.durationUnit));
           }
           break;
         case "SDW":
-          if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
-            dateArray.push(TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d"));
-          } else {
-            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
-          }
+          dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * 7, "d"));
           break;
         case "SID":
           dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
@@ -122,13 +118,10 @@ export class TimingUtility {
     if (repeat.dayOfWeek) {
       if (repeat.period && repeat.periodUnit) {
         if (["s", "min", "h", "d"].includes(repeat.periodUnit)) {
-          date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
+          date = TimingUtility.addDuration(startDate, (repeat.count - 1) * 7, "d");
         } else {
           date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
         }
-      } else {
-        // TODO: error needs to be thrown if period and periodUnit is not specified
-        date = TimingUtility.addDuration(startDate, repeat.count * 7 - 1, "d");
       }
     } else if (repeat.dayOfCycle) {
       if (["d", "wk", "mo", "a"].includes(repeat.durationUnit)) {

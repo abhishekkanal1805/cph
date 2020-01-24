@@ -31,9 +31,9 @@ export class TimingEventsGenerator {
       endDate = end
         ? end
         : moment
-            .utc(startDate, Constants.DATE_TIME)
-            .endOf("day")
-            .add(365, "d");
+          .utc(startDate, Constants.DATE_TIME)
+          .endOf("day")
+          .add(365, "d");
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
@@ -157,13 +157,6 @@ export class TimingEventsGenerator {
     }
     switch (timing.code.coding[0].code) {
       case "SDY":
-        if (!repeat.period && !repeat.periodUnit && !(repeat.period == 1) && !(repeat.periodUnit == Constants.FHIR_DAY_UNIT)) {
-          log.error("repeat.period is not present ");
-          throw new BadRequestResult(
-            errorCodeMap.InvalidElementValue.value,
-            errorCodeMap.InvalidElementValue.description + "repeat.period or repeat.periodUnit"
-          );
-        }
         log.info("SDY Code attributes validated successfully.");
         break;
       case "SDW":
@@ -438,7 +431,9 @@ export class TimingEventsGenerator {
     const events = [];
     const startDt = moment.utc(startDate, Constants.DATE).startOf("day");
     endDate = this.formatEndDate(endDate);
-    const unit = config.unitsMap[repeat.periodUnit]; // map FHIR unit to standard unit
+    const period = 7;
+    const periodUnit = Constants.DAYS;
+    // const unit = config.unitsMap[repeat.periodUnit]; // map FHIR unit to standard unit
     if ([Constants.FHIR_DAY_UNIT, Constants.FHIR_WEEK_UNIT, Constants.FHIR_MONTH_UNIT, Constants.FHIR_YEAR_UNIT].includes(repeat.periodUnit)) {
       // set timeOfDay to every day from dayOfWeek array
       for (const time of repeat.timeOfDay) {
@@ -446,30 +441,15 @@ export class TimingEventsGenerator {
           let count = 0;
           let date = startDt;
           while (moment(date).isSameOrBefore(endDate)) {
-            if (repeat.period == 1 && repeat.periodUnit === Constants.FHIR_DAY_UNIT) {
-              const period = 7;
-              const periodUnit = Constants.DAYS;
-              date = moment
-                .utc(startDt, Constants.DATE)
-                .add(count * period, periodUnit)
-                .add(moment.duration(time))
-                .day(day);
-              log.info("Date: " + date.toISOString());
-              // check if generated date falls within start and end date range
-              if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
-                events.push(date);
-              }
-            } else {
-              date = moment
-                .utc(startDt, Constants.DATE_TIME)
-                .add(unit, count * repeat.period) // add period
-                .add(moment.duration(time)) // set timeOfDay
-                .day(day);
-              log.info("Date: " + date.toISOString());
-              // check if generated date falls within start and end date range
-              if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
-                events.push(date);
-              }
+            date = moment
+              .utc(startDt, Constants.DATE_TIME)
+              .add(count * period, periodUnit) // add period
+              .add(moment.duration(time)) // set timeOfDay
+              .day(day);
+            log.info("Date: " + date.toISOString());
+            // check if generated date falls within start and end date range
+            if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
+              events.push(date);
             }
             count++;
           }
@@ -496,10 +476,9 @@ export class TimingEventsGenerator {
       let count = 0;
       let date = startDt;
       while (moment(date).isSameOrBefore(endDate)) {
-        const unit = config.unitsMap[repeat.periodUnit]; // map FHIR unit to standard unit
         date = moment
           .utc(startDt, Constants.DATE_TIME)
-          .add(unit, count * repeat.period) // add period which will be always 1 for SDY
+          .add(count * 1, Constants.DAYS) // add period which will be always 1 for SDY
           .add(moment.duration(time)); // set timeOfDay
         // check if generated date falls within start and end date range
         log.info("Date: " + date.toISOString());
@@ -642,32 +621,19 @@ export class TimingEventsGenerator {
               events.push(date);
             }
           }
-        } else if (repeat.period == 1 && repeat.periodUnit === Constants.FHIR_DAY_UNIT) {
-          const period = 7;
-          const periodUnit = Constants.DAYS;
-          date = moment
-            .utc(start, Constants.DATE)
-            .add(count * period, periodUnit)
-            .day(day)
-            .toISOString();
-          log.info("DayTime: " + date);
-          for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-            // check if generated date falls within start and end date range
-            if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
-              events.push(date);
-            }
-          }
         } else {
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
             date = moment
               .utc(start, Constants.DATE_TIME)
               .add(unit, count * repeat.period) // add period
-              .day(day)
               .toISOString();
             log.info("DayTime: " + date);
             // check if generated date falls within start and end date range
-            if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
-              events.push(date);
+            if ( moment(date).format("ddd").toLowerCase() == day) {
+              // check if generated date falls within start and end date range
+              if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
+                events.push(date);
+              }
             }
           }
         }
