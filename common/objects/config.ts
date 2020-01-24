@@ -109,4 +109,15 @@ const settings = {
     ]
   }
 };
-export { data, settings };
+
+const unitsMap = {
+  ms: "milliseconds",
+  s: "seconds",
+  min: "minutes",
+  h: "hours",
+  d: "days",
+  wk: "weeks",
+  mo: "months",
+  a: "years"
+};
+export { data, settings, unitsMap };

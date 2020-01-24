@@ -4,6 +4,7 @@
 
 import * as log from "lambda-log";
 import * as moment from "moment";
+import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
 
@@ -14,7 +15,7 @@ export class TimingUtility {
    * @param repeat
    * @param previousEndDate
    */
-  public static calculateStartDateForMedActivity(requestStart, repeat, previousEndDate) {
+  public static calculateStartDate(requestStart, repeat, previousEndDate) {
     log.info("Calculating start Date for MedActivity");
     let dateArray = [];
     if (requestStart) {
@@ -51,7 +52,7 @@ export class TimingUtility {
    * @param repeat
    * @param code
    */
-  public static calculateEndDateForMedActivity(startDate, requestEnd, repeat, code) {
+  public static calculateEndDate(startDate, requestEnd, repeat, code) {
     log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
     let dateArray = [];
     if (requestEnd) {
@@ -68,19 +69,26 @@ export class TimingUtility {
     if (code && repeat.count) {
       switch (code) {
         case "SDY":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count - 1));
+          dateArray.push(TimingUtility.addDuration(startDate, repeat.count - 1, "d"));
           break;
         case "SDT":
           break;
         case "SDC":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * repeat.duration - 1));
+          if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
+            dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.duration, repeat.durationUnit));
+          }
           break;
         case "SDW":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * 7 - 1));
+          dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * 7, "d"));
           break;
         case "SID":
-          dateArray.push(TimingUtility.addDays(startDate, repeat.count * repeat.period - 1));
+          dateArray.push(TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
           break;
+        case "NA":
+          const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
+          if (date) {
+            dateArray.push(date);
+          }
       }
     }
     dateArray = dateArray
@@ -95,6 +103,36 @@ export class TimingUtility {
       log.info("End date is " + dateArray[0]);
       return dateArray[0];
     }
+  }
+
+  /**
+   * Generates end date for activity generation
+   * @param startDate
+   * @param requestEnd
+   * @param repeat
+   * @param code
+   */
+  public static calculateEndDateForCustomCode(repeat, startDate) {
+    log.info("Entering TimingUtility.calculateEndDateForMedActivity()");
+    let date;
+    if (repeat.dayOfWeek) {
+      if (repeat.period && repeat.periodUnit) {
+        if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
+          date = TimingUtility.addDuration(startDate, (repeat.count - 1) * 7, "d");
+        } else {
+          date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+        }
+      }
+    } else if (repeat.dayOfCycle) {
+      if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
+        date = TimingUtility.addDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
+      } // TODO: check if durationUnit specified as "s", "min", "h" error needs to be thrown or not
+    } else {
+      if (repeat.period && repeat.periodUnit) {
+        date = TimingUtility.addDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+      }
+    }
+    return date;
   }
 
   /**
@@ -162,7 +200,7 @@ export class TimingUtility {
    * @param period
    * @returns {any[]}
    */
-  public static convertPeriodIntervalToCycle(start, end, period) {
+  public static convertPeriodIntervalToCycle(start, end, period, periodUnit) {
     log.info("Entering TimingUtility.convertPeriodIntervalToCycle()");
     let nextDay;
     const cycle = [];
@@ -177,9 +215,60 @@ export class TimingUtility {
         }
         cycle.push(startCycle);
       }
+      log.info("cycles" + JSON.stringify(cycle));
       startCycle = startCycle + period;
-      nextDay = this.addDays(nextDay, period);
+      nextDay = this.addDuration(nextDay, period, periodUnit);
     } while (nextDay <= end);
     return cycle;
+  }
+
+  public static addDuration(cDate, period, periodUnit) {
+    log.info("Entering TimingUtility.addDuration()");
+    const date = new Date(cDate);
+    try {
+      if (periodUnit == "s") {
+        date.setSeconds(date.getSeconds() + period);
+      } else if (periodUnit == "min") {
+        date.setMinutes(date.getMinutes() + period);
+      } else if (periodUnit == "h") {
+        date.setHours(date.getHours() + period);
+      } else if (periodUnit == "d") {
+        date.setDate(date.getDate() + period);
+      } else if (periodUnit == "wk") {
+        date.setDate(date.getDate() + period * 7);
+      } else if (periodUnit == "mo") {
+        date.setMonth(date.getMonth() + period);
+      } else {
+        throw new Error();
+      }
+      return date;
+    } catch (err) {
+      log.info("error in addDays():" + err);
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "period or periodUnit");
+    }
+  }
+
+  public static convertDatesToCount(start, end, period, periodUnit) {
+    const diffDays = end.diff(start, Constants.DAYS);
+    log.info("diffDays --------------" + diffDays);
+    let repetitions;
+    switch (periodUnit) {
+      case Constants.FHIR_HOUR_UNIT:
+        repetitions = Math.floor(diffDays / (period / 24));
+        break;
+      case Constants.FHIR_DAY_UNIT:
+        repetitions = Math.floor(diffDays / period);
+        break;
+      case Constants.FHIR_WEEK_UNIT:
+        repetitions = Math.floor(diffDays / (period * 7));
+        break;
+      case Constants.FHIR_MONTH_UNIT:
+        repetitions = Math.floor(diffDays / (period * 31));
+        break;
+      case Constants.FHIR_YEAR_UNIT:
+        repetitions = Math.floor(diffDays / (period * 365));
+        break;
+    }
+    return repetitions;
   }
 }
