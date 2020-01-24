@@ -101,7 +101,7 @@ export class BasePost {
     const resourceMetaData: MetaDataElements = {
       createdBy: requestParams.requestorProfileId,
       lastUpdatedBy: requestParams.requestorProfileId,
-      requestId: requestParams.requestId
+      requestLogRef: requestParams.requestLogRef
     };
     const saveResponse: GenericResponse<T> = new GenericResponse<T>();
     saveResponse.errorRecords = validatedResources.errorResults;

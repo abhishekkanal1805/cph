@@ -11,7 +11,7 @@ export interface SearchOptions {
   fetchLimit?: number;
 }
 export interface RequestParams {
-  requestId?: string;
+  requestLogRef?: string;
   requestorProfileId: string;
   ownerElement?: string;
   informationSourceElement?: string;
@@ -21,7 +21,7 @@ export interface RequestParams {
 }
 
 export interface UpdateRequestParams {
-  requestId?: string;
+  requestLogRef?: string;
   requestorProfileId: string;
   requestPrimaryIds: string[];
   referenceValidationModel?: any;
@@ -32,7 +32,7 @@ export interface UpdateRequestParams {
 
 export interface DeleteRequestParams {
   requestorProfileId: string;
-  requestId?: string;
+  requestLogRef?: string;
   ownerElement?: string;
   permanent: string | boolean;
 }
@@ -40,19 +40,19 @@ export interface DeleteRequestParams {
 export interface DeleteObjectParams {
   requestorProfileId: string;
   permanent: string | boolean;
-  requestId?: string;
+  requestLogRef?: string;
 }
 
 export interface DeleteCriteriaRequestParams {
   requestorProfileId: string;
-  requestId?: string;
+  requestLogRef?: string;
   permanent: string | boolean;
   criteria: any;
 }
 export interface MetaDataElements {
   createdBy: string;
   lastUpdatedBy: string;
-  requestId?: string;
+  requestLogRef?: string;
 }
 
 export interface UpdateMetaDataElements {
@@ -61,7 +61,7 @@ export interface UpdateMetaDataElements {
   createdBy: string;
   lastUpdatedBy: string;
   isDeleted: boolean;
-  requestId?: string;
+  requestLogRef?: string;
   clientRequestId?: string;
   deviceId?: string;
   source?: string;

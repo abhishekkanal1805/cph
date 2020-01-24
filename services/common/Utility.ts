@@ -484,7 +484,7 @@ export class Utility {
         </head>
         <body>
             <span>${emailData.message}</span>
-            <span>Invitaion Code: ${emailData.code}</span>
+            <span>Invitation Code: ${emailData.code}</span>
         </body>
         </html>`;
   }
