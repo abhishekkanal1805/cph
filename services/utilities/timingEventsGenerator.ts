@@ -14,32 +14,67 @@ import { TimingUtility } from "./timingUtility";
 
 export class TimingEventsGenerator {
   /**
+   * This function checks if start date is there and returns the same else it returns current date as a start date
+   * @param start
+   * @returns start
+   */
+  public static getStartDate(start) {
+    if (!start) {
+      start = moment
+        .utc()
+        .startOf("day")
+        .utcOffset(0)
+        .toISOString();
+    }
+    return start;
+  }
+
+  public static getEndDate(start, end) {
+    const offset = moment.parseZone(start).utcOffset();
+    log.info("Start date offset: " + offset);
+    if (!end) {
+      if (offset == 0) {
+        // offset zero means start date is a zulu date and end date needs to have same offset as of start dare
+        end = moment
+          .utc()
+          .endOf("day")
+          .add(365, "d")
+          .utcOffset(offset)
+          .toISOString();
+      } else {
+        // start date is utc date and end date needs to have same offset as of start date
+        end = moment
+          .utc(start)
+          .endOf("day")
+          .add(365, "d")
+          .utcOffset(offset)
+          .format(Constants.DATE_TIME);
+      }
+    }
+    return end;
+  }
+  /**
    * This function generates activities by reading timing and repeat object
    * @param timing
    * @param start request start parameter
    * @param end request end parameter
    * @returns events array
    */
-  public static generateDateEventsFromTiming(timing: any, start: string, end: string) {
+  public static generateDateEventsFromTiming(timing: any, requestStartDate: string, requestEndDate: string) {
     log.info("Entering TimingEventsGenerator.generateDateEventsFromTiming()");
     let events: any = [];
-    let startDate: any;
-    let endDate: any;
     // timing element is mandatory
     if (timing) {
-      startDate = start ? start : moment.utc(new Date(), Constants.DATE_TIME).startOf("day");
-      endDate = end
-        ? end
-        : moment
-            .utc(startDate, Constants.DATE_TIME)
-            .endOf("day")
-            .add(365, "d");
+      requestStartDate = this.getStartDate(requestStartDate);
+      log.info("start ---: " + requestStartDate);
+      requestEndDate = this.getEndDate(requestStartDate, requestEndDate);
+      log.info("endDate ---: " + requestEndDate);
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
           log.info("EVENT:generateSDTEvents with: " + timing.event);
-          events = TimingEventsGenerator.generateSDTEvents(timing.event, startDate, endDate, true);
+          events = TimingEventsGenerator.generateSDTEvents(timing.event, requestStartDate, requestEndDate, true);
         } else {
           log.error("timing.event is not an array or empty");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
@@ -65,16 +100,15 @@ export class TimingEventsGenerator {
           }
         }
         log.info("Code identified as: " + code);
-        startDate = TimingUtility.calculateStartDate(startDate, timing.repeat, endDate);
-        endDate = TimingUtility.calculateEndDate(startDate, endDate, timing.repeat, timing.code.coding[0].code);
-        if (startDate && endDate) {
-          TimingValidator.validateStartEndDates(startDate, endDate);
+        requestStartDate = TimingUtility.calculateStartDate(requestStartDate, timing.repeat, requestEndDate);
+        requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, timing.code.coding[0].code);
+        if (requestStartDate && requestEndDate) {
+          TimingValidator.validateStartEndDates(requestStartDate, requestEndDate);
         }
-        events = TimingEventsGenerator.generateEventsFromCode(startDate, endDate, timing);
+        events = TimingEventsGenerator.generateEventsFromCode(requestStartDate, requestEndDate, timing);
       }
-      // events = TimingEventsGenerator.filterEvents(events, startDate, endDate, typeof timing.event);
     }
-    log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
+    log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()" + moment().toISOString());
     return events;
   }
 
@@ -519,10 +553,10 @@ export class TimingEventsGenerator {
    * @returns startDate
    */
   public static formatStartDate(startDate) {
+    log.info("formatting start date" + startDate);
     if (moment(startDate, Constants.DATE, true).isValid()) {
-      startDate = moment.utc(startDate, Constants.DATE);
-    } else {
-      startDate = moment.utc(startDate, Constants.DATE_TIME);
+      log.info("non - formatting");
+      startDate = moment(startDate).format(Constants.DATE);
     }
     return startDate;
   }
@@ -533,11 +567,22 @@ export class TimingEventsGenerator {
    * @returns endDate
    */
   public static formatEndDate(endDate) {
+    const offset = moment.parseZone(endDate).utcOffset();
     if (moment(endDate, Constants.DATE, true).isValid()) {
-      endDate = moment.utc(endDate, Constants.DATE_TIME).endOf("day");
-    } else {
-      endDate = moment.utc(endDate, Constants.DATE_TIME);
-    }
+      log.info("end Date Format is : " + Constants.DATE);
+      endDate = moment
+        .utc(endDate)
+        .endOf("day")
+        .utcOffset(offset)
+        .toISOString();
+    } /*else {
+      log.info("end Date Format is : " + Constants.DATE_TIME);
+      if (offset == 0) {
+        endDate = moment.utc(endDate).toISOString();
+      } else {
+        endDate = moment.utc(endDate).utcOffset(offset).format(Constants.DATE_TIME);
+      }
+    }*/
     return endDate;
   }
 
@@ -573,18 +618,23 @@ export class TimingEventsGenerator {
    */
   public static generateEventsBasedOnPeriod(start, end, repeat) {
     log.info("Entering TimingEventsGenerator.generateEventsBasedOnPeriod()");
+    log.info("type of start: " + typeof start + " and type of end: " + typeof end);
     const events = [];
-    start = this.formatStartDate(start);
     end = this.formatEndDate(end);
+    const offset = moment.parseZone(start).utcOffset();
+    log.info("Start: " + start);
+    log.info("End: " + end);
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
       ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     // for each time in the timeOfDay array generate dates for given period
+
+    log.info("Date Format :" + dateFormat + " offset" + offset);
     let count = 0;
     let date = start;
     while (moment(date).isSameOrBefore(end)) {
       for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-        date = this.generateDate(start, end, unit, repeat.period, dateFormat, count);
+        date = this.generateDate(start, end, repeat.period, unit, dateFormat, count, offset);
         if (date) {
           events.push(date);
         }
@@ -605,10 +655,11 @@ export class TimingEventsGenerator {
   public static generateEventsBasedOnDayOfWeek(startDate, endDate, repeat) {
     log.info("Entering TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
     const events = [];
-    const start = this.formatStartDate(startDate);
-    endDate = this.formatEndDate(endDate);
-    log.info("Start: " + start.toISOString());
-    log.info("End: " + endDate.toISOString());
+    // const start = this.formatStartDate(startDate);
+    // endDate = this.formatEndDate(endDate);
+    const start = startDate.toISOString();
+    log.info("Start: " + start);
+    log.info("End: " + endDate);
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
       ["s", "min", "h"].includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
@@ -619,23 +670,21 @@ export class TimingEventsGenerator {
         if (["s", "min", "h"].includes(repeat.periodUnit)) {
           const period = 7;
           const periodUnit = Constants.DAYS;
-          date = moment
-            .utc(start, Constants.DATE)
+          date = moment(start)
             .add(count * period, periodUnit)
             .day(day)
-            .toISOString();
-          const dayEndTime = moment
-            .utc(date, Constants.DATE)
+            .format(dateFormat);
+
+          const dayEndTime = moment(date)
             .day(day)
             .endOf("day")
-            .toISOString();
+            .format(Constants.DATE_TIME);
           log.info("DayTime: " + date);
           log.info("dayEndTime: " + dayEndTime);
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-            date = moment
-              .utc(date, dateFormat)
+            date = moment(date)
               .add(unit, frequency * repeat.period) // add period
-              .toISOString();
+              .format(dateFormat);
             log.info("Date: " + date);
             // check if generated date falls within start and end date range
             if (moment(date).isSameOrBefore(dayEndTime) && moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
@@ -645,11 +694,10 @@ export class TimingEventsGenerator {
         } else if (repeat.period == 1 && repeat.periodUnit === Constants.FHIR_DAY_UNIT) {
           const period = 7;
           const periodUnit = Constants.DAYS;
-          date = moment
-            .utc(start, Constants.DATE)
+          date = moment(start)
             .add(count * period, periodUnit)
             .day(day)
-            .toISOString();
+            .format(dateFormat);
           log.info("DayTime: " + date);
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
             // check if generated date falls within start and end date range
@@ -659,11 +707,10 @@ export class TimingEventsGenerator {
           }
         } else {
           for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-            date = moment
-              .utc(start, Constants.DATE_TIME)
+            log.info("Date: " + date);
+            date = moment(start)
               .add(unit, count * repeat.period) // add period
-              .day(day)
-              .toISOString();
+              .day(day);
             log.info("DayTime: " + date);
             // check if generated date falls within start and end date range
             if (moment(startDate).isSameOrBefore(date) && moment(endDate).isSameOrAfter(date)) {
@@ -688,11 +735,27 @@ export class TimingEventsGenerator {
    * @param count
    * @returns date
    */
-  public static generateDate(start, end, periodUnit, period, dateFormat, count) {
-    const date = moment
-      .utc(start, dateFormat)
-      .add(periodUnit, count * period) // add period given in request
-      .toISOString();
+  public static generateDate(start, end, period, periodUnit, dateFormat, count, offset) {
+    let date = null;
+    if (offset == 0) {
+      if (dateFormat == Constants.DATE) {
+        date = moment
+          .utc(start)
+          .add(periodUnit, count * period)
+          .format(dateFormat);
+      } else {
+        date = moment
+          .utc(start)
+          .add(periodUnit, count * period)
+          .toISOString();
+      }
+    } else {
+      date = moment
+        .utc(start)
+        .add(periodUnit, count * period)
+        .utcOffset(offset)
+        .format(dateFormat);
+    }
     log.info("Date : " + date);
     if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
       return date;

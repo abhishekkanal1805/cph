@@ -37,7 +37,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  describe("#generateSDWEvents()", () => {
+  /*describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const repeat = {
         count: 3,
@@ -51,7 +51,7 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });
+  });*/
 
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
@@ -83,25 +83,25 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  /*describe("#generateEventsBasedOnPeriod()", () => {
+  describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
+          count: 7,
           frequency: 1,
-          period: 5,
+          period: 8,
           periodUnit: "h"
         }
       };
-      const events = TimingEventsGenerator.generateEventsBasedOnPeriod("2020-01-17T10:00:00.000Z", "2020-01-18T10:00:00", timing.repeat);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-21T12:00:00.000Z", "2020-01-25T12:00:00.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });*/
-
+  });
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
-      const timing = {
+      /!*const timing = {
         repeat: {
           frequency: 3,
           period: 2,
@@ -109,7 +109,32 @@ describe("TimingEventsGenerator", () => {
           dayOfWeek: ["wed", "fri"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-22", "2020-02-22T23:59:59.000Z");
+      *!/
+      const timing = {
+        code: {
+          text: "Code For SDC",
+          coding: [
+            {
+              code: "SDC"
+            }
+            ]
+        },
+        repeat: {
+          duration: 5,
+          durationUnit: "d",
+          timeOfDay: [
+            "8:00"
+            ],
+          dayOfCycle: [
+            1,
+            2,
+            3,
+            4
+            ]
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
+      log.info("Events length" + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
