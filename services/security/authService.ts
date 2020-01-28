@@ -162,13 +162,16 @@ export class AuthService {
     // check 4. If resourceType publicly accessible, then no connection check required
     const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
     if (isPublicResource) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
       return [];
     }
 
-    // check 4.5 study/site based access control can only be determined if the owner is ResearchSubject
+    // check 5 study/site based access control can only be determined if the owner is ResearchSubject
+    // TODO: maybe we should not limit policy based access check based on presence of subject reference.
+    // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
+    // This is okay only if this function is only called from clinical resource perspective.
     if (ownerOrignalSubjectReference && authorizationRequest.resourceAction) {
-        log.info("AuthService::authorizeRequest() Owner is ResearchSubject, checking for policy based access.");
+        log.info("AuthService::authorizeRequestSharingRules() Owner is ResearchSubject, checking for policy based access.");
         const accessRequest: SubjectAccessRequest = {
             requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
             subjectReference: ownerOrignalSubjectReference,
@@ -177,16 +180,16 @@ export class AuthService {
         const grantedPolicies = await PolicyManager.requestSubjectScopedAccess(accessRequest);
         log.info("Granted policies = " + JSON.stringify(grantedPolicies));
         if (grantedPolicies && grantedPolicies.length > 0) {
-            log.info("Exiting AuthService, Policy based access was granted :: authorizeRequest()");
+            log.info("Exiting AuthService, Policy based access was granted :: authorizeRequestSharingRules()");
             return [];
         } else {
-            log.info("AuthService::authorizeRequest() Policy based access was not granted, checking for connection based access.");
+            log.info("AuthService::authorizeRequestSharingRules() Policy based access was not granted, checking for connection based access.");
         }
     } else {
-        log.info("AuthService::authorizeRequest() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
+        log.info("AuthService::authorizeRequestSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
 
-    // check 5. Check for connection between requester and requestee
+    // check 6. Check for connection between requester and requestee
     // the IF is redundant? profileType will always be non SYSTEM here as per check2
     if (fetchedProfiles[authorizationRequest.requester].profileType != Constants.SYSTEM_USER) {
       log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
@@ -261,55 +264,74 @@ export class AuthService {
    * It will validate the profile ids and check connection between them
    *
    * @static
-   * @param {string} to logged in profile ID in format 123
-   * @param {string} profileType logged in profile Type
-   * @param {string} from patient ID coming from request bundle in format 123
+   * @param {AuthorizationRequest} authorizationRequest
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBasedSharingRules(
-    requesterId: string,
-    requesteeReference: string,
-    resourceType: string,
-    accessType: string,
-    ownerType?: string
+  public static async authorizeConnectionBasedSharingRules(authorizationRequest: AuthorizationRequest
   ) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
-    const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(requesteeReference, null, researchSubjectCriteria);
-    requesteeReference = researchSubjectProfiles[requesteeReference] ? researchSubjectProfiles[requesteeReference] : requesteeReference;
+    const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(
+        authorizationRequest.ownerReference, null, researchSubjectCriteria);
+    const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference] ?
+        researchSubjectProfiles[authorizationRequest.ownerReference] : authorizationRequest.ownerReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
-    const requestProfileIds = [requesterId, requesteeId];
+    const requestProfileIds = [authorizationRequest.requester, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
     // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
-    if (ownerType && fetchedProfiles[requesteeId].profileType !== ownerType) {
-      log.error("Owner is not a valid " + ownerType);
+    if (authorizationRequest.ownerType && fetchedProfiles[requesteeId].profileType !== authorizationRequest.ownerType) {
+      log.error("Owner is not a valid " + authorizationRequest.ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // reaches here if requester and requestee are both valid
     // check 2: if requester should be system user then allow access
-    if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+    if (fetchedProfiles[authorizationRequest.requester] && fetchedProfiles[authorizationRequest.requester].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
       return [];
     }
     // check 3. if requester and requestee are the same users then allow access
-    if (requesterId == requesteeId) {
+    if (authorizationRequest.requester == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
     // check 4. If resourceType publicly accessible, then no connection check required
-    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
     if (isPublicResource) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequest()");
+      log.info("Exiting AuthService, Resource type is public :: authorizeConnectionBasedSharingRules()");
       return [];
     }
-    // check 5. if we reached here then a connection has to exist between requester and requestee
+
+    // check 5 study/site based access control can only be determined if the owner is ResearchSubject
+    // TODO: maybe we should not limit policy based access check based on presence of subject reference.
+    // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
+    // This is okay only if this function is only called from clinical resource perspective.
+    if ((authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) && authorizationRequest.resourceAction) {
+      log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
+      const accessRequest: SubjectAccessRequest = {
+        requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
+        subjectReference: authorizationRequest.ownerReference,
+        resourceAction: authorizationRequest.resourceAction
+      };
+      const grantedPolicies = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      log.info("Granted policies = " + JSON.stringify(grantedPolicies));
+      if (grantedPolicies && grantedPolicies.length > 0) {
+        log.info("Exiting AuthService, Policy based access was granted :: authorizeConnectionBasedSharingRules()");
+        return [];
+      } else {
+        log.info("AuthService::authorizeConnectionBasedSharingRules() Policy based access was not granted, checking for connection based access.");
+      }
+    } else {
+      log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
+    }
+
+    // check 6. if we reached here then a connection has to exist between requester and requestee
     log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     // ToDo hasConnection to getConnection
-    const connection = await AuthService.hasConnection(requesteeId, requesterId, connectionType, connectionStatus);
+    const connection = await AuthService.hasConnection(requesteeId, authorizationRequest.requester, connectionType, connectionStatus);
     if (connection.length < 1) {
       log.error("No connection found between from user and to user");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);

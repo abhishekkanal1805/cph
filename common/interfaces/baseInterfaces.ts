@@ -4,6 +4,7 @@
 
 export interface GetOptions {
   acceptLanguage: string;
+  resourceAction?: string;
 }
 
 export interface SearchOptions {
@@ -29,6 +30,7 @@ export interface UpdateRequestParams {
   referenceValidationElement?: string;
   uniquesReferenceIds?: any;
   ownerElement?: string;
+  resourceAction?: string;
 }
 
 export interface DeleteRequestParams {
@@ -36,6 +38,7 @@ export interface DeleteRequestParams {
   requestId?: string;
   ownerElement?: string;
   permanent: string | boolean;
+  resourceAction?: string;
 }
 
 export interface DeleteObjectParams {

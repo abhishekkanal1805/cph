@@ -8,10 +8,11 @@ interface AuthorizationRequest {
      */
     requester: string;
     /**
-     * Reference of the resource who is submitting the data
+     * Reference of the resource who is submitting the data.
+     * This is current only used by the basePost.
      * Example: UserProfile/1111 or ResearchSubject/2222
      */
-    informationSourceReference: string;
+    informationSourceReference?: string;
     /**
      * Reference of the owner resource
      * Example: UserProfile/1111 or ResearchSubject/2222

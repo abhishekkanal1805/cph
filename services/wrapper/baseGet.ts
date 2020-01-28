@@ -42,7 +42,13 @@ export class BaseGet {
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules({
+        requester: requestorProfileId,
+        ownerReference: patientIds[0],
+        resourceType: serviceName,
+        accessType: Constants.ACCESS_READ,
+        resourceAction: getOptions ? getOptions.resourceAction : null
+      });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
