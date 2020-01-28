@@ -133,7 +133,7 @@ export class BasePut {
       });
     }
     const updateRequestParams: UpdateRequestParams = {
-      requestId: requestParams.requestId,
+      requestLogRef: requestParams.requestLogRef,
       requestorProfileId: requestParams.requestorProfileId,
       requestPrimaryIds: filteredPrimaryKeyIds,
       referenceValidationModel: requestParams.referenceValidationModel,
@@ -232,7 +232,7 @@ export class BasePut {
         createdBy: existingRecord.meta.createdBy,
         lastUpdatedBy: requestParams.requestorProfileId,
         isDeleted: false,
-        requestId: requestParams.requestId,
+        requestLogRef: requestParams.requestLogRef,
         clientRequestId: existingRecord.meta.clientRequestId,
         deviceId: existingRecord.meta.deviceId,
         source: existingRecord.meta.source

@@ -23,8 +23,8 @@ export class DataTransform {
       lastUpdatedBy: resourceMetaData.lastUpdatedBy,
       isDeleted: false
     };
-    if (resourceMetaData.requestId) {
-      metaDataObject.requestId = resourceMetaData.requestId;
+    if (resourceMetaData.requestLogRef) {
+      metaDataObject.requestLogRef = resourceMetaData.requestLogRef;
     }
     if (record.meta) {
       metaDataObject.clientRequestId = record.meta.clientRequestId;
@@ -44,8 +44,8 @@ export class DataTransform {
       lastUpdatedBy: resourceMetaData.lastUpdatedBy,
       isDeleted: resourceMetaData.isDeleted
     };
-    if (resourceMetaData.requestId) {
-      metaDataObject.requestId = resourceMetaData.requestId;
+    if (resourceMetaData.requestLogRef) {
+      metaDataObject.requestLogRef = resourceMetaData.requestLogRef;
     }
     metaDataObject.clientRequestId = record.meta.clientRequestId ? record.meta.clientRequestId : resourceMetaData.clientRequestId;
     metaDataObject.deviceId = record.meta.deviceId ? record.meta.deviceId : resourceMetaData.deviceId;

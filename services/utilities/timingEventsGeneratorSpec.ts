@@ -83,6 +83,39 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
+  /*describe("", () => {
+    it("", async (done) => {
+      const timing = {
+        code: {
+          text: "Code For SDC",
+          coding: [
+            {
+              code: "SDC"
+            }
+          ]
+        },
+        repeat: {
+          duration: 5,
+          durationUnit: "d",
+          timeOfDay: [
+            "8:00"
+          ],
+          dayOfCycle: [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
+      log.info("Events length" + events.length);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
+
   describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
@@ -99,45 +132,4 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });
-  /*describe("#generateDateEventsFromTiming()", () => {
-    it("generate events", async (done) => {
-      /!*const timing = {
-        repeat: {
-          frequency: 3,
-          period: 2,
-          periodUnit: "wk",
-          dayOfWeek: ["wed", "fri"]
-        }
-      };
-      *!/
-      const timing = {
-        code: {
-          text: "Code For SDC",
-          coding: [
-            {
-              code: "SDC"
-            }
-            ]
-        },
-        repeat: {
-          duration: 5,
-          durationUnit: "d",
-          timeOfDay: [
-            "8:00"
-            ],
-          dayOfCycle: [
-            1,
-            2,
-            3,
-            4
-            ]
-        }
-      };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
-      log.info("Events length" + events.length);
-      log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(1);
-      done();
-    });
-  });*/
 });
