@@ -527,8 +527,10 @@ export class TimingEventsGenerator {
   public static getStartDate(start) {
     log.info("Entering TimingEventsGenerator.getStartDate()");
     if (!start) {
-      start = moment()
-        .format(Constants.DATE_TIME);
+      start = moment
+        .utc()
+        .utcOffset(0)
+        .toISOString();
     }
     log.info("Exiting TimingEventsGenerator.getStartDate()");
     return start;
