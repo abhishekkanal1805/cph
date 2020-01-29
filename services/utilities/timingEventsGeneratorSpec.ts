@@ -147,7 +147,7 @@ describe("TimingEventsGenerator", () => {
           dayOfWeek: ["wed", "fri"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000Z", "2020-02-28");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-27T12:00:00.000+02:00", "2020-02-22T23:59:59.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
