@@ -527,11 +527,8 @@ export class TimingEventsGenerator {
   public static getStartDate(start) {
     log.info("Entering TimingEventsGenerator.getStartDate()");
     if (!start) {
-      start = moment
-        .utc()
-        .startOf(Constants.DAY)
-        .utcOffset(0)
-        .toISOString();
+      start = moment()
+        .format(Constants.DATE_TIME);
     }
     log.info("Exiting TimingEventsGenerator.getStartDate()");
     return start;

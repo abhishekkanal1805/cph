@@ -28,7 +28,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  /*describe("#generateSDYEvents()", () => {
+  describe("#generateSDYEvents()", () => {
     it("generate events daily", async (done) => {
       const timing = {
         repeat : {
@@ -38,14 +38,14 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "d"
         }
     };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000+02:00", "2020-02-05T07:00:00.000+02:00");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29", null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });*/
+  });
 
-  describe("#generateSDWEvents()", () => {
+  /*describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const timing = {
         repeat : {
@@ -61,7 +61,7 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });
+  });*/
 
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
@@ -141,6 +141,7 @@ describe("TimingEventsGenerator", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
+          count: 2,
           frequency: 1,
           period: 1,
           periodUnit: "d",
