@@ -104,12 +104,12 @@ describe("TimingEventsGenerator", () => {
       const timing = {
         repeat: {
           frequency: 1,
-          period: 8,
-          periodUnit: "h",
+          period: 1,
+          periodUnit: "d",
           dayOfWeek: ["wed", "fri"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-22T12:00:00.000Z", "2020-02-22T23:59:59.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-27T12:00:00.000+02:00", "2020-02-22T23:59:59.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
