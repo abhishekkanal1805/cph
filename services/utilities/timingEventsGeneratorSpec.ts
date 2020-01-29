@@ -7,30 +7,38 @@ import * as log from "lambda-log";
 import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
-  /*describe("#generateSIDEvents()", () => {
+  describe("#generateSIDEvents()", () => {
     it("generate events based on cycle", async (done) => {
-      const repeat = {
-        count: 4,
-        timeOfDay: ["08:10:00"],
-        period: 1,
-        periodUnit: "mo"
+      const timing = {
+        repeat: {
+          count: 5,
+          timeOfDay: ["08:10:00"],
+          period: 1,
+          periodUnit: "mo",
+          boundsPeriod: {
+            start: "2020-01-28T00:00:00.000+02:00",
+            end: "2020-04-28T00:00:00.000+02:00"
+          }
+        }
       };
-      const events = TimingEventsGenerator.generateSIDEvents("2020-01-08", "2020-05-05", repeat);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000+02:00", "2021-01-28T12:00:00.000+02:00");
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(5);
+      expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
+  });
 
   /*describe("#generateSDYEvents()", () => {
     it("generate events daily", async (done) => {
-      const repeat = {
-        count: 5,
-        timeOfDay: ["08:10:00", "12:10:00"],
-        period: 1,
-        periodUnit: "d"
-      };
-      const events = TimingEventsGenerator.generateSDYEvents("2020-01-13T07:00:00", "2020-01-17T07:00:00", repeat);
+      const timing = {
+        repeat : {
+          count: 5,
+          timeOfDay: ["08:10:00", "12:10:00"],
+          period: 1,
+          periodUnit: "d"
+        }
+    };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000+02:00", "2020-02-05T07:00:00.000+02:00");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
       done();
@@ -39,14 +47,16 @@ describe("TimingEventsGenerator", () => {
 
   /*describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
-      const repeat = {
-        count: 3,
-        timeOfDay: ["08:10:00", "12:10:00"],
-        period: 1,
-        dayOfWeek: ["mon", "fri", "sat"],
-        periodUnit: "d"
+      const timing = {
+        repeat : {
+          count: 3,
+          timeOfDay: ["08:10:00", "12:10:00"],
+          period: 1,
+          dayOfWeek: ["mon", "fri"],
+          periodUnit: "d"
+        }
       };
-      const events = TimingEventsGenerator.generateSDWEvents("2020-01-13", "2020-01-16", repeat);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000Z", "2020-02-10T07:00:00.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
@@ -95,28 +105,20 @@ describe("TimingEventsGenerator", () => {
           ]
         },
         repeat: {
-          duration: 5,
-          durationUnit: "d",
-          timeOfDay: [
-            "8:00"
-          ],
-          dayOfCycle: [
-            1,
-            2,
-            3,
-            4
-          ]
+          duration: 1,
+          durationUnit: "wk",
+          timeOfDay: ["08:00:00"],
+          dayOfCycle: [1, 6]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
-      log.info("Events length" + events.length);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000Z", "2020-02-28T12:00:00.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
   });*/
 
-  describe("#generateEventsBasedOnPeriod()", () => {
+  /*describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
@@ -131,5 +133,22 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });
+  });*/
+
+  /*describe("#generateEventsBasedOnDayOfWeek()", () => {
+    it("generate events", async (done) => {
+      const timing = {
+        repeat: {
+          frequency: 2,
+          period: 7,
+          periodUnit: "h",
+          dayOfWeek: ["wed", "fri"]
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000Z", "2020-02-28");
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
 });
