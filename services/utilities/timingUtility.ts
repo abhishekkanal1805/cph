@@ -226,7 +226,7 @@ export class TimingUtility {
    * @returns date
    */
   public static addDuration(date, period, periodUnit) {
-    log.info("Entering TimingUtility.addMomentDuration()" + date);
+    log.info("Entering TimingUtility.addMomentDuration()");
     try {
       if (periodUnit == "s") {
         date.setSeconds(date.getSeconds() + period);
@@ -243,7 +243,7 @@ export class TimingUtility {
       } else {
         throw new Error();
       }
-      log.info("Exiting TimingUtility.addMomentDuration()" + date);
+      log.info("Exiting TimingUtility.addMomentDuration()");
       return date;
     } catch (err) {
       log.info("error in addDays():" + err);
