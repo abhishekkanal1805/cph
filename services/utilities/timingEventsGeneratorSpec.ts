@@ -141,9 +141,9 @@ describe("TimingEventsGenerator", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
-          frequency: 2,
-          period: 7,
-          periodUnit: "h",
+          frequency: 1,
+          period: 1,
+          periodUnit: "d",
           dayOfWeek: ["wed", "fri"]
         }
       };
