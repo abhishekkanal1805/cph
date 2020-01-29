@@ -325,7 +325,7 @@ export class TimingEventsGenerator {
           /* if cycleDay is last day from dayOfCycle array then calculate the end date of cycle
              and no of days remaining days of the cycle*/
           if (cycleDay.valueOf() === repeat.dayOfCycle[repeat.dayOfCycle.length - 1]) {
-            const cycleEndDate = this.generateDate(start, "", "", repeat.duration, durationUnit, "", "", Constants.DATE_TIME, 1, offset);
+            const cycleEndDate = this.generateDate(start, "", "", repeat.duration - 1, durationUnit, "", "", Constants.DATE_TIME, 1, offset);
             const remainingDays = moment(cycleEndDate).diff(nextDay, Constants.DAYS);
             nextDay = this.generateDate(start, "", "", cycleDay + remainingDays, Constants.DAYS, "", "", Constants.DATE_TIME, 1, offset);
             if (moment(nextDay).isSameOrAfter(endDate)) {

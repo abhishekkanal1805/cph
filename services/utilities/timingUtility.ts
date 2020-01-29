@@ -68,20 +68,20 @@ export class TimingUtility {
     if (code && repeat.count) {
       switch (code) {
         case "SDY":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count, Constants.FHIR_DAY_UNIT));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count - 1, Constants.FHIR_DAY_UNIT));
           break;
         case "SDT":
           break;
         case "SDC":
           if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
-            dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * repeat.duration, repeat.durationUnit));
+            dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count * repeat.duration) - 1 , repeat.durationUnit));
           }
           break;
         case "SDW":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * 7, "d"));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count  * 7 ) - 1, "d"));
           break;
         case "SID":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, (repeat.count * repeat.period) - 1, repeat.periodUnit));
           break;
         case "NA":
           const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
@@ -113,18 +113,18 @@ export class TimingUtility {
     if (repeat.dayOfWeek) {
       if (repeat.period && repeat.periodUnit) {
         if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
-          date = TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * 7, Constants.FHIR_DAY_UNIT);
+          date = TimingUtility.addMomentDuration(startDate, (repeat.count  * 7) - 1, Constants.FHIR_DAY_UNIT);
         } else {
-          date = TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+          date = TimingUtility.addMomentDuration(startDate, (repeat.count  * repeat.period) - 1, repeat.periodUnit);
         }
       }
     } else if (repeat.dayOfCycle) {
       if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
-        date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
+        date = TimingUtility.addMomentDuration(startDate, (repeat.count * repeat.duration) - 1, repeat.durationUnit);
       }
     } else {
       if (repeat.period && repeat.periodUnit) {
-        date = TimingUtility.addMomentDuration(startDate, (repeat.count - 1) * repeat.period, repeat.periodUnit);
+        date = TimingUtility.addMomentDuration(startDate, (repeat.count * repeat.period) - 1, repeat.periodUnit);
       }
     }
     log.info("Exiting TimingUtility.calculateEndDateForCustomCode()");

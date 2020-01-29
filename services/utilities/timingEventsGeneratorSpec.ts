@@ -7,7 +7,7 @@ import * as log from "lambda-log";
 import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
-  describe("#generateSIDEvents()", () => {
+  /*describe("#generateSIDEvents()", () => {
     it("generate events based on cycle", async (done) => {
       const timing = {
         repeat: {
@@ -26,7 +26,7 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });
+  });*/
 
   /*describe("#generateSDYEvents()", () => {
     it("generate events daily", async (done) => {
@@ -45,7 +45,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  /*describe("#generateSDWEvents()", () => {
+  describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const timing = {
         repeat : {
@@ -56,12 +56,12 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "d"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000Z", "2020-02-10T07:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000Z", null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
+  });
 
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
@@ -105,13 +105,15 @@ describe("TimingEventsGenerator", () => {
           ]
         },
         repeat: {
-          duration: 1,
-          durationUnit: "wk",
-          timeOfDay: ["08:00:00"],
-          dayOfCycle: [1, 6]
+          count: 5,
+          duration: 28,
+          durationUnit: "d",
+          timeOfDay: ["08:00:00", "22:00:00"],
+          dayOfCycle: [1, 2, 3, 4]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000Z", "2020-02-28T12:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
+      log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
@@ -122,13 +124,13 @@ describe("TimingEventsGenerator", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
-          count: 7,
+          count: 4,
           frequency: 1,
-          period: 8,
-          periodUnit: "h"
+          period: 1,
+          periodUnit: "d"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-21T12:00:00.000Z", "2020-01-25T12:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242Z", null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
       done();
