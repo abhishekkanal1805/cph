@@ -3,7 +3,7 @@
  */
 
 export interface GetOptions {
-  acceptLanguage: string;
+  acceptLanguage?: string;
   resourceAction?: string;
 }
 
