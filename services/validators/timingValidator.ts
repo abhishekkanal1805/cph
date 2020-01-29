@@ -53,7 +53,7 @@ export class TimingValidator {
    * @param endtiming.repeat.boundsPeriod.start
    */
   public static validateStartEndDates(start, end) {
-    log.info("Entering TimingValidator: validateStartEndDates()" + start + " " + end);
+    log.info("Entering TimingValidator: validateStartEndDates()");
     if (start > end) {
       throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "start date is greater than end date");
     }
