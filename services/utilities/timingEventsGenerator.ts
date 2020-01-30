@@ -242,12 +242,11 @@ export class TimingEventsGenerator {
     // sort the event array of dates as they could appear scattered
     eventArray = [...new Set(eventArray)];
     const events = [];
-    for (let date of eventArray) {
-      date = moment.utc(date).format(Constants.DATE_TIME);
+    for (const date of eventArray) {
       if (limitEvents && moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
-        events.push(new Date(date));
+        events.push(date);
       } else if (!limitEvents) {
-        events.push(new Date(date));
+        events.push(date);
       }
     }
     log.info("Exiting TimingEventsGenerator.generateSDTEvents()");
