@@ -59,7 +59,7 @@ export class TimingEventsGenerator {
           }
         }
         log.info("Code identified as: " + code);
-        requestStartDate = TimingUtility.calculateStartDate(requestStartDate, timing.repeat, requestEndDate);
+        requestStartDate = TimingUtility.calculateStartDate(requestStartDate, requestEndDate, timing.repeat);
         requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, timing.code.coding[0].code);
         if (requestStartDate && requestEndDate) {
           TimingValidator.validateStartEndDates(requestStartDate, requestEndDate);
@@ -255,10 +255,10 @@ export class TimingEventsGenerator {
 
   /**
    * Generated SID events
-   * @param start
-   * @param end
-   * @param period
-   * @param timeOfDay
+   * @param startDate
+   * @param endDate
+   * @param repeat
+   * @returns events
    */
   public static generateSIDEvents(startDate, endDate, repeat: any) {
     log.info("Entering TimingEventsGenerator.generateSIDEvents()");
@@ -287,9 +287,7 @@ export class TimingEventsGenerator {
    * Generates SDC events
    * @param start
    * @param end
-   * @param dayOfCycle
-   * @param timeOfDay
-   * @param duration
+   * @param repeat
    * @returns events
    */
   public static generateSDCEvents(startDate, endDate, repeat) {
@@ -424,8 +422,9 @@ export class TimingEventsGenerator {
       events = this.generateEventsBasedOnDayOfWeek(start, end, repeat);
     } else if (repeat.dayOfCycle) {
       log.info("Generate events based on dayOfCycle");
-      // TODO: need to write the logic to generate events based on dayOfCycle
+      events = this.generateEventsBasedOnDayOfCycle(start, end, repeat);
     } else if (repeat.period && repeat.periodUnit) {
+      log.info("Generate events based on period and periodUnit");
       events = this.generateEventsBasedOnPeriod(start, end, repeat);
     }
     log.info("Exiting TimingEventsGenerator.generateCustomEvents()");
@@ -433,40 +432,9 @@ export class TimingEventsGenerator {
   }
 
   /**
-   * Generate events based on period and periodUnit
-   * @param start
-   * @param end
-   * @param repeat
-   * @returns events
-   */
-  public static generateEventsBasedOnPeriod(start, end, repeat) {
-    log.info("Entering TimingEventsGenerator.generateEventsBasedOnPeriod()");
-    const events = [];
-    end = this.formatEndDate(end);
-    const offset = moment.parseZone(start).utcOffset();
-    const unit = config.unitsMap[repeat.periodUnit];
-    const dateFormat =
-      Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    // for each time in the timeOfDay array generate dates for given period
-    let count = 0;
-    let date = start;
-    while (moment(date).isSameOrBefore(end)) {
-      for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-        date = this.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, count, offset);
-        if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
-          events.push(date);
-        }
-      }
-      count++;
-    }
-    log.info("Exiting TimingEventsGenerator.generateEventsBasedOnPeriod()");
-    return events;
-  }
-
-  /**
-   * Generate events based on period and periodUnit
-   * @param start
-   * @param end
+   * Generate events based on dayOfWeek, frequency, period and periodUnit
+   * @param startDate
+   * @param endDate
    * @param repeat
    * @returns events
    */
@@ -515,6 +483,109 @@ export class TimingEventsGenerator {
       }
     }
     log.info("Exiting TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
+    return events;
+  }
+
+  /**
+   * Generates events based on dayOfCycle, frequency, period and periodUnit
+   * @param start
+   * @param end
+   * @param repeat
+   * @returns events
+   */
+  public static generateEventsBasedOnDayOfCycle(start, end, repeat) {
+    log.info("Entering TimingEventsGenerator.generateEventsBasedOnDayOfCycle()");
+    let events: string[] = [];
+    let timeOfDayForDayOne = [];
+    let timeOfDayForOtherDay = [];
+    let startDateTime = start;
+    const offset = moment.parseZone(start).utcOffset();
+    const endDateTime = this.generateDate(start, "", "", "", "", "", Constants.DAY, Constants.DATE_TIME, 0, offset);
+    if (repeat.dayOfCycle.includes(1)) {
+      // generate timeOfDay for day one of cycle
+      timeOfDayForDayOne = this.getTimeOfDayArray(startDateTime, endDateTime, repeat);
+      log.info("timeOfDayForDayOne: " + timeOfDayForDayOne);
+    }
+    // generate timeOfDay for other days of cycle. Here day will start from 12 AM
+    startDateTime = this.generateDate(start, "", "", "", "", Constants.DAY, "", Constants.DATE_TIME, 0, offset);
+    timeOfDayForOtherDay = this.getTimeOfDayArray(startDateTime, endDateTime, repeat);
+    log.info("timeOfDayForOtherDays: " + timeOfDayForOtherDay);
+
+    const dayOfCycle = repeat.dayOfCycle;
+    // generate events for 1st day of cycle by sending dayOfCycle as [1] if dayOfCycle has 1 in it
+    if (timeOfDayForDayOne.length > 0) {
+      repeat.dayOfCycle = dayOfCycle.splice(0, 1);
+      repeat.timeOfDay = timeOfDayForDayOne;
+      const dates: string[] = this.generateSDCEvents(start, end, repeat);
+      events = events.concat(dates);
+    }
+    // generate events for other cycle days by sending dayOfCycle. Here we remove 1st day from dayOfCycle
+    if (timeOfDayForOtherDay.length > 0) {
+      repeat.dayOfCycle = dayOfCycle;
+      repeat.timeOfDay = timeOfDayForOtherDay;
+      const dates: string[] = this.generateSDCEvents(start, end, repeat);
+      events = events.concat(dates);
+    }
+    log.info("Exiting TimingEventsGenerator.generateEventsBasedOnDayOfCycle()");
+    return events;
+  }
+
+  /**
+   * Generate timeOfDay array based on frequency, period and periodUnit
+   * @param cycleDayStartDateTime
+   * @param cycleDayEndDateTime
+   * @param repeat
+   * @returns events
+   */
+  public static getTimeOfDayArray(cycleDayStartDateTime, cycleDayEndDateTime, repeat) {
+    const timeOfDay = [];
+    const offset = moment.parseZone(cycleDayStartDateTime).utcOffset();
+    let dateTime = cycleDayStartDateTime;
+    let count = 0;
+    while (moment(dateTime).isSameOrBefore(cycleDayEndDateTime)) {
+      // add period to the date and check if generated time is less than the end of the day. If so then add time to the array.
+      dateTime = this.generateDate(cycleDayStartDateTime, "", "", repeat.period, repeat.periodUnit, "", "", Constants.DATE_TIME, count++, offset);
+      if (moment(cycleDayStartDateTime).isSameOrBefore(dateTime) && moment(cycleDayEndDateTime).isSameOrAfter(dateTime)) {
+        const time = moment(dateTime)
+          .utcOffset(offset)
+          .format("HH:mm:ss");
+        // repeat frequency times
+        for (let frequency = 0; frequency < repeat.frequency; frequency++) {
+          timeOfDay.push(time);
+        }
+      }
+    }
+    return timeOfDay;
+  }
+
+  /**
+   * Generate events based on frequency, period and periodUnit
+   * @param start
+   * @param end
+   * @param repeat
+   * @returns events
+   */
+  public static generateEventsBasedOnPeriod(start, end, repeat) {
+    log.info("Entering TimingEventsGenerator.generateEventsBasedOnPeriod()");
+    const events = [];
+    end = this.formatEndDate(end);
+    const offset = moment.parseZone(start).utcOffset();
+    const unit = config.unitsMap[repeat.periodUnit];
+    const dateFormat =
+      Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+    // for each time in the timeOfDay array generate dates for given period
+    let count = 0;
+    let date = start;
+    while (moment(date).isSameOrBefore(end)) {
+      for (let frequency = 0; frequency < repeat.frequency; frequency++) {
+        date = this.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, count, offset);
+        if (moment(start).isSameOrBefore(date) && moment(end).isSameOrAfter(date)) {
+          events.push(date);
+        }
+      }
+      count++;
+    }
+    log.info("Exiting TimingEventsGenerator.generateEventsBasedOnPeriod()");
     return events;
   }
 
@@ -635,7 +706,7 @@ export class TimingEventsGenerator {
         .add(moment.duration(timeOfDay))
         .format(dateFormat);
     }
-    log.info("Generated Date : " + date);
+    // log.info("Generated Date : " + date);
     log.info("Exiting TimingEventsGenerator.generateDate()");
     return date;
   }

@@ -130,9 +130,9 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "d"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242Z", null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242", "2020-01-31T08:51:50.242");
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(5);
+      expect(events.length).toBeGreaterThan(1);
       done();
     });
   });*/
@@ -155,12 +155,62 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  describe("#generateSDTEvents()", () => {
+  /*describe("#generateSDTEvents()", () => {
     it("generate events", async (done) => {
       const timing = {
         event: ["2020-01-30T12:00:00.000Z", "2020-01-31T12:00:00.000", "2020-02-22T12:00:00.000Z"]
       };
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-22T23:59:59.000+02:00");
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
+
+  /*describe("", () => {
+    it("", async (done) => {
+      const timing = {
+        repeat: {
+          count: 5,
+          duration: 28,
+          durationUnit: "d",
+          dayOfCycle: [1, 2, 3, 4],
+          period: 1,
+          periodUnit: "d",
+          frequency: 1
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
+      log.info("Events length: " + events.length);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
+
+  describe("", () => {
+    it("", async (done) => {
+      const timing = {
+        code: {
+          text: "Code For SID",
+          coding: [{
+            code: "SID",
+            display: "Specific Intervals"
+          }]
+        },
+        repeat: {
+          boundsPeriod: {
+            start: "2020-02-01T12:00:00.000Z",
+            end: "2020-02-10T23:59:59.000Z"
+          },
+          frequency: 1,
+          period: 1,
+          periodUnit: "d",
+          timeOfDay: ["14:00:00"]
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
+      log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
