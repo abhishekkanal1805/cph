@@ -291,5 +291,6 @@ class Constants {
   public static readonly ALLOWED_UNITS = ["s", "min", "h"];
   public static readonly ALLOWED_DURATION_UNITS = ["d", "wk", "mo", "a"];
   public static readonly DAYS = "days";
+  public static readonly DAY = "day";
 }
 export { Constants };
