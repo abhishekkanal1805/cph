@@ -55,11 +55,11 @@ export class TimingValidator {
   public static validateStartEndDates(start, end) {
     log.info("Entering TimingValidator: validateStartEndDates()");
     if (start > end) {
-      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.repeat.boundsPeriod.start");
+      throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "start date is greater than end date");
     }
     const startDate = moment(new Date(start), Constants.INTERNAL_DATE_FORMAT);
     const endDate = moment(new Date(end), Constants.INTERNAL_DATE_FORMAT);
-    if (endDate.diff(startDate, "d") > 365) {
+    if (endDate.diff(startDate, "d") > 366) {
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
     }
   }
