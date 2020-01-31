@@ -163,12 +163,12 @@ describe("TimingEventsGenerator", () => {
           count: 4,
           frequency: 1,
           period: 1,
-          periodUnit: "a"
+          periodUnit: "mo"
         }
       };
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242Z", null);
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(5);
+      expect(events.length).toBeGreaterThan(1);
     });
   });
   /*describe("#generateSDTEvents()", () => {
