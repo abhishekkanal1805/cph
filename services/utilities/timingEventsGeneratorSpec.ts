@@ -3,8 +3,8 @@
  */
 
 import "jasmine";
-import * as log from "lambda-log";
-import { TimingEventsGenerator } from "./timingEventsGenerator";
+// import * as log from "lambda-log";
+// import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
   /*describe("#generateSIDEvents()", () => {
@@ -156,7 +156,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  describe("#generateEventsBasedOnPeriod()", () => {
+  /*describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
@@ -170,7 +170,8 @@ describe("TimingEventsGenerator", () => {
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
     });
-  });
+  });*/
+
   /*describe("#generateSDTEvents()", () => {
     it("generate events", async (done) => {
       const timing = {
