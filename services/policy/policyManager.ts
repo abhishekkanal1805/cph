@@ -42,8 +42,12 @@ class PolicyManager {
             log.info("PolicyManager - subject reference could was not found. policy based access is denied.");
             return null;
         }
-        const resourcesAccessed = [researchSubject.study.reference, researchSubject.site.reference];
-
+        const resourcesAccessed = [researchSubject.study.reference];
+        // site reference is optional so handling that
+        if (researchSubject.site && researchSubject.site.reference) {
+            resourcesAccessed.push(researchSubject.site.reference);
+        }
+        // QUESTION: should we make sure if site is present then it belong to the same study?
         return PolicyManager.requestResourceScopedAccess({
             requesterReference: accessRequest.requesterReference,
             scopedResources: resourcesAccessed,
