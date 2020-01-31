@@ -66,7 +66,7 @@ export class TimingEventsGenerator {
         }
         events = TimingEventsGenerator.generateEventsFromCode(requestStartDate, requestEndDate, timing);
         if (events.length > 1) {
-          events = events.sort((a, b) => moment(a).diff(b)).filter(Boolean);
+          events = events.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
         }
       }
     }
