@@ -70,7 +70,7 @@ export class TimingEventsGenerator {
         }
       }
     }
-    log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()" + moment().toISOString());
+    log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
     return events;
   }
 
@@ -676,25 +676,15 @@ export class TimingEventsGenerator {
     log.info("Entering TimingEventsGenerator.generateDate()");
     let date;
     if (offset == 0) {
-      if (dateFormat == Constants.DATE) {
-        date = moment
-          .utc(start)
-          .add(count * period, periodUnit)
-          .startOf(startOfDay)
-          .endOf(endOfDay)
-          .day(dayOfWeek)
-          .add(moment.duration(timeOfDay))
-          .format(dateFormat);
-      } else {
-        date = moment
-          .utc(start)
-          .add(count * period, periodUnit)
-          .startOf(startOfDay)
-          .endOf(endOfDay)
-          .day(dayOfWeek)
-          .add(moment.duration(timeOfDay))
-          .toISOString();
-      }
+      date = moment
+        .utc(start)
+        .add(count * period, periodUnit)
+        .startOf(startOfDay)
+        .endOf(endOfDay)
+        .day(dayOfWeek)
+        .add(moment.duration(timeOfDay));
+      // if format is of date only then format the date other wise return ISO string
+      date = (dateFormat === Constants.DATE) ? date.format(dateFormat) : date.toISOString();
     } else {
       date = moment
         .utc(start)

@@ -28,7 +28,7 @@ export class TimingUtility {
       dateArray.push(repeat.boundsPeriod.start);
     }
     // sort end dates
-    dateArray = dateArray.sort((a, b) => moment(a).diff(b)).filter(Boolean);
+    dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
 
     if (dateArray.length == 0 && !requestEnd) {
       log.error("startDate is neither present in request nor in boundsPeriod.start object");
@@ -90,14 +90,11 @@ export class TimingUtility {
           }
       }
     }
-    dateArray = dateArray.sort((a, b) => moment(a).diff(b)).filter(Boolean);
-    if (dateArray.length == 0) {
-      log.info("End date is start date + 365 days");
-      return TimingUtility.addMomentDuration(startDate, 365, Constants.FHIR_DAY_UNIT);
-    } else {
-      log.info("End date is " + dateArray[0]);
-      return dateArray[0];
-    }
+    // sort date array
+    dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
+    log.info("End date calculated as :: " + dateArray[0]);
+    log.info("Exiting TimingUtility.calculateEndDate()");
+    return dateArray[0];
   }
 
   /**
@@ -264,17 +261,11 @@ export class TimingUtility {
     const unit = config.unitsMap[periodUnit];
     const dateFormat = moment(date, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     if (offset == 0) {
-      if (dateFormat == Constants.DATE) {
-        date = moment
-          .utc(date)
-          .add(period, unit)
-          .format(dateFormat);
-      } else {
-        date = moment
-          .utc(date)
-          .add(period, unit)
-          .toISOString();
-      }
+      date = moment
+        .utc(date)
+        .add(period, unit);
+      // if format is of date only then format the date other wise return ISO string
+      date = (dateFormat === Constants.DATE) ? date.format(dateFormat) : date.toISOString();
     } else {
       date = moment
         .utc(date)

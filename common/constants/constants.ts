@@ -292,5 +292,6 @@ class Constants {
   public static readonly ALLOWED_DURATION_UNITS = ["d", "wk", "mo", "a"];
   public static readonly DAYS = "days";
   public static readonly DAY = "day";
+  public static readonly YEARS = "years";
 }
 export { Constants };
