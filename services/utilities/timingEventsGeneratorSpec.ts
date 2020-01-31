@@ -99,7 +99,7 @@ describe("TimingEventsGenerator", () => {
     });
   });*/
 
-  describe("#generateDateEventsFromTiming()", () => {
+  /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
@@ -112,6 +112,23 @@ describe("TimingEventsGenerator", () => {
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-27T12:00:00.000+02:00", "2020-02-22T23:59:59.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
+
+  describe("#generateEventsBasedOnPeriod()", () => {
+    it("generate events", async (done) => {
+      const timing = {
+        repeat: {
+          count: 4,
+          frequency: 1,
+          period: 1,
+          periodUnit: "a"
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242Z", null);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(5);
       done();
     });
   });
