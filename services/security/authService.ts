@@ -551,30 +551,37 @@ export class AuthService {
    * @param {string[]} requesteeIds
    * @param {string} resourceType
    * @param {string} accessType
-   * @returns
+   * @returns 1) [] is returned for admin user, when requester is self, their own subject references or if resource is set public.
+   * This indicates full access for all the requested subjects. Sharing rules check not required.
+   * 2) returns the list of Connections for when at least one was found between the requested
+   * 3) if no connections found then throws error
    * @memberof AuthService
    */
   public static async authorizeMultipleConnectionsBasedSharingRules(requesterId: string, requesteeIds: string[], resourceType: string, accessType: string) {
     log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
     // 1 - Check loggedin user
     const fetchedProfiles = await DataFetch.getUserProfile([requesterId]);
+
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
       return [];
     }
+
     // check 3. if requester and requestee are the same users then allow access
     if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0].split(Constants.FORWARD_SLASH)[1] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return [];
     }
-    // check 4. If resourceType publically accessable, then no connection check required
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isResoucePublicAccessable) {
+
+    // check 4. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeMultipleConnectionsBasedSharingRules()");
       return [];
     }
     log.info("Requester is not a system user. validating connection between requester and requestee.");
+
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
     // check 5. if requester accessing his own ResearchSubject then allow access
@@ -582,6 +589,7 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return [];
     }
+
     // check 6. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
@@ -630,12 +638,13 @@ export class AuthService {
   }
 
   /**
-   * Validate if loggedin user is part of search attribute
+   * if own profile reference is present in requested list, add it to the return
+   * if ResearchSubject references are provided check which of them belong to the logged in user (should not be deleted),
+   * add them them to the return
    *
    * @static
    * @param {string} requestorProfileId loggedin user Id
    * @param {string} resourceOwnerElement Owner element for a resource
-   * @param {*} queryParams queryParams received from api
    * @param {string[]} requestedProfiles requested search profiles
    * @param {*} accessType service access type
    * @returns
@@ -651,8 +660,10 @@ export class AuthService {
     );
     const requestorProfileIdReference =
       requestorProfileId.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + requestorProfileId : requestorProfileId;
+
     if (researchSubjectReferences.length) {
       const individualReference = [Constants.DEFAULT_SEARCH_ATTRIBUTES, Constants.INDIVIDUAL_REFERENCE_KEY].join(Constants.DOT_VALUE);
+      // lookup all subjects against the requester's UserProfile
       let whereClause = {
         [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
           return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
@@ -672,6 +683,7 @@ export class AuthService {
           : researchSubjectProfile;
       });
     }
+    // if the self profile reference is present in requested list, keep it else we dont assume the requester wants his own data
     if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
       researchSubjectProfiles.push(requestorProfileIdReference);
     }

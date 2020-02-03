@@ -150,6 +150,7 @@ export class BaseGet {
     let connections = [];
     let isSharingRuleCheckRequired: boolean = true;
     let filteredQueryParameter = {};
+
     let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
@@ -195,8 +196,10 @@ export class BaseGet {
           serviceName,
           Constants.ACCESS_READ
         );
-        // validate if loggedin user present in searchParams or not and filter query parameter
+        // if [] is returned, dont filter the subjects. full search access was granted to all
         if (connections.length > 0) {
+          // if connections were returned means only conditional access can be granted. we want to know if any reference belongs to self
+          // validate if loggedin user present in searchParams or not
           filteredQueryParameter = await AuthService.getFilteredQueryParameter(
             requestorProfileId,
             resourceOwnerElement,
@@ -205,7 +208,8 @@ export class BaseGet {
           );
         }
       } catch (err) {
-        log.error("Error occoured during connection check" + err.stack, err);
+        log.error("Error occurred during connection check" + err.stack, err);
+        // if no connections are found between requester and requestedProfiles error is thrown
         if (err.errorCode === errorCodeMap.Forbidden.value) {
           // validate if loggedin user present in searchParams or not and filter query parameter
           filteredQueryParameter = await AuthService.getFilteredQueryParameter(
@@ -214,12 +218,14 @@ export class BaseGet {
             requestedProfiles,
             Constants.ACCESS_READ
           );
+          // QUESTION: seems like getFilteredQueryParameter already returns [], if not we can make sure it returns the right value we dont have to adjust it
           if (_.isEmpty(filteredQueryParameter)) {
             return [];
           }
         }
       }
     }
+    // access to all the references in filteredQueryParameter will be given unconditionally
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];
