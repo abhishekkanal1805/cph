@@ -3,6 +3,7 @@
  */
 
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { BadRequestResult } from "../../common/objects/custom-errors";
@@ -87,5 +88,69 @@ export class JsonParser {
       }
     }
     return JsonParser.findValuesForKeyMap(records, keysToFetch);
+  }
+
+  /**
+   * Find all references in payload
+   * @param {any[]} records incomming records
+   * @param {string[]} [excludeElements] list of elements to be added in excludededPath for reference validation
+   * @returns
+   * @memberof JsonParser
+   */
+  public static findAllReferences(records: any, excludeElements?: string[]): any {
+    excludeElements = excludeElements || [];
+    const isElementPartOfExcludList = (elementPath) => {
+      elementPath = elementPath.join(Constants.DOT_VALUE);
+      return excludeElements.indexOf(elementPath) == -1 ? false : true;
+    };
+    const getReferencesMapping = (payload, referenceObj, currPath, prevPath) => {
+      let isExcluded = isElementPartOfExcludList(currentPath);
+      let traversePath;
+      for (const element in payload) {
+        if (!payload[element]) {
+          return;
+        }
+        if (Array.isArray(payload[element]) || typeof payload[element] === Constants.OBJECT) {
+          const elementPosstion = _.isNaN(_.toNumber(element)) ? element : Constants.SQUARE_BRACKETS_OPEN + element + Constants.SQUARE_BRACKETS_CLOSE;
+          prevPath = Object.assign([], currPath);
+          currPath.push(elementPosstion);
+          getReferencesMapping(payload[element], referenceObj, currPath, prevPath);
+        }
+        if (payload[element] && typeof payload[element] === Constants.TYPE_STRING) {
+          if (element === Constants.REFERENCE_ATTRIBUTE) {
+            const [resourceType, resourceId] = payload[element].split(Constants.FORWARD_SLASH);
+            if (!referenceObj[resourceType]) {
+              referenceObj[resourceType] = [];
+            }
+            prevPath = Object.assign([], currentPath);
+            currentPath.push(element);
+            traversePath = currentPath.join(Constants.DOT_VALUE);
+            const referenceObjectIndex = _.findIndex(referenceObj[resourceType], { id: resourceId });
+            if (referenceObjectIndex > -1) {
+              if (!isExcluded) {
+                referenceObj[resourceType][referenceObjectIndex].includedPath.push(traversePath);
+              } else {
+                referenceObj[resourceType][referenceObjectIndex].excludededPath.push(traversePath);
+              }
+            } else {
+              referenceObj[resourceType].push({
+                id: resourceId,
+                includedPath: isExcluded ? [] : [traversePath],
+                excludededPath: isExcluded ? [traversePath] : []
+              });
+            }
+            return;
+          }
+        } else {
+          currPath = Object.assign([], prevPath);
+          isExcluded = isElementPartOfExcludList(currentPath);
+        }
+      }
+    };
+    const currentPath = [];
+    const previousPath = [];
+    const referenceMapping = {};
+    getReferencesMapping(records, referenceMapping, currentPath, previousPath);
+    return referenceMapping;
   }
 }
