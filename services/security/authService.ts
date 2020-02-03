@@ -641,15 +641,9 @@ export class AuthService {
    * @returns
    * @memberof AuthService
    */
-  public static async getFilteredQueryParameter(
-    requestorProfileId: string,
-    resourceOwnerElement: string,
-    queryParams: any,
-    requestedProfiles: string[],
-    accessType
-  ) {
+  public static async getFilteredQueryParameter(requestorProfileId: string, resourceOwnerElement: string, requestedProfiles: string[], accessType) {
     let researchSubjectProfiles = [];
-    const filteredQueryParameter = Object.assign({}, queryParams);
+    const filteredQueryParameter = {};
     const researchSubjectReferences = _.uniq(
       _.filter(requestedProfiles, (profileReference) => {
         return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
@@ -681,8 +675,9 @@ export class AuthService {
     if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
       researchSubjectProfiles.push(requestorProfileIdReference);
     }
-    filteredQueryParameter[resourceOwnerElement] =
-      researchSubjectProfiles && researchSubjectProfiles.length > 0 ? [researchSubjectProfiles.join(Constants.COMMA_VALUE)].filter(Boolean) : [];
+    if (researchSubjectProfiles && researchSubjectProfiles.length > 0) {
+      filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)].filter(Boolean);
+    }
     return filteredQueryParameter;
   }
 }

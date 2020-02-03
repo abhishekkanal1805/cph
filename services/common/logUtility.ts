@@ -38,7 +38,7 @@ export class LogUtility {
    * @returns {string}
    * @memberof LogUtility
    */
-  public static getRequestId(apiEvent: ApiEvent, apiContext: ApiContext): string {
+  public static getRequestLogRef(apiEvent: ApiEvent, apiContext: ApiContext): string {
     const gatewayRequestId = APIRequestUtility.getGatewayRequestId(apiEvent);
     const lambdaRequestId = APIRequestUtility.getAwsRequestId(apiContext);
     return [gatewayRequestId, lambdaRequestId].filter(Boolean).join(".");

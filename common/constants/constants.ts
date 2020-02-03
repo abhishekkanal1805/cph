@@ -281,5 +281,21 @@ class Constants {
   public static readonly TIMING_CODE = "timing.code";
   public static readonly TIMING_TIME_OF_DAY = "timing.repeat.timeOfDay";
   public static readonly INTERNAL_DATE_FORMAT = "DD.MM.YYYY";
+
+  public static readonly DAY_END_TIME = "23:59:59";
+  public static readonly DAY_START_TIME = "00:00:00";
+  public static readonly FHIR_SECOSND_UNIT = "s";
+  public static readonly FHIR_MINUTE_UNIT = "min";
+  public static readonly FHIR_HOUR_UNIT = "h";
+  public static readonly FHIR_DAY_UNIT = "d";
+  public static readonly FHIR_WEEK_UNIT = "wk";
+  public static readonly FHIR_MONTH_UNIT = "mo";
+  public static readonly FHIR_YEAR_UNIT = "a";
+  public static readonly ALLOWED_UNITS = ["s", "min", "h"];
+  public static readonly ALLOWED_DURATION_UNITS = ["d", "wk", "mo", "a"];
+  public static readonly DAYS = "days";
+  public static readonly DAY = "day";
+  public static readonly YEARS = "years";
+  public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
 }
 export { Constants };

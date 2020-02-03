@@ -75,7 +75,7 @@ export class BaseDelete {
     }
     const deleteOptions: DeleteObjectParams = {
       permanent: requestParams.permanent,
-      requestId: requestParams.requestId,
+      requestLogRef: requestParams.requestLogRef,
       requestorProfileId: requestParams.requestorProfileId
     };
     await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
@@ -120,8 +120,8 @@ export class BaseDelete {
       log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
-      if (requestParams.requestId) {
-        record.meta.requestId = requestParams.requestId;
+      if (requestParams.requestLogRef) {
+        record.meta.requestLogRef = requestParams.requestLogRef;
       }
       if (requestParams.requestorProfileId) {
         record.meta.lastUpdatedBy = requestParams.requestorProfileId;
@@ -158,8 +158,8 @@ export class BaseDelete {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
         eachRecord.meta.lastUpdated = new Date().toISOString();
-        if (requestParams.requestId) {
-          eachRecord.meta.requestId = requestParams.requestId;
+        if (requestParams.requestLogRef) {
+          eachRecord.meta.requestLogRef = requestParams.requestLogRef;
         }
         if (requestParams.requestorProfileId) {
           eachRecord.meta.lastUpdatedBy = requestParams.requestorProfileId;
