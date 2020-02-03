@@ -549,8 +549,9 @@ export class TimingEventsGenerator {
       if (moment(cycleDayStartDateTime).isSameOrBefore(dateTime) && moment(cycleDayEndDateTime).isSameOrAfter(dateTime)) {
         let time;
         // if dateTime contains only date and time then format date according to that only
-        if ((moment(dateTime, Constants.DATE_TIME_ONLY, true).isValid())) {
-          time = moment.utc(dateTime)
+        if (moment(dateTime, Constants.DATE_TIME_ONLY, true).isValid()) {
+          time = moment
+            .utc(dateTime)
             .utcOffset(offset)
             .format("HH:mm:ss");
         } else {
@@ -633,7 +634,7 @@ export class TimingEventsGenerator {
           .add(365, Constants.DAYS)
           .utcOffset(offset);
         // if start contains only date and time then format end according to that only
-        if ((moment(start, Constants.DATE_TIME_ONLY, true).isValid())) {
+        if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
           end = end.format(Constants.DATE_TIME_ONLY);
         } else {
           end = end.toISOString();
@@ -698,13 +699,12 @@ export class TimingEventsGenerator {
         .day(dayOfWeek)
         .add(moment.duration(timeOfDay));
       // if start date contains only date and time then format date according to that only
-      if ((moment(start, Constants.DATE_TIME_ONLY, true).isValid())) {
+      if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
         date = date.format(Constants.DATE_TIME_ONLY);
       } else {
         // if format is of date only then format the date other wise return ISO string
         date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
       }
-
     } else {
       date = moment
         .utc(start)

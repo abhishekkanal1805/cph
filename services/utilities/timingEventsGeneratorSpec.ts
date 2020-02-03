@@ -7,8 +7,8 @@ import * as log from "lambda-log";
 import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
-  /*describe("#generateSIDEvents()", () => {
-    it("generate events based on cycle", async (done) => {
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on SID", async (done) => {
       const timing = {
         repeat: {
           count: 5,
@@ -22,31 +22,30 @@ describe("TimingEventsGenerator", () => {
         }
       };
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T12:00:00.000+02:00", "2021-01-28T12:00:00.000+02:00");
-      log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
-  /*describe("#generateSDYEvents()", () => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
     it("generate events daily", async (done) => {
       const timing = {
-        repeat : {
+        repeat: {
           count: 5,
           timeOfDay: ["08:10:00", "12:10:00"],
           period: 1,
           periodUnit: "d"
         }
-    };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29", null);
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29", "2020-06-29");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });*/
-  /*describe("#generateSDWEvents()", () => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
     it("generate events weekly", async (done) => {
       const timing = {
-        repeat : {
+        repeat: {
           count: 3,
           timeOfDay: ["08:10:00", "12:10:00"],
           period: 1,
@@ -54,14 +53,14 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "d"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000Z", null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-28T07:00:00.000Z", "2020-02-18T07:00:00.000Z");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
-  /*describe("#generateDateEventsFromTiming()", () => {
-    it("generate events", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on SDC", async (done) => {
       const timing = {
         repeat: {
           frequency: 4,
@@ -69,7 +68,6 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "d",
           dayOfCycle: [1],
           timeOfDay: ["02:00:00", "08:00:00", "14:00:00", "16:00:00"],
-          dayOfWeek: [],
           boundsPeriod: {
             start: "2020-01-14T12:00:00.000Z",
             end: "2020-01-15T23:59:59.000Z"
@@ -88,9 +86,9 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });*/
-  /*describe("", () => {
-    it("", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on SDC", async (done) => {
       const timing = {
         code: {
           text: "Code For SDC",
@@ -101,7 +99,7 @@ describe("TimingEventsGenerator", () => {
           ]
         },
         repeat: {
-          count: 5,
+          count: 1,
           duration: 28,
           durationUnit: "d",
           timeOfDay: ["08:00:00", "22:00:00"],
@@ -111,12 +109,12 @@ describe("TimingEventsGenerator", () => {
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
       log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(1);
+      expect(events.length).toBeGreaterThan(5);
       done();
     });
-  });*/
-  /*describe("#generateEventsBasedOnPeriod()", () => {
-    it("generate events", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on period", async (done) => {
       const timing = {
         repeat: {
           count: 4,
@@ -130,13 +128,12 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
-  /*describe("#generateDateEventsFromTiming()", () => {
-  /*describe("#generateEventsBasedOnDayOfWeek()", () => {
-    it("generate events", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on dayOfweek", async (done) => {
       const timing = {
         repeat: {
-          count: 2,
+          count: 10,
           frequency: 1,
           period: 1,
           periodUnit: "d",
@@ -148,9 +145,9 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
-  describe("#generateEventsBasedOnPeriod()", () => {
-    it("generate events", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on period for period unit as mo", async (done) => {
       const timing = {
         repeat: {
           count: 4,
@@ -159,52 +156,34 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "mo"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242", null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242", "2020-05-29T08:51:50.242");
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
   });
-  /*describe("#generateSDTEvents()", () => {
-    it("generate events", async (done) => {
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on events array", async (done) => {
       const timing = {
         event: ["2020-02-28T10:22:31.106Z"]
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-02-03T10:22:31.106Z", null);
       log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(1);
+      expect(events.length).toEqual(1);
       done();
     });
-  });*/
-  /*describe("", () => {
-    it("", async (done) => {
-      const timing = {
-        repeat: {
-          count: 5,
-          duration: 28,
-          durationUnit: "d",
-          dayOfCycle: [1, 2, 3, 4],
-          period: 1,
-          periodUnit: "d",
-          frequency: 1
-        }
-      };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000+02:00", "2020-02-29T12:00:00.000+02:00");
-      log.info("Events length: " + events.length);
-      log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(1);
-      done();
-    });
-  });*/
-  /*describe("", () => {
-    it("", async (done) => {
+  });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on SID", async (done) => {
       const timing = {
         code: {
           text: "Code For SID",
-          coding: [{
-            code: "SID",
-            display: "Specific Intervals"
-          }]
+          coding: [
+            {
+              code: "SID",
+              display: "Specific Intervals"
+            }
+          ]
         },
         repeat: {
           boundsPeriod: {
@@ -223,5 +202,5 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toBeGreaterThan(1);
       done();
     });
-  });*/
+  });
 });

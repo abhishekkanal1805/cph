@@ -264,7 +264,7 @@ export class TimingUtility {
     if (offset == 0) {
       date = moment.utc(inputDate).add(period, unit);
       // if start date contains only date and time then format date according to that only
-      if ((moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid())) {
+      if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
         date = date.format(Constants.DATE_TIME_ONLY);
       } else {
         // if format is of date only then format the date other wise return ISO string
