@@ -545,10 +545,20 @@ export class TimingEventsGenerator {
     while (moment(dateTime).isSameOrBefore(cycleDayEndDateTime)) {
       // add period to the date and check if generated time is less than the end of the day. If so then add time to the array.
       dateTime = this.generateDate(cycleDayStartDateTime, "", "", repeat.period, repeat.periodUnit, "", "", Constants.DATE_TIME, count++, offset);
+      // check if generated dateTime falls with cycleDayStartDateTime and cycleDayEndDateTime
       if (moment(cycleDayStartDateTime).isSameOrBefore(dateTime) && moment(cycleDayEndDateTime).isSameOrAfter(dateTime)) {
-        const time = moment(dateTime)
-          .utcOffset(offset)
-          .format("HH:mm:ss");
+        let time;
+        // if dateTime contains only date and time then format date according to that only
+        if (moment(dateTime, Constants.DATE_TIME_ONLY, true).isValid()) {
+          time = moment
+            .utc(dateTime)
+            .utcOffset(offset)
+            .format("HH:mm:ss");
+        } else {
+          time = moment(dateTime)
+            .utcOffset(offset)
+            .format("HH:mm:ss");
+        }
         // repeat frequency times
         for (let frequency = 0; frequency < repeat.frequency; frequency++) {
           timeOfDay.push(time);
@@ -619,11 +629,16 @@ export class TimingEventsGenerator {
       if (offset == 0) {
         // offset zero means start date is a zulu date and end date needs to have same offset as of start dare
         end = moment
-          .utc()
+          .utc(start)
           .endOf(Constants.DAY)
           .add(365, Constants.DAYS)
-          .utcOffset(offset)
-          .toISOString();
+          .utcOffset(offset);
+        // if start contains only date and time then format end according to that only
+        if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
+          end = end.format(Constants.DATE_TIME_ONLY);
+        } else {
+          end = end.toISOString();
+        }
       } else {
         // start date is utc date and end date needs to have same offset as of start date
         end = moment
@@ -683,8 +698,13 @@ export class TimingEventsGenerator {
         .endOf(endOfDay)
         .day(dayOfWeek)
         .add(moment.duration(timeOfDay));
-      // if format is of date only then format the date other wise return ISO string
-      date = (dateFormat === Constants.DATE) ? date.format(dateFormat) : date.toISOString();
+      // if start date contains only date and time then format date according to that only
+      if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
+        date = date.format(Constants.DATE_TIME_ONLY);
+      } else {
+        // if format is of date only then format the date other wise return ISO string
+        date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+      }
     } else {
       date = moment
         .utc(start)
