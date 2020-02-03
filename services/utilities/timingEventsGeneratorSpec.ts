@@ -168,9 +168,9 @@ describe("TimingEventsGenerator", () => {
   /*describe("#generateSDTEvents()", () => {
     it("generate events", async (done) => {
       const timing = {
-        event: ["2020-01-30T12:00:00.000Z", "2020-01-31T12:00:00.000", "2020-02-22T12:00:00.000Z"]
+        event: ["2020-02-28T10:22:31.106Z"]
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-22T23:59:59.000+02:00");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
