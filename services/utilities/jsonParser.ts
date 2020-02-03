@@ -93,7 +93,7 @@ export class JsonParser {
   /**
    * Find all references in payload
    * @param {any[]} records incomming records
-   * @param {string[]} [excludeElements] list of elements to be added in excludededPath for reference validation
+   * @param {string[]} [excludeElements] list of elements to be added in excludedPath for reference validation
    * @returns
    * @memberof JsonParser
    */
@@ -130,13 +130,13 @@ export class JsonParser {
               if (!isExcluded) {
                 referenceObj[resourceType][referenceObjectIndex].includedPath.push(traversePath);
               } else {
-                referenceObj[resourceType][referenceObjectIndex].excludededPath.push(traversePath);
+                referenceObj[resourceType][referenceObjectIndex].excludedPath.push(traversePath);
               }
             } else {
               referenceObj[resourceType].push({
                 id: resourceId,
                 includedPath: isExcluded ? [] : [traversePath],
-                excludededPath: isExcluded ? [traversePath] : []
+                excludedPath: isExcluded ? [traversePath] : []
               });
             }
             return;
