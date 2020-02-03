@@ -3,8 +3,8 @@
  */
 
 import "jasmine";
-// import * as log from "lambda-log";
-// import { TimingEventsGenerator } from "./timingEventsGenerator";
+import * as log from "lambda-log";
+import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
   /*describe("#generateSIDEvents()", () => {
@@ -27,7 +27,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("#generateSDYEvents()", () => {
     it("generate events daily", async (done) => {
       const timing = {
@@ -44,7 +43,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("#generateSDWEvents()", () => {
     it("generate events weekly", async (done) => {
       const timing = {
@@ -62,7 +60,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events", async (done) => {
       const timing = {
@@ -92,7 +89,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("", () => {
     it("", async (done) => {
       const timing = {
@@ -119,7 +115,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
@@ -136,7 +131,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("#generateDateEventsFromTiming()", () => {
   /*describe("#generateEventsBasedOnDayOfWeek()", () => {
     it("generate events", async (done) => {
@@ -155,8 +149,7 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
-  /*describe("#generateEventsBasedOnPeriod()", () => {
+  describe("#generateEventsBasedOnPeriod()", () => {
     it("generate events", async (done) => {
       const timing = {
         repeat: {
@@ -166,12 +159,12 @@ describe("TimingEventsGenerator", () => {
           periodUnit: "mo"
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242Z", null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242", null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
+      done();
     });
-  });*/
-
+  });
   /*describe("#generateSDTEvents()", () => {
     it("generate events", async (done) => {
       const timing = {
@@ -183,7 +176,6 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });*/
-
   /*describe("", () => {
     it("", async (done) => {
       const timing = {
@@ -197,14 +189,13 @@ describe("TimingEventsGenerator", () => {
           frequency: 1
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000+02:00", "2020-02-29T12:00:00.000+02:00");
       log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
   });*/
-
   /*describe("", () => {
     it("", async (done) => {
       const timing = {
