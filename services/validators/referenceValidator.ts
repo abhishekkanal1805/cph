@@ -60,11 +60,7 @@ export class ReferenceValidator {
     }
     // promise all to run in parallel.
     log.info("Firing bulk search query for all promises :: validateElementsReference()");
-    await Promise.all(allPromise)
-      .catch((error) => {
-        log.error("Error occured in validateElementsReference", error);
-        throw new BadRequestResult(error.errorCode, error.description);
-      });
+    await Promise.all(allPromise);
     log.info("Exiting ReferenceValidator :: validateElementsReference()");
   }
 
@@ -82,7 +78,7 @@ export class ReferenceValidator {
         log.error("Error occoured in validateReferenceValue, tablename not present for resourceType: " + resourceType);
         throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
-      let searchQuery = `SELECT count(id) FROM '${tableName}' WHERE id in (:id) and CAST(("ResearchSubject"."meta"#>>'{isDeleted}') AS BOOLEAN) = false`;
+      let searchQuery = `SELECT count(id) FROM "${tableName}" WHERE id in (:id) and CAST(("meta"#>>'{isDeleted}') AS BOOLEAN) = false`;
       const replacementValues: any = { id: resourceIds };
       if (resourceType === Constants.USER_PROFILE) {
         log.info("Validating UserProfile reference");
@@ -97,12 +93,12 @@ export class ReferenceValidator {
         .then((results) => {
           if (results[0].count != [...new Set(resourceIds)].length) {
             log.error("Error occoured in validateReferenceValue, record not present for all resourceIds of " + resourceType);
-            throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + resourceType);
+            throw new BadRequestResult(errorCodeMap.InvalidReferenceValue.value, errorCodeMap.InvalidReferenceValue.description + resourceType);
           }
         });
     } catch (err) {
-      log.error("Error occoured in validateReferenceInDB", err);
-      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      log.error("Error occoured in validateReferenceValue", err);
+      throw new BadRequestResult(err.errorCode, err.description);
     }
     log.info("Exiting ReferenceValidator :: validateReferenceValue()");
   }
