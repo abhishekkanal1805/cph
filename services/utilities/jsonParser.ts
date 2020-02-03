@@ -101,10 +101,14 @@ export class JsonParser {
     excludeElements = excludeElements || [];
     const isElementPartOfExcludList = (elementPath) => {
       elementPath = elementPath.join(Constants.DOT_VALUE);
+      // console.log("excludeElements", JSON.stringify(excludeElements));
+      // console.log("elementPath", elementPath);
       return excludeElements.indexOf(elementPath) == -1 ? false : true;
     };
     const getReferencesMapping = (payload, referenceObj, currPath, prevPath) => {
-      let isExcluded = isElementPartOfExcludList(currentPath);
+      if (isElementPartOfExcludList(currPath)) {
+        isExcluded = true;
+      }
       let traversePath;
       for (const element in payload) {
         if (!payload[element]) {
@@ -122,9 +126,9 @@ export class JsonParser {
             if (!referenceObj[resourceType]) {
               referenceObj[resourceType] = [];
             }
-            prevPath = Object.assign([], currentPath);
-            currentPath.push(element);
-            traversePath = currentPath.join(Constants.DOT_VALUE);
+            prevPath = Object.assign([], currPath);
+            currPath.push(element);
+            traversePath = currPath.join(Constants.DOT_VALUE);
             const referenceObjectIndex = _.findIndex(referenceObj[resourceType], { id: resourceId });
             if (referenceObjectIndex > -1) {
               if (!isExcluded) {
@@ -143,13 +147,16 @@ export class JsonParser {
           }
         } else {
           currPath = Object.assign([], prevPath);
-          isExcluded = isElementPartOfExcludList(currentPath);
+          if (isElementPartOfExcludList(currPath)) {
+            isExcluded = true;
+          }
         }
       }
     };
     const currentPath = [];
     const previousPath = [];
     const referenceMapping = {};
+    let isExcluded = false;
     getReferencesMapping(records, referenceMapping, currentPath, previousPath);
     return referenceMapping;
   }
