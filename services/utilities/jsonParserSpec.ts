@@ -108,13 +108,15 @@ describe("JsonParser", () => {
 
   describe("#findAllReferences()", () => {
     it("Get all references from input payload", (done) => {
-      const testRecord =  {abcd1: [{abcd2: {abcd3: {reference: "a/123"}}, xyz: "v/123"}]};
+      const testRecord = { abcd1: [{ abcd2: { abcd3: { reference: "a/123" } }, xyz: "v/123" }] };
       const expectedResult = {
-        a: [{
-          id: "123",
-          includedPath: ["abcd1.[0].abcd2.abcd3.reference"],
-          excludedPath: []
-        }]
+        a: [
+          {
+            id: "123",
+            includedPath: ["abcd1.[0].abcd2.abcd3.reference"],
+            excludedPath: []
+          }
+        ]
       };
       let result;
       try {
@@ -127,18 +129,22 @@ describe("JsonParser", () => {
     });
 
     it("Get all references from input payload for different references", (done) => {
-      const testRecord =  {abcd1: [{abcd2: {abcd3: {reference: "a/123"}}, xyz: {reference: "v/456"}}]};
+      const testRecord = { abcd1: [{ abcd2: { abcd3: { reference: "a/123" } }, xyz: { reference: "v/456" } }] };
       const expectedResult = {
-        a: [{
-          id: "123",
-          includedPath: ["abcd1.[0].abcd2.abcd3.reference"],
-          excludedPath: []
-        }],
-        v: [{
-          id: "456",
-          includedPath: ["abcd1.[0].xyz.reference"],
-          excludedPath: []
-        }]
+        a: [
+          {
+            id: "123",
+            includedPath: ["abcd1.[0].abcd2.abcd3.reference"],
+            excludedPath: []
+          }
+        ],
+        v: [
+          {
+            id: "456",
+            includedPath: ["abcd1.[0].xyz.reference"],
+            excludedPath: []
+          }
+        ]
       };
       let result;
       try {
@@ -151,13 +157,15 @@ describe("JsonParser", () => {
     });
 
     it("Get all references from input payload for same references", (done) => {
-      const testRecord =  {abcd1: [{abcd2: {abcd3: {reference: "a/123"}}, xyz: {reference: "a/123"}}]};
+      const testRecord = { abcd1: [{ abcd2: { abcd3: { reference: "a/123" } }, xyz: { reference: "a/123" } }] };
       const expectedResult = {
-        a: [{
-          id: "123",
-          includedPath: ["abcd1.[0].abcd2.abcd3.reference", "abcd1.[0].xyz.reference"],
-          excludedPath: []
-        }]
+        a: [
+          {
+            id: "123",
+            includedPath: ["abcd1.[0].abcd2.abcd3.reference", "abcd1.[0].xyz.reference"],
+            excludedPath: []
+          }
+        ]
       };
       let result;
       try {
@@ -170,13 +178,15 @@ describe("JsonParser", () => {
     });
 
     it("Get all references from input array payload", (done) => {
-      const testRecord =  [{abcd1: [{abcd2: {abcd3: {reference: "a/123"}}}]}, {abcd1: [{xyz:  {reference: "a/123"}}]}];
+      const testRecord = [{ abcd1: [{ abcd2: { abcd3: { reference: "a/123" } } }] }, { abcd1: [{ xyz: { reference: "a/123" } }] }];
       const expectedResult = {
-        a: [{
-          id: "123",
-          includedPath: ["[0].abcd1.[0].abcd2.abcd3.reference", "[1].abcd1.[0].xyz.reference"],
-          excludedPath: []
-        }]
+        a: [
+          {
+            id: "123",
+            includedPath: ["[0].abcd1.[0].abcd2.abcd3.reference", "[1].abcd1.[0].xyz.reference"],
+            excludedPath: []
+          }
+        ]
       };
       let result;
       try {
@@ -189,13 +199,15 @@ describe("JsonParser", () => {
     });
 
     it("Get all references from input payload for exclude list", (done) => {
-      const testRecord =  {abcd1: [{abcd2: {abcd3: {reference: "a/123"}}, xyz: {reference: "a/123"}}]};
+      const testRecord = { abcd1: [{ abcd2: { abcd3: { reference: "a/123" } }, xyz: { reference: "a/123" } }] };
       const expectedResult = {
-        a: [{
-          id: "123",
-          excludedPath: ["abcd1.[0].abcd2.abcd3.reference", "abcd1.[0].xyz.reference"],
-          includedPath: []
-        }]
+        a: [
+          {
+            id: "123",
+            excludedPath: ["abcd1.[0].abcd2.abcd3.reference", "abcd1.[0].xyz.reference"],
+            includedPath: []
+          }
+        ]
       };
       const excludeElements = ["abcd1.[0]"];
       let result;
@@ -209,13 +221,15 @@ describe("JsonParser", () => {
     });
 
     it("Get all references from input payload array for exclude list", (done) => {
-      const testRecord =  [{abcd1: [{abcd2: {abcd3: {reference: "a/123"}}, xyz: {reference: "a/123"}}]}];
+      const testRecord = [{ abcd1: [{ abcd2: { abcd3: { reference: "a/123" } }, xyz: { reference: "a/123" } }] }];
       const expectedResult = {
-        a: [{
-          id: "123",
-          includedPath: ["[0].abcd1.[0].abcd2.abcd3.reference"],
-          excludedPath: ["[0].abcd1.[0].xyz.reference"]
-        }]
+        a: [
+          {
+            id: "123",
+            includedPath: ["[0].abcd1.[0].abcd2.abcd3.reference"],
+            excludedPath: ["[0].abcd1.[0].xyz.reference"]
+          }
+        ]
       };
       const excludeElements = ["[0].abcd1.[0].xyz"];
       let result;

@@ -78,7 +78,7 @@ export class ReferenceValidator {
         log.error("Error occoured in validateReferenceValue, tablename not present for resourceType: " + resourceType);
         throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
       }
-      let searchQuery = `SELECT count(id) FROM "${tableName}" WHERE id in (:id) and CAST(("meta"#>>'{isDeleted}') AS BOOLEAN) = false`;
+      let searchQuery = `SELECT distinct(id) FROM "${tableName}" WHERE id in (:id) and CAST(("meta"#>>'{isDeleted}') AS BOOLEAN) = false`;
       const replacementValues: any = { id: resourceIds };
       if (resourceType === Constants.USER_PROFILE) {
         log.info("Validating UserProfile reference");
@@ -91,9 +91,12 @@ export class ReferenceValidator {
           type: sequelize.QueryTypes.SELECT
         })
         .then((results) => {
-          if (results[0].count != [...new Set(resourceIds)].length) {
-            log.error("Error occoured in validateReferenceValue, record not present for all resourceIds of " + resourceType);
-            throw new BadRequestResult(errorCodeMap.InvalidReferenceValue.value, errorCodeMap.InvalidReferenceValue.description + resourceType);
+          const activeRecordIds = results.map((eachRecord) => eachRecord.id);
+          const invalidReferences = resourceIds.filter((recordId) => !activeRecordIds.includes(recordId));
+          if (invalidReferences.length) {
+            const errorMessage = invalidReferences.map((recordId) => [resourceType, recordId].join(Constants.FORWARD_SLASH));
+            log.error("Error occoured in validateReferenceValue, request contains invalid reference of " + errorMessage);
+            throw new BadRequestResult(errorCodeMap.InvalidReferenceValue.value, errorCodeMap.InvalidReferenceValue.description + errorMessage);
           }
         });
     } catch (err) {
