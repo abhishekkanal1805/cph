@@ -62,7 +62,10 @@ export class TimingUtility {
         dateArray.push(repeat.boundsPeriod.end);
       }
       if (repeat.boundsDuration && repeat.boundsDuration.value) {
-        dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.boundsDuration.value - 1, repeat.boundsDuration.code));
+        let bdValue = repeat.boundsDuration.value;
+        const bdCode = repeat.boundsDuration.code;
+        bdValue = (["s", "min", "h", "d"].includes(bdCode)) ? bdValue - 1 : bdValue;
+        dateArray.push(TimingUtility.addMomentDuration(startDate, bdValue, bdCode));
       }
     }
     if (code && repeat.count) {
