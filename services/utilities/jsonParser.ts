@@ -98,6 +98,7 @@ export class JsonParser {
    * @memberof JsonParser
    */
   public static findAllReferences(records: any, excludeElements?: string[]): any {
+    log.info("Entering JsonParser :: findAllReferences()");
     excludeElements = excludeElements || [];
     const isElementPartOfExcludList = (elementPath) => {
       elementPath = elementPath.join(Constants.DOT_VALUE);
@@ -158,6 +159,7 @@ export class JsonParser {
     const referenceMapping = {};
     let isExcluded = false;
     getReferencesMapping(records, referenceMapping, currentPath, previousPath);
+    log.info("Exiting JsonParser :: findAllReferences()");
     return referenceMapping;
   }
 }
