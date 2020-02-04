@@ -255,20 +255,24 @@ export class TimingUtility {
    * @param periodUnit
    * @returns date
    */
-  public static addMomentDuration(date, period, periodUnit) {
+  public static addMomentDuration(inputDate, period, periodUnit) {
     log.info("Entering TimingUtility.addMomentDuration()");
-    const offset = moment.parseZone(date).utcOffset();
+    let date;
+    const offset = moment.parseZone(inputDate).utcOffset();
     const unit = config.unitsMap[periodUnit];
-    const dateFormat = moment(date, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+    const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     if (offset == 0) {
-      date = moment
-        .utc(date)
-        .add(period, unit);
-      // if format is of date only then format the date other wise return ISO string
-      date = (dateFormat === Constants.DATE) ? date.format(dateFormat) : date.toISOString();
+      date = moment.utc(inputDate).add(period, unit);
+      // if start date contains only date and time then format date according to that only
+      if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
+        date = date.format(Constants.DATE_TIME_ONLY);
+      } else {
+        // if format is of date only then format the date other wise return ISO string
+        date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+      }
     } else {
       date = moment
-        .utc(date)
+        .utc(inputDate)
         .add(period, unit)
         .utcOffset(offset)
         .format(Constants.DATE_TIME);

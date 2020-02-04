@@ -293,5 +293,6 @@ class Constants {
   public static readonly DAYS = "days";
   public static readonly DAY = "day";
   public static readonly YEARS = "years";
+  public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
 }
 export { Constants };
