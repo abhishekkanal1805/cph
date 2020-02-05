@@ -18,6 +18,7 @@ export * from "./services/utilities/queryGenerator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";
 export * from "./services/utilities/dataTransform";
+export * from "./services/utilities/referenceUtility";
 export * from "./services/utilities/sharingRulesHelper";
 export { GenericResponse } from "./services/common/genericResponse";
 export * from "./services/common/s3Service";
