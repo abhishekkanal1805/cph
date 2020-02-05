@@ -574,10 +574,10 @@ describe("AuthService", () => {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         const result = await AuthService.hasConnection(testToId, testFromId, testProfileTypes, testConnectionStatuses);
         // verify that the provided params are used in query options
-        expect(capturedQueryOptions.where["to.reference"]).toBe(Constants.USERPROFILE_REFERENCE + testToId);
-        expect(capturedQueryOptions.where["from.reference"]).toBe(Constants.USERPROFILE_REFERENCE + testToId);
-        expect(capturedQueryOptions.where["type"]).toBe(testProfileTypes);
-        expect(capturedQueryOptions.where["status"]).toBe(testConnectionStatuses);
+        expect(capturedQueryOptions.where.from.reference).toBe(Constants.USERPROFILE_REFERENCE + testToId);
+        expect(capturedQueryOptions.where.from.reference).toBe(Constants.USERPROFILE_REFERENCE + testToId);
+        expect(capturedQueryOptions.where.type).toBe(testProfileTypes);
+        expect(capturedQueryOptions.where.status).toBe(testConnectionStatuses);
         expect(result).toEqual([expectedConnectionResource]);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);
@@ -603,10 +603,10 @@ describe("AuthService", () => {
         // the provided id/references need to match ones expected to be returned by the mocked DataFetch
         const result = await AuthService.hasConnection(testToReference, testFromReference, testProfileTypes, testConnectionStatuses);
         // verify that the provided params are used in query options
-        expect(capturedQueryOptions.where["to.reference"]).toBe(testToReference);
-        expect(capturedQueryOptions.where["from.reference"]).toBe(testFromReference);
-        expect(capturedQueryOptions.where["type"]).toBe(testProfileTypes);
-        expect(capturedQueryOptions.where["status"]).toBe(testConnectionStatuses);
+        expect(capturedQueryOptions.where.to.reference).toBe(testToReference);
+        expect(capturedQueryOptions.where.to.reference).toBe(testFromReference);
+        expect(capturedQueryOptions.where.type).toBe(testProfileTypes);
+        expect(capturedQueryOptions.where.status).toBe(testConnectionStatuses);
         expect(result).toEqual([expectedConnectionResource]);
       } catch (err) {
         done.fail("Unexpected error thrown: " + err.message);

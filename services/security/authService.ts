@@ -17,6 +17,7 @@ import { DAOService } from "../dao/daoService";
 import { PolicyManager } from "../policy/policyManager";
 import { SubjectAccessRequest } from "../policy/subjectAccessRequest";
 import { DataFetch } from "../utilities/dataFetch";
+import { ReferenceUtility } from "../utilities/referenceUtility";
 import { AuthorizationRequest } from "./authorizationRequest";
 
 export class AuthService {
@@ -365,9 +366,9 @@ export class AuthService {
    */
   public static async hasConnection(from: string, to: string, type: string[], status: string[]) {
     log.info("Inside AuthService :: hasConnection()");
-    // In connection we store from and to attribute in UserProfile/uuid
-    from = from.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + from : from;
-    to = to.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + to : to;
+    // In connection we store from and to values as UserProfile references
+    from = ReferenceUtility.convertToResourceReference(from, Constants.USERPROFILE_REFERENCE);
+    to = ReferenceUtility.convertToResourceReference(to, Constants.USERPROFILE_REFERENCE);
     // TODO: should we check on the requestExpirationDate
     const queryOptions: IFindOptions<Connection> = {
       where: {
@@ -669,23 +670,16 @@ export class AuthService {
   public static async getFilteredQueryParameter(requesterProfileId: string, resourceOwnerElement: string, requestedProfiles: string[], accessType) {
     let selfOwnedReferences = [];
 
-    const uniqueSubjectReferences = _.uniq(
-      _.filter(requestedProfiles, (profileReference) => {
-        return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
-      })
-    );
+    const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requestedProfiles, Constants.RESEARCHSUBJECT_REFERENCE);
 
-    // making the the provided id is converted to Reference
-    const requesterProfileReference =
-      requesterProfileId.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + requesterProfileId : requesterProfileId;
+    // making sure the provided id is converted to Reference
+    const requesterProfileReference = ReferenceUtility.convertToResourceReference(requesterProfileId, Constants.USERPROFILE_REFERENCE);
 
     if (uniqueSubjectReferences.length) {
       const individualReference = [Constants.DEFAULT_SEARCH_ATTRIBUTES, Constants.INDIVIDUAL_REFERENCE_KEY].join(Constants.DOT_VALUE);
       // lookup all subjects against the requester's UserProfile
       let whereClause = {
-        [Constants.ID]: _.map(uniqueSubjectReferences, (researchSubjectReference) => {
-          return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
-        }),
+        [Constants.ID]: ReferenceUtility.convertToResourceIds(uniqueSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
         [individualReference]: requesterProfileReference,
         [Constants.META_IS_DELETED_KEY]: false
       };
@@ -693,14 +687,10 @@ export class AuthService {
       if (criteria) {
         whereClause = Object.assign(whereClause, criteria);
       }
-      selfOwnedReferences = await DAOService.search(ResearchSubject, { where: whereClause });
-      selfOwnedReferences = _.map(selfOwnedReferences, Constants.ID).filter(Boolean);
+      const subjectResources = await DAOService.search(ResearchSubject, { where: whereClause });
+      const subjectIds = _.map(subjectResources, Constants.ID).filter(Boolean);
       // convert IDs to references
-      selfOwnedReferences = selfOwnedReferences.map((researchSubjectProfile) => {
-        return researchSubjectProfile.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) == -1
-          ? Constants.RESEARCHSUBJECT_REFERENCE + researchSubjectProfile
-          : researchSubjectProfile;
-      });
+      selfOwnedReferences = ReferenceUtility.convertToResourceReferences(subjectIds, Constants.RESEARCHSUBJECT_REFERENCE);
     }
 
     // if the self profile reference is present in requested list, keep it else we dont assume the requester wants his own data
