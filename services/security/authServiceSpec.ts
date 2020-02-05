@@ -10,7 +10,7 @@ import { DAOService } from "../dao/daoService";
 import { UserProfileRepositoryStub } from "../dao/userProfileRepositoryStub";
 import { DataFetch } from "../utilities/dataFetch";
 import { DataFetchStub } from "../utilities/dataFetchStub";
-import {AuthorizationRequest} from "./authorizationRequest";
+import { AuthorizationRequest } from "./authorizationRequest";
 import { AuthService } from "./authService";
 
 const expectedError: Error = new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);

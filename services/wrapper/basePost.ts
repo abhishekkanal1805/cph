@@ -81,7 +81,7 @@ export class BasePost {
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       // TODO: If this returns a connection should we check the sharing rules to make sure if the requester is authorized to perform this action
       // we are here means we have exactly one owner and infoSource reference
-      await AuthService.authorizeRequestSharingRules( {
+      await AuthService.authorizeRequestSharingRules({
         requester: requestParams.requestorProfileId,
         informationSourceReference: informationSourceReferences[0],
         ownerReference: ownerReferences[0],

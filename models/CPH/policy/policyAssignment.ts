@@ -2,8 +2,8 @@
  * Copyright © 2019 Deloitte. All rights reserved.
  */
 
-import {Column, DataType, Model, Table} from "sequelize-typescript";
-import {PolicyAssignmentDataResource} from "./policyAssignmentDataResource";
+import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { PolicyAssignmentDataResource } from "./policyAssignmentDataResource";
 
 /**
  * Internal table for managing policy assignments to a user
@@ -23,18 +23,17 @@ import {PolicyAssignmentDataResource} from "./policyAssignmentDataResource";
 
 @Table({ tableName: "PolicyAssignment" })
 class PolicyAssignment extends Model<PolicyAssignment> {
-    @Column({ type: DataType.UUID, primaryKey: true })
-    id: string;
+  @Column({ type: DataType.UUID, primaryKey: true })
+  id: string;
 
-    @Column({ type: DataType.STRING, allowNull: false})
-    principal: string;
+  @Column({ type: DataType.STRING, allowNull: false })
+  principal: string;
 
-    @Column({ type: DataType.STRING, allowNull: false})
-    resourceScopeReference: string;
+  @Column({ type: DataType.STRING, allowNull: false })
+  resourceScopeReference: string;
 
-    @Column({ type: DataType.JSONB })
-    dataResource: PolicyAssignmentDataResource;
-
+  @Column({ type: DataType.JSONB })
+  dataResource: PolicyAssignmentDataResource;
 }
 
 export { PolicyAssignment };

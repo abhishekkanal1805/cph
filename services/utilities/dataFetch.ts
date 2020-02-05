@@ -6,7 +6,7 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Op } from "sequelize";
-import {IFindOptions} from "sequelize-typescript";
+import { IFindOptions } from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
