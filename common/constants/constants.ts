@@ -297,5 +297,6 @@ class Constants {
   public static readonly DAY = "day";
   public static readonly YEARS = "years";
   public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
+  public static readonly DURATION_UNITS = ["s", "min", "h", "d"];
 }
 export { Constants };
