@@ -5,18 +5,19 @@
 import * as log from "lambda-log";
 import * as _ from "lodash";
 import { Op } from "sequelize";
-import {IFindOptions} from "sequelize-typescript";
+import { IFindOptions } from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { Connection } from "../../models/CPH/connection/connection";
 import { OrganizationLevelDefaults } from "../../models/CPH/OrganizationLevelDefaults/OrganizationLevelDefaults";
+import { PolicyDataResource } from "../../models/CPH/policy/policyDataResource";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
-import {PolicyManager} from "../policy/policyManager";
-import {SubjectAccessRequest} from "../policy/subjectAccessRequest";
+import { PolicyManager } from "../policy/policyManager";
+import { SubjectAccessRequest } from "../policy/subjectAccessRequest";
 import { DataFetch } from "../utilities/dataFetch";
-import {AuthorizationRequest} from "./authorizationRequest";
+import { AuthorizationRequest } from "./authorizationRequest";
 
 export class AuthService {
   /**
@@ -116,25 +117,34 @@ export class AuthService {
    *  If [connection] is returned then the access should be determined be evaluating the connection's sharing rules
    */
   public static async authorizeRequestSharingRules(authorizationRequest: AuthorizationRequest) {
-    log.info("Entering AuthService :: authorizeRequestSharingRules() requester=" + authorizationRequest.requester +
-        ", ownerReference=" + authorizationRequest.ownerReference + ", ");
+    log.info(
+      "Entering AuthService :: authorizeRequestSharingRules() requester=" +
+        authorizationRequest.requester +
+        ", ownerReference=" +
+        authorizationRequest.ownerReference +
+        ", "
+    );
     // if ownerReference is researchSubject save it for policy check
-    const ownerOrignalSubjectReference: string = (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) ?
-        authorizationRequest.ownerReference : null;
+    const ownerOrignalSubjectReference: string =
+      authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 ? authorizationRequest.ownerReference : null;
     // builds a condition for querying ResearchSubject. Example: status: { [Op.notIn]: ["withdrawn", "ineligible", "not-registered"] }
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
     // returns a maps of RS reference to the corresponding profile
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(
-        authorizationRequest.ownerReference, authorizationRequest.informationSourceReference, researchSubjectCriteria);
+      authorizationRequest.ownerReference,
+      authorizationRequest.informationSourceReference,
+      researchSubjectCriteria
+    );
 
     // reset the Request's informationSourceReference with UserProfile reference if ResearchSubject was provided
-    authorizationRequest.informationSourceReference = researchSubjectProfiles[authorizationRequest.informationSourceReference] ?
-        researchSubjectProfiles[authorizationRequest.informationSourceReference] :
-        authorizationRequest.informationSourceReference;
+    authorizationRequest.informationSourceReference = researchSubjectProfiles[authorizationRequest.informationSourceReference]
+      ? researchSubjectProfiles[authorizationRequest.informationSourceReference]
+      : authorizationRequest.informationSourceReference;
 
     // reset the Request's ownerReference with UserProfile reference if ResearchSubject was provided
-    authorizationRequest.ownerReference = researchSubjectProfiles[authorizationRequest.ownerReference] ?
-        researchSubjectProfiles[authorizationRequest.ownerReference] : authorizationRequest.ownerReference;
+    authorizationRequest.ownerReference = researchSubjectProfiles[authorizationRequest.ownerReference]
+      ? researchSubjectProfiles[authorizationRequest.ownerReference]
+      : authorizationRequest.ownerReference;
 
     // by now the ownerRef and infoSrcRef are both UserProfile
     const informationSourceId = authorizationRequest.informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
@@ -171,22 +181,23 @@ export class AuthService {
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
     if (ownerOrignalSubjectReference && authorizationRequest.resourceAction) {
-        log.info("AuthService::authorizeRequestSharingRules() Owner is ResearchSubject, checking for policy based access.");
-        const accessRequest: SubjectAccessRequest = {
-            requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
-            subjectReference: ownerOrignalSubjectReference,
-            resourceAction: authorizationRequest.resourceAction
-        };
-        const grantedPolicies = await PolicyManager.requestSubjectScopedAccess(accessRequest);
-        log.info("Granted policies = " + JSON.stringify(grantedPolicies));
-        if (grantedPolicies && grantedPolicies.length > 0) {
-            log.info("Exiting AuthService, Policy based access was granted :: authorizeRequestSharingRules()");
-            return [];
-        } else {
-            log.info("AuthService::authorizeRequestSharingRules() Policy based access was not granted, checking for connection based access.");
-        }
+      log.info("AuthService::authorizeRequestSharingRules() Owner is ResearchSubject, checking for policy based access.");
+      const accessRequest: SubjectAccessRequest = {
+        requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
+        subjectReferences: [ownerOrignalSubjectReference],
+        resourceAction: authorizationRequest.resourceAction
+      };
+      const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      if (grantedPolicies && grantedPolicies.has(ownerOrignalSubjectReference)) {
+        log.info("Exiting AuthService, Policy based access was granted :: authorizeRequestSharingRules()");
+        return [];
+      } else {
+        log.info("AuthService::authorizeRequestSharingRules() Policy based access was not granted, checking for connection based access.");
+      }
     } else {
-        log.info("AuthService::authorizeRequestSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
+      log.info(
+        "AuthService::authorizeRequestSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
+      );
     }
 
     // check 6. Check for connection between requester and requestee
@@ -268,14 +279,13 @@ export class AuthService {
    * @returns/
    * @memberof AuthService
    */
-  public static async authorizeConnectionBasedSharingRules(authorizationRequest: AuthorizationRequest
-  ) {
+  public static async authorizeConnectionBasedSharingRules(authorizationRequest: AuthorizationRequest) {
     log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
-    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(
-        authorizationRequest.ownerReference, null, researchSubjectCriteria);
-    const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference] ?
-        researchSubjectProfiles[authorizationRequest.ownerReference] : authorizationRequest.ownerReference;
+    const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(authorizationRequest.ownerReference, null, researchSubjectCriteria);
+    const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference]
+      ? researchSubjectProfiles[authorizationRequest.ownerReference]
+      : authorizationRequest.ownerReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [authorizationRequest.requester, requesteeId];
     // query userprofile for the unique profile ids
@@ -287,7 +297,10 @@ export class AuthService {
     }
     // reaches here if requester and requestee are both valid
     // check 2: if requester should be system user then allow access
-    if (fetchedProfiles[authorizationRequest.requester] && fetchedProfiles[authorizationRequest.requester].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+    if (
+      fetchedProfiles[authorizationRequest.requester] &&
+      fetchedProfiles[authorizationRequest.requester].profileType.toLowerCase() === Constants.SYSTEM_USER
+    ) {
       log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
       return [];
     }
@@ -307,23 +320,24 @@ export class AuthService {
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    if ((authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1) && authorizationRequest.resourceAction) {
+    if (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 && authorizationRequest.resourceAction) {
       log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
-        subjectReference: authorizationRequest.ownerReference,
+        subjectReferences: [authorizationRequest.ownerReference],
         resourceAction: authorizationRequest.resourceAction
       };
-      const grantedPolicies = await PolicyManager.requestSubjectScopedAccess(accessRequest);
-      log.info("Granted policies = " + JSON.stringify(grantedPolicies));
-      if (grantedPolicies && grantedPolicies.length > 0) {
+      const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      if (grantedPolicies && grantedPolicies.has(authorizationRequest.ownerReference)) {
         log.info("Exiting AuthService, Policy based access was granted :: authorizeConnectionBasedSharingRules()");
         return [];
       } else {
         log.info("AuthService::authorizeConnectionBasedSharingRules() Policy based access was not granted, checking for connection based access.");
       }
     } else {
-      log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
+      log.info(
+        "AuthService::authorizeConnectionBasedSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
+      );
     }
 
     // check 6. if we reached here then a connection has to exist between requester and requestee
@@ -589,6 +603,7 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return [];
     }
+    // TODO: can we check policies here for subjects here
 
     // check 6. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
@@ -599,6 +614,7 @@ export class AuthService {
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("Exiting AuthService, requester and requestee are connected  :: authorizeMultipleConnectionsBasedSharingRules");
+    // we need to return the connections and granted subjects
     return connections;
   }
 
@@ -643,52 +659,58 @@ export class AuthService {
    * add them them to the return
    *
    * @static
-   * @param {string} requestorProfileId loggedin user Id
+   * @param {string} requesterProfileId loggedin user Id
    * @param {string} resourceOwnerElement Owner element for a resource
    * @param {string[]} requestedProfiles requested search profiles
    * @param {*} accessType service access type
    * @returns
    * @memberof AuthService
    */
-  public static async getFilteredQueryParameter(requestorProfileId: string, resourceOwnerElement: string, requestedProfiles: string[], accessType) {
-    let researchSubjectProfiles = [];
-    const filteredQueryParameter = {};
-    const researchSubjectReferences = _.uniq(
+  public static async getFilteredQueryParameter(requesterProfileId: string, resourceOwnerElement: string, requestedProfiles: string[], accessType) {
+    let selfOwnedReferences = [];
+
+    const uniqueSubjectReferences = _.uniq(
       _.filter(requestedProfiles, (profileReference) => {
         return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
       })
     );
-    const requestorProfileIdReference =
-      requestorProfileId.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + requestorProfileId : requestorProfileId;
 
-    if (researchSubjectReferences.length) {
+    // making the the provided id is converted to Reference
+    const requesterProfileReference =
+      requesterProfileId.indexOf(Constants.USERPROFILE_REFERENCE) == -1 ? Constants.USERPROFILE_REFERENCE + requesterProfileId : requesterProfileId;
+
+    if (uniqueSubjectReferences.length) {
       const individualReference = [Constants.DEFAULT_SEARCH_ATTRIBUTES, Constants.INDIVIDUAL_REFERENCE_KEY].join(Constants.DOT_VALUE);
       // lookup all subjects against the requester's UserProfile
       let whereClause = {
-        [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
+        [Constants.ID]: _.map(uniqueSubjectReferences, (researchSubjectReference) => {
           return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
         }),
-        [individualReference]: requestorProfileIdReference,
+        [individualReference]: requesterProfileReference,
         [Constants.META_IS_DELETED_KEY]: false
       };
       const criteria = this.getResearchSubjectFilterCriteria(accessType);
       if (criteria) {
         whereClause = Object.assign(whereClause, criteria);
       }
-      researchSubjectProfiles = await DAOService.search(ResearchSubject, { where: whereClause });
-      researchSubjectProfiles = _.map(researchSubjectProfiles, Constants.ID).filter(Boolean);
-      researchSubjectProfiles = researchSubjectProfiles.map((researchSubjectProfile) => {
+      selfOwnedReferences = await DAOService.search(ResearchSubject, { where: whereClause });
+      selfOwnedReferences = _.map(selfOwnedReferences, Constants.ID).filter(Boolean);
+      // convert IDs to references
+      selfOwnedReferences = selfOwnedReferences.map((researchSubjectProfile) => {
         return researchSubjectProfile.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) == -1
           ? Constants.RESEARCHSUBJECT_REFERENCE + researchSubjectProfile
           : researchSubjectProfile;
       });
     }
+
     // if the self profile reference is present in requested list, keep it else we dont assume the requester wants his own data
-    if (requestedProfiles.indexOf(requestorProfileIdReference) > -1) {
-      researchSubjectProfiles.push(requestorProfileIdReference);
+    if (requestedProfiles.indexOf(requesterProfileReference) > -1) {
+      selfOwnedReferences.push(requesterProfileReference);
     }
-    if (researchSubjectProfiles && researchSubjectProfiles.length > 0) {
-      filteredQueryParameter[resourceOwnerElement] = [researchSubjectProfiles.join(Constants.COMMA_VALUE)].filter(Boolean);
+
+    const filteredQueryParameter = {};
+    if (selfOwnedReferences && selfOwnedReferences.length > 0) {
+      filteredQueryParameter[resourceOwnerElement] = [selfOwnedReferences.join(Constants.COMMA_VALUE)].filter(Boolean);
     }
     return filteredQueryParameter;
   }
