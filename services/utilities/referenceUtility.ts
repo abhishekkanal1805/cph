@@ -62,6 +62,17 @@ class ReferenceUtility {
     public static convertToResourceId(idOrReference: string, resourceReferencePrefix: string): string {
         return idOrReference.indexOf(resourceReferencePrefix) === -1 ? idOrReference : idOrReference.split(resourceReferencePrefix)[1];
     }
+
+    /**
+     * If itemsToRemove is not empty we will remove these items from the source. Else the source is returned as is.
+     * @param sourceItems
+     * @param itemsToRemove
+     */
+    public static removeReferences(sourceItems: string[], itemsToRemove: string[]) {
+        return itemsToRemove && itemsToRemove.length > 0 ?
+            sourceItems.filter((sourceItem) => !itemsToRemove.includes(sourceItem)) :
+            sourceItems;
+    }
 }
 
 export  { ReferenceUtility };

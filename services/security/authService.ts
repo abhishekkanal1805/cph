@@ -572,7 +572,18 @@ export class AuthService {
    * 3) if no connections found then throws error
    * @memberof AuthService
    */
-  public static async authorizeMultipleConnectionsBasedSharingRules(requesterId: string, requesteeIds: string[], resourceType: string, accessType: string) {
+  public static async authorizeMultipleConnectionsBased(
+      requesterId: string,
+      requesteeIds: string[],
+      resourceType: string,
+      accessType: string,
+      resourceAction?: string
+  ) {
+    const authResponse = {
+      fullAuthGranted: true,
+      authorizedConnections: [],
+      authorizedRequestees: []
+    };
     log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
     // 1 - Check loggedin user
     const fetchedProfiles = await DataFetch.getUserProfile([requesterId]);
@@ -580,43 +591,83 @@ export class AuthService {
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
-      return [];
+      return authResponse;
     }
 
     // check 3. if requester and requestee are the same users then allow access
     if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0].split(Constants.FORWARD_SLASH)[1] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
-      return [];
+      return authResponse;
     }
 
     // check 4. If resourceType publicly accessible, then no connection check required
     const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
     if (isPublicResource) {
       log.info("Exiting AuthService, Resource type is public :: authorizeMultipleConnectionsBasedSharingRules()");
-      return [];
+      return authResponse;
     }
     log.info("Requester is not a system user. validating connection between requester and requestee.");
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+
     // check 5. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
-      return [];
+      return authResponse;
     }
-    // TODO: can we check policies here for subjects here
+    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds) );
+    // if we are here means full auth was not granted. Determining the partial Auth
+    authResponse.fullAuthGranted = false;
 
-    // check 6. validate connection between requester and requestee
+    // check 6 check if any references belong to the owner, no need to check policies for them
+    const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
+    log.info("AuthService:: requesterOwnedReferences = " + JSON.stringify(requesterOwnedReferences));
+    authResponse.authorizedRequestees = requesterOwnedReferences;
+
+    // check 7 study/site based access control can only be determined if the owner is ResearchSubject
+    // TODO: maybe we should not limit policy based access check based on presence of subject reference.
+    // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
+    // This is okay only if this function is only called from clinical resource perspective.
+    const requesteeIdsForAccessCheck = ReferenceUtility.removeReferences(validRequesteeIds, requesterOwnedReferences);
+    log.info("AuthService:: requesteeForAccessCheck = " + JSON.stringify(requesteeIdsForAccessCheck));
+    const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIdsForAccessCheck, Constants.RESEARCHSUBJECT_REFERENCE);
+    log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));
+    // let allowedSubjects: string[] = null;
+    if (uniqueSubjectReferences.length > 0 && resourceAction) {
+      log.info("AuthService::authorizeMultipleConnectionsBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
+      const accessRequest: SubjectAccessRequest = {
+        requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
+        subjectReferences: uniqueSubjectReferences,
+        resourceAction
+      };
+      const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      if (grantedPolicies && grantedPolicies.size > 0) {
+        log.info("AuthService:: Policy based access was granted to some or all of the subjects.)");
+        const accessGrantedSubjects = Array.from(grantedPolicies.keys());
+        log.info("AuthService:: accessGrantedSubjects = " + JSON.stringify(accessGrantedSubjects));
+        authResponse.authorizedRequestees = authResponse.authorizedRequestees.concat(accessGrantedSubjects);
+      } else {
+        log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
+      }
+    } else {
+      log.info(
+          "AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
+      );
+    }
+
+    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees) );
+    // remove the subjects that already were granted access from the connection check
+    const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
+    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck) );
+
+    // check 8. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
-    const connections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);
-    if (connections.length < 1) {
-      log.error("No connection found between from user and to user");
-      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-    }
-    log.info("Exiting AuthService, requester and requestee are connected  :: authorizeMultipleConnectionsBasedSharingRules");
-    // we need to return the connections and granted subjects
-    return connections;
+    authResponse.authorizedConnections = await AuthService.getConnections(requesteeIdsForConnectionCheck, requesterId, connectionType, connectionStatus);
+
+    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
+    return authResponse;
   }
 
   /**
@@ -661,13 +712,12 @@ export class AuthService {
    *
    * @static
    * @param {string} requesterProfileId loggedin user Id
-   * @param {string} resourceOwnerElement Owner element for a resource
    * @param {string[]} requestedProfiles requested search profiles
    * @param {*} accessType service access type
    * @returns
    * @memberof AuthService
    */
-  public static async getFilteredQueryParameter(requesterProfileId: string, resourceOwnerElement: string, requestedProfiles: string[], accessType) {
+  public static async getRequesterOwnedReferences(requesterProfileId: string, requestedProfiles: string[], accessType) {
     let selfOwnedReferences = [];
 
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requestedProfiles, Constants.RESEARCHSUBJECT_REFERENCE);
@@ -697,11 +747,6 @@ export class AuthService {
     if (requestedProfiles.indexOf(requesterProfileReference) > -1) {
       selfOwnedReferences.push(requesterProfileReference);
     }
-
-    const filteredQueryParameter = {};
-    if (selfOwnedReferences && selfOwnedReferences.length > 0) {
-      filteredQueryParameter[resourceOwnerElement] = [selfOwnedReferences.join(Constants.COMMA_VALUE)].filter(Boolean);
-    }
-    return filteredQueryParameter;
+    return selfOwnedReferences;
   }
 }

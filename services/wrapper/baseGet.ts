@@ -189,43 +189,31 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
-      try {
-        connections = await AuthService.authorizeMultipleConnectionsBasedSharingRules(
+      // requestedProfiles now contains ResearchSubject references and UserProfile references
+      const authResponse = await AuthService.authorizeMultipleConnectionsBased(
           requestorProfileId,
           requestedProfiles,
           serviceName,
-          Constants.ACCESS_READ
-        );
-        // if [] is returned, dont filter the subjects. full search access was granted to all
-        if (connections.length > 0) {
-          // if connections were returned means only conditional access can be granted. we want to know if any reference belongs to self
-          // validate if loggedin user present in searchParams or not
-          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
-            requestorProfileId,
-            resourceOwnerElement,
-            requestedProfiles,
-            Constants.ACCESS_READ
-          );
-        }
-      } catch (err) {
-        log.error("Error occurred during connection check" + err.stack, err);
-        // if no connections are found between requester and requestedProfiles error is thrown
-        if (err.errorCode === errorCodeMap.Forbidden.value) {
-          // validate if loggedin user present in searchParams or not and filter query parameter
-          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
-            requestorProfileId,
-            resourceOwnerElement,
-            requestedProfiles,
-            Constants.ACCESS_READ
-          );
-          // QUESTION: seems like getFilteredQueryParameter already returns [], if not we can make sure it returns the right value we dont have to adjust it
-          if (_.isEmpty(filteredQueryParameter)) {
-            return [];
-          }
-        }
+          Constants.ACCESS_READ,
+          searchOptions ? searchOptions.resourceAction : null
+    );
+      connections = authResponse.authorizedConnections;
+      // authResponse.authorizedRequestees are the references that require no sharing rule check
+      if (!_.isEmpty(authResponse.authorizedRequestees)) {
+        // access to all the references in filteredQueryParameter will be given unconditionally
+        filteredQueryParameter[resourceOwnerElement] = [authResponse.authorizedRequestees.join(Constants.COMMA_VALUE)].filter(Boolean);
+      }
+
+      // if fullAuthGranted dont filter the subjects. full search access was granted to all
+      // else if authorizedRequestees, fullAccess is granted with no sharingRules check to these references
+      // if connections were also returned means only conditional access can be granted. we want to know if any reference belongs to self
+      // if fullAuthGranted=false, authorizedRequestees empty and connections empty meaning you have no access at all, return empty
+      if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections)) {
+        log.info("fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource.");
+        return [];
       }
     }
-    // access to all the references in filteredQueryParameter will be given unconditionally
+
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];

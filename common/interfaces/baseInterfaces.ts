@@ -10,6 +10,7 @@ export interface GetOptions {
 export interface SearchOptions {
   acceptLanguage?: string;
   fetchLimit?: number;
+  resourceAction?: string;
 }
 export interface RequestParams {
   requestLogRef?: string;
