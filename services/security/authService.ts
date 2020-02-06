@@ -609,6 +609,7 @@ export class AuthService {
     log.info("Requester is not a system user. validating connection between requester and requestee.");
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
+    // what happens to the subjects
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
 
     // check 5. if requester accessing his own ResearchSubject then allow access
@@ -629,7 +630,8 @@ export class AuthService {
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    const requesteeIdsForAccessCheck = ReferenceUtility.removeReferences(validRequesteeIds, requesterOwnedReferences);
+    // if we use requesteeIds the UserProfile for these subjects may not be valid
+    const requesteeIdsForAccessCheck = ReferenceUtility.removeReferences(requesteeIds, requesterOwnedReferences);
     log.info("AuthService:: requesteeForAccessCheck = " + JSON.stringify(requesteeIdsForAccessCheck));
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIdsForAccessCheck, Constants.RESEARCHSUBJECT_REFERENCE);
     log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));

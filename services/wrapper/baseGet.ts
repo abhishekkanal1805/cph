@@ -149,7 +149,7 @@ export class BaseGet {
   ) {
     let connections = [];
     let isSharingRuleCheckRequired: boolean = true;
-    let filteredQueryParameter = {};
+    const filteredQueryParameter = {};
 
     let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
@@ -189,7 +189,9 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
+      log.info("requestedProfiles = " + JSON.stringify(requestedProfiles));
       // requestedProfiles now contains ResearchSubject references and UserProfile references
+      // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
           requestorProfileId,
           requestedProfiles,
