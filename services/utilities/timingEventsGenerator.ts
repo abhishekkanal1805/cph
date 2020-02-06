@@ -631,7 +631,7 @@ export class TimingEventsGenerator {
         end = moment
           .utc(start)
           .endOf(Constants.DAY)
-          .add(365, Constants.DAYS)
+          .add(1, Constants.YEARS)
           .utcOffset(offset);
         // if start contains only date and time then format end according to that only
         if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
@@ -644,7 +644,7 @@ export class TimingEventsGenerator {
         end = moment
           .utc(start)
           .endOf(Constants.DAY)
-          .add(365, Constants.DAYS)
+          .add(1, Constants.YEARS)
           .utcOffset(offset)
           .format(Constants.DATE_TIME);
       }

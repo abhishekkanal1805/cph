@@ -62,29 +62,28 @@ export class TimingUtility {
         dateArray.push(repeat.boundsPeriod.end);
       }
       if (repeat.boundsDuration && repeat.boundsDuration.value) {
-        let bdValue = repeat.boundsDuration.value;
-        const bdCode = repeat.boundsDuration.code;
-        bdValue = (["s", "min", "h", "d"].includes(bdCode)) ? bdValue - 1 : bdValue;
-        dateArray.push(TimingUtility.addMomentDuration(startDate, bdValue, bdCode));
+        const boundsDurationValue = repeat.boundsDuration.value;
+        const boundsDurationCode = repeat.boundsDuration.code;
+        dateArray.push(TimingUtility.addMomentDuration(startDate, boundsDurationValue, boundsDurationCode));
       }
     }
     if (code && repeat.count) {
       switch (code) {
         case "SDY":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count - 1, Constants.FHIR_DAY_UNIT));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count, Constants.FHIR_DAY_UNIT));
           break;
         case "SDT":
           break;
         case "SDC":
           if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
-            dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit));
+            dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * repeat.duration, repeat.durationUnit));
           }
           break;
         case "SDW":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * 7 - 1, "d"));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * 7, "d"));
           break;
         case "SID":
-          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period - 1, repeat.periodUnit));
+          dateArray.push(TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period, repeat.periodUnit));
           break;
         case "NA":
           const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
@@ -113,18 +112,18 @@ export class TimingUtility {
     if (repeat.dayOfWeek) {
       if (repeat.period && repeat.periodUnit) {
         if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
-          date = TimingUtility.addMomentDuration(startDate, repeat.count * 7 - 1, Constants.FHIR_DAY_UNIT);
+          date = TimingUtility.addMomentDuration(startDate, repeat.count * 7, Constants.FHIR_DAY_UNIT);
         } else {
-          date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period - 1, repeat.periodUnit);
+          date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period, repeat.periodUnit);
         }
       }
     } else if (repeat.dayOfCycle) {
       if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
-        date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.duration - 1, repeat.durationUnit);
+        date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.duration, repeat.durationUnit);
       }
     } else {
       if (repeat.period && repeat.periodUnit) {
-        date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period - 1, repeat.periodUnit);
+        date = TimingUtility.addMomentDuration(startDate, repeat.count * repeat.period, repeat.periodUnit);
       }
     }
     log.info("Exiting TimingUtility.calculateEndDateForCustomCode()");
@@ -258,14 +257,16 @@ export class TimingUtility {
    * @param periodUnit
    * @returns date
    */
-  public static addMomentDuration(inputDate, period, periodUnit) {
+  public static addMomentDuration(inputDate, period, fhirPeriodUnit) {
     log.info("Entering TimingUtility.addMomentDuration()");
     let date;
     const offset = moment.parseZone(inputDate).utcOffset();
-    const unit = config.unitsMap[periodUnit];
+    const periodUnit = config.unitsMap[fhirPeriodUnit];
+    const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
     const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
     if (offset == 0) {
-      date = moment.utc(inputDate).add(period, unit);
+      // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
+      date = moment.utc(inputDate).add(period, periodUnit).subtract(1, unit);
       // if start date contains only date and time then format date according to that only
       if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
         date = date.format(Constants.DATE_TIME_ONLY);
@@ -276,7 +277,8 @@ export class TimingUtility {
     } else {
       date = moment
         .utc(inputDate)
-        .add(period, unit)
+        .add(period, periodUnit)
+        .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
         .utcOffset(offset)
         .format(Constants.DATE_TIME);
     }
