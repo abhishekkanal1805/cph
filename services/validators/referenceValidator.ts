@@ -68,9 +68,10 @@ export class ReferenceValidator {
    * This function is used to validate relative reference irrespective of the model.
    * @param {string} resourceType which table needs to be queried
    * @param {string} resourceId which id needs to be validated
+   * @param {string} [criteria] oprional search criteria
    * @returns
    */
-  public static async validateReferenceValue(resourceType: string, resourceIds: string[]) {
+  public static async validateReferenceValue(resourceType: string, resourceIds: string[], criteria?: string) {
     log.info("Entering ReferenceValidator :: validateReferenceValue()");
     try {
       const tableName = resourceTypeToTableNameMapping[resourceType];
@@ -84,6 +85,9 @@ export class ReferenceValidator {
         log.info("Validating UserProfile reference");
         replacementValues.status = Constants.ACTIVE;
         searchQuery = searchQuery + ` and status = '${Constants.ACTIVE}'`;
+      }
+      if (criteria) {
+        searchQuery = [searchQuery, criteria].join(" ");
       }
       await DataSource.getDataSource()
         .query(searchQuery, {
