@@ -163,7 +163,7 @@ export class TimingEventsGenerator {
         if (repeat.period && repeat.periodUnit) {
           if (!Constants.ALLOWED_DURATION_UNITS.includes(repeat.periodUnit)) {
             log.error("repeat.periodUnit is invalid. periodUnit can be in days, weeks, months and year");
-            throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
+            throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.periodUnit");
           }
         } else {
           log.error("repeat.period is not present ");
@@ -194,7 +194,7 @@ export class TimingEventsGenerator {
         if (repeat.period && repeat.periodUnit) {
           if (!Constants.ALLOWED_DURATION_UNITS.includes(repeat.periodUnit)) {
             log.error("repeat.periodUnit is invalid. periodUnit can be in days, weeks, months and year");
-            throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.durationUnit");
+            throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "repeat.periodUnit");
           }
         } else {
           log.error("repeat.period is not present ");
