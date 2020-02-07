@@ -44,6 +44,7 @@ export const errorCodeMap = {
     description: "This aggregation request cannot be fulfilled as it does not have any aggregationCriteria specified"
   },
   InvalidReference: { value: "InvalidReference", description: "The request contains invalid reference in element " },
+  InvalidReferenceValue: { value: "InvalidReferenceValue", description: "The request contains invalid reference of " },
   InvalidElement: { value: "InvalidElement", description: "The request contains non-updatable element " },
   MissingParameter: { value: "MissingParameter", description: "The request cannot be fulfilled as one or more required parameters are missing" },
   InvalidIdentifier: { value: "InvalidIdentifier", description: "The request cannot be fulfilled as provided Identifier is invalid" },
