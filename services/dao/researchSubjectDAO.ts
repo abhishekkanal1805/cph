@@ -34,7 +34,10 @@ class ResearchSubjectDAO {
 
     const researchSubjectQuery: IFindOptions<ResearchSubject> = {
       where: {
-        id: researchSubjectIds
+        id: researchSubjectIds,
+        meta: {
+          isDeleted: false
+        }
       },
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
     };
