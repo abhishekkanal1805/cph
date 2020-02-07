@@ -332,6 +332,7 @@ class QueryGenerator {
       queryObject[Op.or] = [];
     }
     switch (currentDatePattern) {
+      case Constants.DATE_TIME_ONLY:
       case Constants.DATE_TIME:
         queryObject[Op.or].push({
           [columnName]: dateMomentObject.format(Constants.DATE)
@@ -523,6 +524,7 @@ class QueryGenerator {
     let condtionOperator = Op.or;
     for (const eachDate of values) {
       const dateObject = Utility.getSearchPrefixValue(eachDate);
+      const isDateTimeWithoutTimezone = moment(dateObject.data, Constants.DATE_TIME_ONLY, true).isValid();
       const isDateTime = moment(dateObject.data, Constants.DATE_TIME, true).isValid();
       const isDate = moment(dateObject.data, Constants.DATE, true).isValid();
       const isYearMonth = moment(dateObject.data, Constants.YEAR_MONTH, true).isValid();
@@ -536,7 +538,9 @@ class QueryGenerator {
       if (!queryObject[condtionOperator]) {
         queryObject[condtionOperator] = [];
       }
-      if (isDateTime) {
+      if (isDateTimeWithoutTimezone) {
+        this.createDateTimeConditions(column, dateObject, queryObject, condtionOperator, Constants.DATE_TIME_ONLY);
+      } else if (isDateTime) {
         this.createDateTimeConditions(column, dateObject, queryObject, condtionOperator, Constants.DATE_TIME);
       } else if (isDate) {
         this.createDateConditions(column, dateObject, queryObject, condtionOperator, Constants.DATE);

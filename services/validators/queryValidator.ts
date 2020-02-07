@@ -104,11 +104,12 @@ export class QueryValidator {
       if (!dateObject.prefix) {
         dateObject.prefix = Constants.PREFIX_EQUAL;
       }
+      const isDateTimeWithoutTimezone = moment(dateObject.data, Constants.DATE_TIME_ONLY, true).isValid();
       const isDateTime = moment(dateObject.data, Constants.DATE_TIME, true).isValid();
       const isDate = moment(dateObject.data, Constants.DATE, true).isValid();
       const isYearMonth = moment(dateObject.data, Constants.YEAR_MONTH, true).isValid();
       const isYear = moment(dateObject.data, Constants.YEAR, true).isValid();
-      if (!(isDateTime || isDate || isYearMonth || isYear)) {
+      if (!(isDateTimeWithoutTimezone || isDateTime || isDate || isYearMonth || isYear)) {
         log.error("Input value date format is not valid");
         throw new BadRequestResult(errorCodeMap.InvalidParameterValue.value, errorCodeMap.InvalidParameterValue.description + key);
       }
