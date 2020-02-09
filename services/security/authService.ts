@@ -518,21 +518,13 @@ export class AuthService {
    */
   public static async validateProfiles(profileReferences: string[], criteria?: any) {
     log.info("Entering AuthService :: validateProfiles()");
-    const userProfileReferences = _.uniq(
-      _.filter(profileReferences, (profileReference) => {
-        return profileReference.indexOf(Constants.USERPROFILE_REFERENCE) > -1;
-      })
-    );
-    const researchSubjectReferences = _.uniq(
-      _.filter(profileReferences, (profileReference) => {
-        return profileReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1;
-      })
-    );
+    const userProfileReferences = ReferenceUtility.getUniqueReferences(profileReferences, Constants.USERPROFILE_REFERENCE);
+    const researchSubjectReferences = ReferenceUtility.getUniqueReferences(profileReferences, Constants.RESEARCHSUBJECT_REFERENCE);
+
+    // get user profiles for the subjects
     if (researchSubjectReferences.length) {
       let whereClause = {
-        [Constants.ID]: _.map(researchSubjectReferences, (researchSubjectReference) => {
-          return researchSubjectReference.split(Constants.RESEARCHSUBJECT_REFERENCE)[1];
-        }),
+        [Constants.ID]: ReferenceUtility.convertToResourceIds(researchSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
         [Constants.META_IS_DELETED_KEY]: false
       };
       if (criteria) {
@@ -609,7 +601,7 @@ export class AuthService {
     log.info("Requester is not a system user. validating connection between requester and requestee.");
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
-    // what happens to the subjects
+    // FIXME: identify subjects with valid profiles and only used those for Policy check
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
 
     // check 5. if requester accessing his own ResearchSubject then allow access
