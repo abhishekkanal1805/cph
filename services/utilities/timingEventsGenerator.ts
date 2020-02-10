@@ -450,29 +450,18 @@ export class TimingEventsGenerator {
   public static generateEventsBasedOnDayOfWeek(startDate, endDate, repeat) {
     log.info("Entering TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
     const events = [];
-    let start = startDate;
+    const start = startDate;
     endDate = TimingUtility.formatEndDate(endDate);
     const offset = moment.parseZone(start).utcOffset();
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
       Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    // get the day of start date
-    let day = this.getDayOfWeek(start, offset);
-    if (repeat.dayOfWeek.includes(day)) {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, 0, offset);
-      for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-        events.push(start);
-      }
-    } else {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, Constants.DAY, "", dateFormat, 0, offset);
-    }
-
-    let count = 1;
+    let count = 0;
     let date = start;
     while (moment(date).isSameOrBefore(endDate)) {
       for (let frequency = 0; frequency < repeat.frequency; frequency++) {
         date = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, count, offset);
-        day = this.getDayOfWeek(date, offset);
+        const day = this.getDayOfWeek(date, offset);
         // check if generated date's day is given dayOfWeek array
         if (repeat.dayOfWeek.includes(day)) {
           // check if generated date falls within start and end date range
