@@ -456,17 +456,17 @@ export class TimingEventsGenerator {
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
       Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, 0, offset);
-    } else {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, Constants.DAY, "", dateFormat, 0, offset);
-    }
+    // get the day of start date
     let day = this.getDayOfWeek(start, offset);
     if (repeat.dayOfWeek.includes(day)) {
+      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, 0, offset);
       for (let frequency = 0; frequency < repeat.frequency; frequency++) {
         events.push(start);
       }
+    } else {
+      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, Constants.DAY, "", dateFormat, 0, offset);
     }
+
     let count = 1;
     let date = start;
     while (moment(date).isSameOrBefore(endDate)) {
