@@ -49,7 +49,7 @@ describe("TimingEventsGenerator", () => {
           count: 3,
           timeOfDay: ["08:10:00", "12:10:00"],
           period: 1,
-          dayOfWeek: ["mon", "fri"],
+          dayOfWeek: ["mon", "tue"],
           periodUnit: "d"
         }
       };

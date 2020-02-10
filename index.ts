@@ -13,6 +13,7 @@ export * from "./services/aggregation/aggregationValidatorUtility";
 
 export * from "./services/dao/daoService";
 export * from "./services/validators/requestValidator";
+export * from "./services/validators/referenceValidator";
 export * from "./services/validators/queryValidator";
 export * from "./services/utilities/queryGenerator";
 export * from "./services/utilities/jsonParser";
