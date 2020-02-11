@@ -2,8 +2,6 @@
  * Copyright © 2019 Deloitte. All rights reserved.
  */
 
-import * as _ from "lodash";
-
 class ReferenceUtility {
 
     /**
@@ -12,11 +10,9 @@ class ReferenceUtility {
      * @param referenceType
      */
     public static getUniqueReferences(references: string[], resourceReferencePrefix: string): string[] {
-        return _.uniq(
-            _.filter(references, (profileReference) => {
-                return profileReference.indexOf(resourceReferencePrefix) > -1;
-            })
-        );
+        return [...new Set(references)].filter(Boolean).filter((reference) => {
+            return reference.indexOf(resourceReferencePrefix) > -1;
+        });
     }
 
     /**
