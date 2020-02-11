@@ -12,7 +12,7 @@ import { DAOService } from "./daoService";
 
 class PolicyAssignmentDAO {
   public static async findAll(userReference: string, resources: string[]): Promise<PolicyAssignmentDataResource[]> {
-    log.info("PolicyAssignmentDAO - getting assignments for user=" + userReference + " scoped in resource=" + JSON.stringify(resources));
+    log.info("PolicyAssignmentDAO - getting assignments for user=" + userReference + " scoped in resource=", resources);
 
     if (!resources || resources.length < 1) {
       log.info("PolicyAssignmentDAO - no resource references provided.");
