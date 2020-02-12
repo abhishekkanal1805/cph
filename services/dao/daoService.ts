@@ -12,6 +12,9 @@ import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTyp
 import { DataSource } from "../../dataSource";
 import { DataFetch } from "../utilities/dataFetch";
 
+/**
+ * FIXME: fix the circular dependency with DataFetch
+ */
 export class DAOService {
   /**
    * Fetch database record by its primary key
@@ -133,8 +136,8 @@ export class DAOService {
   }
 
   /**
-   *  Bulk create records for given Model
-   *
+   *  Search records for given Model
+   *  TODO: can we enforce the query to be IFindOptions<Model> instead of any
    * @static
    * @param {*} query
    * @param {*} model
