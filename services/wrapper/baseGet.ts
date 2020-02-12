@@ -35,30 +35,28 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement?: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResource()");
-    const queryObject = { id, "meta.isDeleted": false };
+    const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules({
-        requester: requestorProfileId,
-        ownerReference: patientIds[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_READ,
-        resourceAction: getOptions ? getOptions.resourceAction : null
-      });
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      if (connection.length > 0) {
-        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
-        if (_.isEmpty(whereClause[Op.and])) {
-          log.info("Sharing rules not present for requested user");
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-        }
-        record = await DAOService.fetchOne(model, { where: whereClause });
-        record = record.dataResource;
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceAction: getOptions ? getOptions.resourceAction : null
+    });
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
     }
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -81,7 +79,7 @@ export class BaseGet {
    */
   public static async getResourceWithoutSharingRules(id: string, model, requestorProfileId: string, patientElement: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutSharingRules()");
-    const options = { where: { id, "meta.isDeleted": false } };
+    const options = { where: { id, [Constants.META_IS_DELETED_KEY]: false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
@@ -113,7 +111,7 @@ export class BaseGet {
    */
   public static async getResourceWithoutAuthorization(id: string, model: any, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResourceWithoutAuthorization()");
-    const options = { where: { id, "meta.isDeleted": false } };
+    const options = { where: { id, [Constants.META_IS_DELETED_KEY]: false } };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     log.info("getResource() :: Record retrieved successfully");
@@ -193,12 +191,12 @@ export class BaseGet {
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
-          requestorProfileId,
-          requestedProfiles,
-          serviceName,
-          Constants.ACCESS_READ,
-          searchOptions ? searchOptions.resourceAction : null
-    );
+        requestorProfileId,
+        requestedProfiles,
+        serviceName,
+        Constants.ACCESS_READ,
+        searchOptions ? searchOptions.resourceAction : null
+      );
       connections = authResponse.authorizedConnections;
       // authResponse.authorizedRequestees are the references that require no sharing rule check
       if (!_.isEmpty(authResponse.authorizedRequestees)) {
@@ -211,7 +209,9 @@ export class BaseGet {
       // if connections were also returned means only conditional access can be granted. we want to know if any reference belongs to self
       // if fullAuthGranted=false, authorizedRequestees empty and connections empty meaning you have no access at all, return empty
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections)) {
-        log.info("fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource.");
+        log.info(
+          "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
+        );
         return [];
       }
     }

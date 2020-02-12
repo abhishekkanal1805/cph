@@ -5,15 +5,11 @@
 import * as log from "lambda-log";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
-import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { MetaDataElements, RequestParams } from "../../common/interfaces/baseInterfaces";
-import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
-import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { ReferenceValidator } from "../validators/referenceValidator";
@@ -44,57 +40,36 @@ export class BasePost {
     const model = payloadModel as any;
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    const isDefinitionalResource = model.resourceCategory ? model.resourceCategory == ResourceCategory.DEFINITION : Constants.FALSE;
-
-    // for non-Definitional resource the owner & informationSource both references must be provided
-    if (!isDefinitionalResource) {
-      if (!requestParams.ownerElement || !requestParams.informationSourceElement) {
-        log.error(
-          `Resource category is non-Definitional and ownerElement is ${requestParams.ownerElement} and RequestParams.ownerElement is ${
-            requestParams.informationSourceElement
-          }`
-        );
-        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
-      }
-      keysToFetch.set(requestParams.ownerElement, []);
-      keysToFetch.set(requestParams.informationSourceElement, []);
-    }
+    keysToFetch.set(requestParams.ownerElement, []);
+    keysToFetch.set(requestParams.informationSourceElement, []);
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
     log.info("Device and User Keys retrieved successfully :: saveResource()");
-
     // perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     log.info("DeviceId validation is successful :: saveResource()");
+    // Get informationSource reference and ownerElement reference
+    const ownerReferences = [...new Set(keysMap.get(requestParams.ownerElement))];
+    const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))];
 
-    if (!isDefinitionalResource) {
-      // perform user validation for owner reference
-      const ownerReferences = [...new Set(keysMap.get(requestParams.ownerElement))].filter(Boolean);
-      RequestValidator.validateSingularUserReference(ownerReferences);
-      log.info(`OwnerElement: ${requestParams.ownerElement} validation is successful :: saveResource()`);
+    RequestValidator.validateSingularUserReference(ownerReferences);
+    log.info(`OwnerElement: ${requestParams.ownerElement} validation is successful :: saveResource()`);
 
-      // perform user validation for informationSource reference
-      const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))].filter(Boolean);
-      RequestValidator.validateSingularUserReference(informationSourceReferences);
-      log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: saveResource()`);
+    // perform user validation for informationSource reference
+    RequestValidator.validateSingularUserReference(informationSourceReferences);
+    log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: saveResource()`);
 
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      // TODO: If this returns a connection should we check the sharing rules to make sure if the requester is authorized to perform this action
-      // we are here means we have exactly one owner and infoSource reference
-      await AuthService.authorizeRequestSharingRules({
-        requester: requestParams.requestorProfileId,
-        informationSourceReference: informationSourceReferences[0],
-        ownerReference: ownerReferences[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_EDIT,
-        resourceAction: requestParams.resourceAction,
-        ownerType: requestParams.ownerType
-      });
-      log.info("User Authorization is successful ");
-    } else {
-      await DataFetch.getUserProfile([requestParams.requestorProfileId]);
-      log.info("User Authorization is successful ");
-    }
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    // we are here means we have exactly one owner and infoSource reference
+    await AuthService.authorizeRequestSharingRules({
+      requester: requestParams.requestorProfileId,
+      informationSourceReference: informationSourceReferences[0],
+      ownerReference: ownerReferences[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_EDIT,
+      resourceAction: requestParams.resourceAction,
+      ownerType: requestParams.ownerType
+    });
 
     const validatedResources = await ReferenceValidator.validateReference(
       requestPayload,

@@ -125,6 +125,28 @@ export class AuthService {
         authorizationRequest.ownerReference +
         ", "
     );
+    // check 1. if loggedin user is a valid profile
+    const requesterDetails: any = await DataFetch.getUserProfile([authorizationRequest.requester]);
+
+    // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
+    if (requesterDetails[authorizationRequest.requester] && requesterDetails[authorizationRequest.requester].profileType === Constants.SYSTEM_USER) {
+      log.info("requester is a system user and it is submitting request for a valid owner");
+      return [];
+    }
+
+    // check 3. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
+    if (isPublicResource) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
+      return [];
+    }
+
+    // check 4. If resourceType is Private, then it should have ownerReference & informationSourceReference
+    if (!authorizationRequest.ownerReference || !authorizationRequest.informationSourceReference) {
+      log.error("Owner or information source is required for a non-public resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+
     // if ownerReference is researchSubject save it for policy check
     const ownerOrignalSubjectReference: string =
       authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 ? authorizationRequest.ownerReference : null;
@@ -151,33 +173,22 @@ export class AuthService {
     const informationSourceId = authorizationRequest.informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = authorizationRequest.ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [authorizationRequest.requester, informationSourceId, ownerId];
-    // make sure all provided profiles are active and not deleted. throws error if requestProfileIds was empty
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
+
+    // check 5. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (authorizationRequest.ownerType && fetchedProfiles[ownerId].profileType !== authorizationRequest.ownerType) {
       log.error("Owner is not a valid " + authorizationRequest.ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
-    // QUESTION: seems like fetchedProfiles[requester] can be null. is this an error state when requests profile was not found?
-    if (fetchedProfiles[authorizationRequest.requester] && fetchedProfiles[authorizationRequest.requester].profileType === Constants.SYSTEM_USER) {
-      log.info("requester is a system user and it is submitting request for a valid owner");
-      return [];
-    }
-    // check 3. is Patient submitting its own request
+
+    // check 6. if Requester submitting its own request
     if (authorizationRequest.requester === informationSourceId && authorizationRequest.requester === ownerId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
       return [];
     }
-    // QUESTION: Can inforSource be different from requester? is this an error state?
-    // check 4. If resourceType publicly accessible, then no connection check required
-    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
-    if (isPublicResource) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
-      return [];
-    }
 
-    // check 5 study/site based access control can only be determined if the owner is ResearchSubject
+    // QUESTION: Can inforSource be different from requester? is this an error state?
+    // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
@@ -201,25 +212,17 @@ export class AuthService {
       );
     }
 
-    // check 6. Check for connection between requester and requestee
-    // the IF is redundant? profileType will always be non SYSTEM here as per check2
-    if (fetchedProfiles[authorizationRequest.requester].profileType != Constants.SYSTEM_USER) {
-      log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
-      const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
-      const connectionStatus = [Constants.ACTIVE];
-      const connection = await AuthService.hasConnection(ownerId, authorizationRequest.requester, connectionType, connectionStatus);
-      // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
-      if (connection.length < 1) {
-        log.error("No connection found between from user and to user");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-      }
-      return connection;
-    } else {
-      // QUESTION: is this block reachable? request==System is handled in check2
-      // can come here if requester is non-System and informationSource==Patient or informationSource!=requester
-      log.error("Received a user of unknown profile type");
+    // check 8. Check for connection between requester and requestee
+    log.info("requester is of type Patient/Practitioner/CarePartner and requestee is owner, checking Connection");
+    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+    const connectionStatus = [Constants.ACTIVE];
+    const connection = await AuthService.hasConnection(ownerId, authorizationRequest.requester, connectionType, connectionStatus);
+    // hasConnection has to return any array size>0 to prove valid connection. object inside array is not checked
+    if (connection.length < 1) {
+      log.error("No connection found between from user and to user");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
+    return connection;
   }
 
   /**
@@ -281,7 +284,35 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeConnectionBasedSharingRules(authorizationRequest: AuthorizationRequest) {
-    log.info("Inside AuthService :: authorizeConnectionBasedSharingRules()");
+    log.info(
+      "Entering AuthService :: authorizeConnectionBasedSharingRules() requester=" +
+        authorizationRequest.requester +
+        ", ownerReference=" +
+        authorizationRequest.ownerReference +
+        ", "
+    );
+    // check 1. if loggedin user is a valid profile
+    const requesterDetails: any = await DataFetch.getUserProfile([authorizationRequest.requester]);
+
+    // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
+    if (requesterDetails[authorizationRequest.requester] && requesterDetails[authorizationRequest.requester].profileType === Constants.SYSTEM_USER) {
+      log.info("requester is a system user and it is submitting request for a valid owner");
+      return [];
+    }
+
+    // check 3. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
+    if (isPublicResource) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
+      return [];
+    }
+
+    // check 4. If resourceType is Private, then it should have ownerReference
+    if (!authorizationRequest.ownerReference) {
+      log.error("Owner or information source is required for a non-public resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(authorizationRequest.ownerReference, null, researchSubjectCriteria);
     const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference]
@@ -291,33 +322,19 @@ export class AuthService {
     const requestProfileIds = [authorizationRequest.requester, requesteeId];
     // query userprofile for the unique profile ids
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-    // check 1. if ownerType is provided check if ownerReference is a valid profile of specified type
+    // check 5. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (authorizationRequest.ownerType && fetchedProfiles[requesteeId].profileType !== authorizationRequest.ownerType) {
       log.error("Owner is not a valid " + authorizationRequest.ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    // reaches here if requester and requestee are both valid
-    // check 2: if requester should be system user then allow access
-    if (
-      fetchedProfiles[authorizationRequest.requester] &&
-      fetchedProfiles[authorizationRequest.requester].profileType.toLowerCase() === Constants.SYSTEM_USER
-    ) {
-      log.info("Exiting AuthService, Requester is system user :: authorizeConnectionBasedSharingRules");
-      return [];
-    }
-    // check 3. if requester and requestee are the same users then allow access
+
+    // check 6. if requester and requestee are the same users then allow access
     if (authorizationRequest.requester == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
-    // check 4. If resourceType publicly accessible, then no connection check required
-    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
-    if (isPublicResource) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeConnectionBasedSharingRules()");
-      return [];
-    }
 
-    // check 5 study/site based access control can only be determined if the owner is ResearchSubject
+    // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
@@ -341,7 +358,7 @@ export class AuthService {
       );
     }
 
-    // check 6. if we reached here then a connection has to exist between requester and requestee
+    // check 8. if we reached here then a connection has to exist between requester and requestee
     log.info("Requester is not a system user. Checking if there is a connection between requester and requestee.");
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
@@ -565,11 +582,11 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeMultipleConnectionsBased(
-      requesterId: string,
-      requesteeIds: string[],
-      resourceType: string,
-      accessType: string,
-      resourceAction?: string
+    requesterId: string,
+    requesteeIds: string[],
+    resourceType: string,
+    accessType: string,
+    resourceAction?: string
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -609,7 +626,7 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return authResponse;
     }
-    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds) );
+    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds));
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
@@ -645,15 +662,13 @@ export class AuthService {
         log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
       }
     } else {
-      log.info(
-          "AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
-      );
+      log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
 
-    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees) );
+    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees));
     // remove the subjects that already were granted access from the connection check
     const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
-    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck) );
+    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck));
 
     // check 8. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
