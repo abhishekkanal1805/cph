@@ -95,7 +95,7 @@ export class BasePut {
         ownerReference: ownerReferences[0],
         resourceType: serviceName,
         accessType: Constants.ACCESS_EDIT,
-        resourceAction: requestParams.resourceAction,
+        resourceActions: requestParams.resourceActions,
         ownerType: requestParams.ownerType
       });
       // For system user/ loggedin user to get his own record we won't add sharing rules

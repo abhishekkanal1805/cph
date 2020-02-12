@@ -57,7 +57,7 @@ export class BaseDelete {
         ownerReference: ownerIds[0],
         resourceType: serviceName,
         accessType: Constants.ACCESS_EDIT,
-        resourceAction: requestParams.resourceAction
+        resourceActions: requestParams.resourceActions
       });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {

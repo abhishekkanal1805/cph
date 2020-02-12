@@ -87,7 +87,7 @@ export class BasePost {
         ownerReference: ownerReferences[0],
         resourceType: serviceName,
         accessType: Constants.ACCESS_EDIT,
-        resourceAction: requestParams.resourceAction,
+        resourceActions: requestParams.resourceActions,
         ownerType: requestParams.ownerType
       });
       log.info("User Authorization is successful ");

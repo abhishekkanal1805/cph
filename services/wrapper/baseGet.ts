@@ -47,7 +47,7 @@ export class BaseGet {
         ownerReference: patientIds[0],
         resourceType: serviceName,
         accessType: Constants.ACCESS_READ,
-        resourceAction: getOptions ? getOptions.resourceAction : null
+        resourceActions: getOptions ? getOptions.resourceActions : null
       });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
@@ -197,7 +197,7 @@ export class BaseGet {
           requestedProfiles,
           serviceName,
           Constants.ACCESS_READ,
-          searchOptions ? searchOptions.resourceAction : null
+          searchOptions ? searchOptions.resourceActions : null
     );
       connections = authResponse.authorizedConnections;
       // authResponse.authorizedRequestees are the references that require no sharing rule check

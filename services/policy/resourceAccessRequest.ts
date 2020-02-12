@@ -18,7 +18,7 @@ interface ResourceAccessRequest {
    * a keyword that identifies which service:method or the handler is being access by the requester.
    * this keyword will be compare to a policyAction in Policy
    */
-  resourceAction: string;
+  resourceActions: string[];
 }
 
 export { ResourceAccessRequest };
