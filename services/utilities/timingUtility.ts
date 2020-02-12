@@ -36,8 +36,6 @@ export class TimingUtility {
     if (dateArray.length == 0 && !requestEnd) {
       log.error("startDate is neither present in request nor in boundsPeriod.start object");
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
-    } else if (dateArray.length == 0 && requestEnd) {
-      return TimingUtility.addMomentDuration(requestEnd, 1, Constants.FHIR_DAY_UNIT);
     } else if (requestStart && boundsPeriodPresent) {
       log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
       return dateArray[dateArray.length - 1];
@@ -193,14 +191,12 @@ export class TimingUtility {
     try {
       const offset = moment.parseZone(inputDate).utcOffset();
       const periodUnit = config.unitsMap[fhirPeriodUnit];
-      const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
       const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
       if (offset == 0) {
         // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
         date = moment
           .utc(inputDate)
-          .add(period, periodUnit)
-          .subtract(1, unit);
+          .add(period, periodUnit);
         // if start date contains only date and time then format date according to that only
         if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
           date = date.format(Constants.DATE_TIME_ONLY);
@@ -212,7 +208,6 @@ export class TimingUtility {
         date = moment
           .utc(inputDate)
           .add(period, periodUnit)
-          .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
           .utcOffset(offset)
           .format(Constants.DATE_TIME);
       }
