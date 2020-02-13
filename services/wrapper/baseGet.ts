@@ -193,12 +193,12 @@ export class BaseGet {
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
-          requestorProfileId,
-          requestedProfiles,
-          serviceName,
-          Constants.ACCESS_READ,
-          searchOptions ? searchOptions.resourceActions : null
-    );
+        requestorProfileId,
+        requestedProfiles,
+        serviceName,
+        Constants.ACCESS_READ,
+        searchOptions ? searchOptions.resourceActions : null
+      );
       connections = authResponse.authorizedConnections;
       // authResponse.authorizedRequestees are the references that require no sharing rule check
       if (!_.isEmpty(authResponse.authorizedRequestees)) {
@@ -211,7 +211,9 @@ export class BaseGet {
       // if connections were also returned means only conditional access can be granted. we want to know if any reference belongs to self
       // if fullAuthGranted=false, authorizedRequestees empty and connections empty meaning you have no access at all, return empty
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections)) {
-        log.info("fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource.");
+        log.info(
+          "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
+        );
         return [];
       }
     }

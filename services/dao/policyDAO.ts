@@ -12,7 +12,6 @@ import { PolicyDataResource } from "../../models/CPH/policy/policyDataResource";
 import { DAOService } from "./daoService";
 
 class PolicyDAO {
-
   /**
    * Returns all policies that match the provided search parameters
    * @param policyReferences all references will be converted to ids for searching in the table

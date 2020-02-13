@@ -565,11 +565,11 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeMultipleConnectionsBased(
-      requesterId: string,
-      requesteeIds: string[],
-      resourceType: string,
-      accessType: string,
-      resourceActions?: string[]
+    requesterId: string,
+    requesteeIds: string[],
+    resourceType: string,
+    accessType: string,
+    resourceActions?: string[]
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -609,7 +609,7 @@ export class AuthService {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return authResponse;
     }
-    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds) );
+    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds));
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
@@ -633,7 +633,7 @@ export class AuthService {
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
         subjectReferences: uniqueSubjectReferences,
-        resourceActions: resourceActions
+        resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.size > 0) {
@@ -645,15 +645,13 @@ export class AuthService {
         log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
       }
     } else {
-      log.info(
-          "AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
-      );
+      log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
 
-    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees) );
+    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees));
     // remove the subjects that already were granted access from the connection check
     const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
-    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck) );
+    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck));
 
     // check 8. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
