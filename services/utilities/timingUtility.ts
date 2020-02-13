@@ -146,6 +146,7 @@ export class TimingUtility {
     try {
       const offset = moment.parseZone(inputDate).utcOffset();
       const periodUnit = config.unitsMap[fhirPeriodUnit];
+      const endOfDayTime: any = Constants.ALLOWED_UNITS.includes(fhirPeriodUnit) ? Constants.EMPTY_VALUE : Constants.DAY;
       const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
       const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
       if (offset == 0) {
@@ -154,7 +155,7 @@ export class TimingUtility {
           .utc(inputDate)
           .add(period, periodUnit)
           .subtract(1, unit)
-          .endOf(Constants.DAY);
+          .endOf(endOfDayTime);
         // if start date contains only date and time then format date according to that only
         if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
           date = date.format(Constants.DATE_TIME_ONLY);
@@ -167,7 +168,7 @@ export class TimingUtility {
           .utc(inputDate)
           .add(period, periodUnit)
           .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-          .endOf(Constants.DAY)
+          .endOf(endOfDayTime)
           .utcOffset(offset)
           .format(Constants.DATE_TIME);
       }
