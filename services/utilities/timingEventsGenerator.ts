@@ -450,29 +450,18 @@ export class TimingEventsGenerator {
   public static generateEventsBasedOnDayOfWeek(startDate, endDate, repeat) {
     log.info("Entering TimingEventsGenerator.generateEventsBasedOnDayOfWeek()");
     const events = [];
-    let start = startDate;
+    const start = startDate;
     endDate = TimingUtility.formatEndDate(endDate);
     const offset = moment.parseZone(start).utcOffset();
     const unit = config.unitsMap[repeat.periodUnit];
     const dateFormat =
       Constants.ALLOWED_UNITS.includes(repeat.periodUnit) || moment(start, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    let day = this.getDayOfWeek(start, offset);
-    if (repeat.dayOfWeek.includes(day)) {
-      for (let frequency = 0; frequency < repeat.frequency; frequency++) {
-        events.push(start);
-      }
-    }
-    if (Constants.ALLOWED_UNITS.includes(repeat.periodUnit)) {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, 0, offset);
-    } else {
-      start = TimingUtility.generateDate(start, "", "", repeat.period, unit, Constants.DAY, "", dateFormat, 0, offset);
-    }
-    let count = 1;
+    let count = 0;
     let date = start;
     while (moment(date).isSameOrBefore(endDate)) {
       for (let frequency = 0; frequency < repeat.frequency; frequency++) {
         date = TimingUtility.generateDate(start, "", "", repeat.period, unit, "", "", dateFormat, count, offset);
-        day = this.getDayOfWeek(date, offset);
+        const day = this.getDayOfWeek(date, offset);
         // check if generated date's day is given dayOfWeek array
         if (repeat.dayOfWeek.includes(day)) {
           // check if generated date falls within start and end date range
@@ -495,20 +484,12 @@ export class TimingEventsGenerator {
    */
   public static getDayOfWeek(date, offset) {
     log.info("Entering TimingEventsGenerator.getDayOfWeek()");
-    let day;
     // this check is for date with only date and time as moment adds Z
-    if (moment(date, Constants.DATE_TIME_ONLY, true).isValid()) {
-      day = moment
-        .utc(date)
-        .utcOffset(offset)
-        .format("ddd")
-        .toLowerCase();
-    } else {
-      day = moment(date)
-        .utcOffset(offset)
-        .format("ddd")
-        .toLowerCase();
-    }
+    const day = moment
+      .utc(date)
+      .utcOffset(offset)
+      .format("ddd")
+      .toLowerCase();
     return day;
     log.info("Exiting TimingEventsGenerator.getDayOfWeek()");
   }

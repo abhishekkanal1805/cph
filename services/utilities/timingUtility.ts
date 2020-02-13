@@ -19,22 +19,23 @@ export class TimingUtility {
   public static calculateStartDate(requestStart, requestEnd, repeat) {
     log.info("Entering TimingUtility.calculateStartDate()");
     let dateArray = [];
-    if (requestStart) {
-      dateArray.push(requestStart);
-    }
     let boundsPeriodPresent = false;
-    if (repeat && repeat.boundsPeriod && repeat.boundsPeriod.start) {
-      boundsPeriodPresent = true;
-      dateArray.push(repeat.boundsPeriod.start);
+    try {
+      if (requestStart) {
+        dateArray.push(requestStart);
+      }
+      if (repeat && repeat.boundsPeriod && repeat.boundsPeriod.start) {
+        boundsPeriodPresent = true;
+        dateArray.push(repeat.boundsPeriod.start);
+      }
+      // sort end dates
+      dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    // sort end dates
-    dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
-
     if (dateArray.length == 0 && !requestEnd) {
       log.error("startDate is neither present in request nor in boundsPeriod.start object");
       throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
-    } else if (dateArray.length == 0 && requestEnd) {
-      return TimingUtility.addMomentDuration(requestEnd, 1, Constants.FHIR_DAY_UNIT);
     } else if (requestStart && boundsPeriodPresent) {
       log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
       return dateArray[dateArray.length - 1];
@@ -54,47 +55,51 @@ export class TimingUtility {
   public static calculateEndDate(startDate, requestEnd, repeat, code) {
     log.info("Entering TimingUtility.calculateEndDate()");
     let dateArray = [];
-    if (requestEnd) {
-      dateArray.push(requestEnd);
-    }
-    if (repeat) {
-      if (repeat.boundsPeriod && repeat.boundsPeriod.end) {
-        dateArray.push(repeat.boundsPeriod.end);
+    try {
+      if (requestEnd) {
+        dateArray.push(requestEnd);
       }
-      if (repeat.boundsDuration && repeat.boundsDuration.value) {
-        const boundsDurationValue = repeat.boundsDuration.value;
-        const boundsDurationCode = repeat.boundsDuration.code;
-        dateArray.push(TimingUtility.getEndDateForCode(startDate, boundsDurationValue, boundsDurationCode));
+      if (repeat) {
+        if (repeat.boundsPeriod && repeat.boundsPeriod.end) {
+          dateArray.push(repeat.boundsPeriod.end);
+        }
+        if (repeat.boundsDuration && repeat.boundsDuration.value) {
+          const boundsDurationValue = repeat.boundsDuration.value;
+          const boundsDurationCode = repeat.boundsDuration.code;
+          dateArray.push(TimingUtility.getEndDateForCode(startDate, boundsDurationValue, boundsDurationCode));
+        }
       }
-    }
-    if (code && repeat.count) {
-      switch (code) {
-        case "SDY":
-          dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count, Constants.FHIR_DAY_UNIT));
-          break;
-        case "SDT":
-          break;
-        case "SDC":
-          dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.duration, repeat.durationUnit));
-          break;
-        case "SDW":
-          dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit));
-          break;
-        case "SID":
-          dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit));
-          break;
-        case "NA":
-          const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
-          if (date) {
-            dateArray.push(date);
-          }
+      if (code && repeat.count) {
+        switch (code) {
+          case "SDY":
+            dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count, Constants.FHIR_DAY_UNIT));
+            break;
+          case "SDT":
+            break;
+          case "SDC":
+            dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.duration, repeat.durationUnit));
+            break;
+          case "SDW":
+            dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit));
+            break;
+          case "SID":
+            dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit));
+            break;
+          case "NA":
+            const date = TimingUtility.calculateEndDateForCustomCode(repeat, startDate);
+            if (date) {
+              dateArray.push(date);
+            }
+        }
       }
+      // sort date array
+      dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
+      log.info("End date calculated as :: " + dateArray[0]);
+      log.info("Exiting TimingUtility.calculateEndDate()");
+      return dateArray[0];
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    // sort date array
-    dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
-    log.info("End date calculated as :: " + dateArray[0]);
-    log.info("Exiting TimingUtility.calculateEndDate()");
-    return dateArray[0];
   }
 
   /**
@@ -107,21 +112,25 @@ export class TimingUtility {
   public static calculateEndDateForCustomCode(repeat, startDate) {
     log.info("Entering TimingUtility.calculateEndDateForCustomCode()");
     let date;
-    if (repeat.dayOfWeek) {
-      if (repeat.period && repeat.periodUnit) {
-        date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit);
+    try {
+      if (repeat.dayOfWeek) {
+        if (repeat.period && repeat.periodUnit) {
+          date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit);
+        }
+      } else if (repeat.dayOfCycle) {
+        if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
+          date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.duration, repeat.durationUnit);
+        }
+      } else {
+        if (repeat.period && repeat.periodUnit) {
+          date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit);
+        }
       }
-    } else if (repeat.dayOfCycle) {
-      if (Constants.ALLOWED_DURATION_UNITS.includes(repeat.durationUnit)) {
-        date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.duration, repeat.durationUnit);
-      }
-    } else {
-      if (repeat.period && repeat.periodUnit) {
-        date = TimingUtility.getEndDateForCode(startDate, repeat.count * repeat.period, repeat.periodUnit);
-      }
+      log.info("Exiting TimingUtility.calculateEndDateForCustomCode()");
+      return date;
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    log.info("Exiting TimingUtility.calculateEndDateForCustomCode()");
-    return date;
   }
 
   /**
@@ -134,35 +143,40 @@ export class TimingUtility {
   public static getEndDateForCode(inputDate, period, fhirPeriodUnit) {
     log.info("Entering TimingUtility.getEndDateForCode()");
     let date;
-    const offset = moment.parseZone(inputDate).utcOffset();
-    const periodUnit = config.unitsMap[fhirPeriodUnit];
-    const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
-    const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    if (offset == 0) {
-      // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-      date = moment
-        .utc(inputDate)
-        .add(period, periodUnit)
-        .subtract(1, unit)
-        .endOf(Constants.DAY);
-      // if start date contains only date and time then format date according to that only
-      if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
-        date = date.format(Constants.DATE_TIME_ONLY);
+    try {
+      const offset = moment.parseZone(inputDate).utcOffset();
+      const periodUnit = config.unitsMap[fhirPeriodUnit];
+      const endOfDayTime: any = Constants.ALLOWED_UNITS.includes(fhirPeriodUnit) ? Constants.EMPTY_VALUE : Constants.DAY;
+      const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
+      const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+      if (offset == 0) {
+        // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
+        date = moment
+          .utc(inputDate)
+          .add(period, periodUnit)
+          .subtract(1, unit)
+          .endOf(endOfDayTime);
+        // if start date contains only date and time then format date according to that only
+        if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
+          date = date.format(Constants.DATE_TIME_ONLY);
+        } else {
+          // if format is of date only then format the date other wise return ISO string
+          date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        }
       } else {
-        // if format is of date only then format the date other wise return ISO string
-        date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        date = moment
+          .utc(inputDate)
+          .add(period, periodUnit)
+          .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
+          .endOf(endOfDayTime)
+          .utcOffset(offset)
+          .format(Constants.DATE_TIME);
       }
-    } else {
-      date = moment
-        .utc(inputDate)
-        .add(period, periodUnit)
-        .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-        .endOf(Constants.DAY)
-        .utcOffset(offset)
-        .format(Constants.DATE_TIME);
+      log.info("Exiting TimingUtility.getEndDateForCode()");
+      return date;
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    log.info("Exiting TimingUtility.getEndDateForCode()");
-    return date;
   }
 
   /**
@@ -175,33 +189,32 @@ export class TimingUtility {
   public static addMomentDuration(inputDate, period, fhirPeriodUnit) {
     log.info("Entering TimingUtility.addMomentDuration()");
     let date;
-    const offset = moment.parseZone(inputDate).utcOffset();
-    const periodUnit = config.unitsMap[fhirPeriodUnit];
-    const unit = Constants.DURATION_UNITS.includes(fhirPeriodUnit) ? periodUnit : Constants.DAYS;
-    const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
-    if (offset == 0) {
-      // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-      date = moment
-        .utc(inputDate)
-        .add(period, periodUnit)
-        .subtract(1, unit);
-      // if start date contains only date and time then format date according to that only
-      if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
-        date = date.format(Constants.DATE_TIME_ONLY);
+    try {
+      const offset = moment.parseZone(inputDate).utcOffset();
+      const periodUnit = config.unitsMap[fhirPeriodUnit];
+      const dateFormat = moment(inputDate, Constants.DATE_TIME, true).isValid() ? Constants.DATE_TIME : Constants.DATE;
+      if (offset == 0) {
+        // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
+        date = moment.utc(inputDate).add(period, periodUnit);
+        // if start date contains only date and time then format date according to that only
+        if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
+          date = date.format(Constants.DATE_TIME_ONLY);
+        } else {
+          // if format is of date only then format the date other wise return ISO string
+          date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        }
       } else {
-        // if format is of date only then format the date other wise return ISO string
-        date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        date = moment
+          .utc(inputDate)
+          .add(period, periodUnit)
+          .utcOffset(offset)
+          .format(Constants.DATE_TIME);
       }
-    } else {
-      date = moment
-        .utc(inputDate)
-        .add(period, periodUnit)
-        .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-        .utcOffset(offset)
-        .format(Constants.DATE_TIME);
+      log.info("Exiting TimingUtility.addMomentDuration()");
+      return date;
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    log.info("Exiting TimingUtility.addMomentDuration()");
-    return date;
   }
   /**
    * This function checks if start date is there and returns the same else it returns current date as a start date
@@ -228,33 +241,37 @@ export class TimingUtility {
    */
   public static getEndDate(start, end) {
     log.info("Entering TimingUtility.getEndDate()");
-    const offset = moment.parseZone(start).utcOffset();
-    if (!end) {
-      if (offset == 0) {
-        // offset zero means start date is a zulu date and end date needs to have same offset as of start dare
-        end = moment
-          .utc(start)
-          .endOf(Constants.DAY)
-          .add(1, Constants.YEARS)
-          .utcOffset(offset);
-        // if start contains only date and time then format end according to that only
-        if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
-          end = end.format(Constants.DATE_TIME_ONLY);
+    try {
+      const offset = moment.parseZone(start).utcOffset();
+      if (!end) {
+        if (offset == 0) {
+          // offset zero means start date is a zulu date and end date needs to have same offset as of start dare
+          end = moment
+            .utc(start)
+            .endOf(Constants.DAY)
+            .add(1, Constants.YEARS)
+            .utcOffset(offset);
+          // if start contains only date and time then format end according to that only
+          if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
+            end = end.format(Constants.DATE_TIME_ONLY);
+          } else {
+            end = end.toISOString();
+          }
         } else {
-          end = end.toISOString();
+          // start date is utc date and end date needs to have same offset as of start date
+          end = moment
+            .utc(start)
+            .endOf(Constants.DAY)
+            .add(1, Constants.YEARS)
+            .utcOffset(offset)
+            .format(Constants.DATE_TIME);
         }
-      } else {
-        // start date is utc date and end date needs to have same offset as of start date
-        end = moment
-          .utc(start)
-          .endOf(Constants.DAY)
-          .add(1, Constants.YEARS)
-          .utcOffset(offset)
-          .format(Constants.DATE_TIME);
       }
+      log.info("Exiting TimingUtility.getEndDate()");
+      return end;
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    log.info("Exiting TimingUtility.getEndDate()");
-    return end;
   }
 
   /**
@@ -294,34 +311,38 @@ export class TimingUtility {
   public static generateDate(start, timeOfDay, dayOfWeek, period, periodUnit, startOfDay, endOfDay, dateFormat, count, offset) {
     log.info("Entering TimingUtility.generateDate()");
     let date;
-    if (offset == 0) {
-      date = moment
-        .utc(start)
-        .add(count * period, periodUnit)
-        .startOf(startOfDay)
-        .endOf(endOfDay)
-        .day(dayOfWeek)
-        .add(moment.duration(timeOfDay));
-      // if start date contains only date and time then format date according to that only
-      if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
-        date = date.format(Constants.DATE_TIME_ONLY);
+    try {
+      if (offset == 0) {
+        date = moment
+          .utc(start)
+          .add(count * period, periodUnit)
+          .startOf(startOfDay)
+          .endOf(endOfDay)
+          .day(dayOfWeek)
+          .add(moment.duration(timeOfDay));
+        // if start date contains only date and time then format date according to that only
+        if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
+          date = date.format(Constants.DATE_TIME_ONLY);
+        } else {
+          // if format is of date only then format the date other wise return ISO string
+          date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        }
       } else {
-        // if format is of date only then format the date other wise return ISO string
-        date = dateFormat === Constants.DATE ? date.format(dateFormat) : date.toISOString();
+        date = moment
+          .utc(start)
+          .utcOffset(offset)
+          .add(count * period, periodUnit)
+          .startOf(startOfDay)
+          .endOf(endOfDay)
+          .day(dayOfWeek)
+          .add(moment.duration(timeOfDay))
+          .format(dateFormat);
       }
-    } else {
-      date = moment
-        .utc(start)
-        .utcOffset(offset)
-        .add(periodUnit, count * period)
-        .startOf(startOfDay)
-        .endOf(endOfDay)
-        .day(dayOfWeek)
-        .add(moment.duration(timeOfDay))
-        .format(dateFormat);
+      // log.info("Generated Date : " + date);
+      log.info("Exiting TimingUtility.generateDate()");
+      return date;
+    } catch (err) {
+      throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    // log.info("Generated Date : " + date);
-    log.info("Exiting TimingUtility.generateDate()");
-    return date;
   }
 }

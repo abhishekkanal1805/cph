@@ -632,7 +632,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/abc",
           ownerReference: "UserProfile/xyz",
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ
         };
         await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -655,7 +655,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/abc",
           ownerReference: "UserProfile/xyz",
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ
         };
         await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -685,7 +685,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/dontcare",
           ownerReference: "UserProfile/" + testPatientOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ,
           ownerType: allowedOwnerType
         };
@@ -703,7 +703,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/dontcare",
           ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ,
           ownerType: allowedOwnerType
         };
@@ -734,7 +734,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/dontcare",
           ownerReference: "UserProfile/" + testPractitionerOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ,
           ownerType: allowedOwnerType
         };
@@ -752,7 +752,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/dontcare",
           ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ,
           ownerType: allowedOwnerType
         };
@@ -779,7 +779,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/" + testOwnerProfile.id,
           ownerReference: "UserProfile/" + testOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ
         };
         await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -801,7 +801,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/" + testOwnerProfile.id,
           ownerReference: "UserProfile/" + testOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ,
           ownerType: allowedOwnerType
         };
@@ -830,7 +830,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -859,7 +859,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -888,7 +888,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -918,7 +918,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -946,7 +946,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -974,7 +974,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -1004,7 +1004,7 @@ describe("AuthService", () => {
             informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
             ownerReference: "UserProfile/" + testOwnerProfile.id,
             resourceType: null,
-            resourceAction: null,
+            resourceActions: null,
             accessType: Constants.ACCESS_READ
           };
           await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -1030,7 +1030,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
           ownerReference: "UserProfile/" + testOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ
         };
         await AuthService.authorizeRequestSharingRules(testAuthRequest);
@@ -1057,7 +1057,7 @@ describe("AuthService", () => {
           informationSourceReference: "UserProfile/" + testInformationSourceProfile.id,
           ownerReference: "UserProfile/" + testOwnerProfile.id,
           resourceType: null,
-          resourceAction: null,
+          resourceActions: null,
           accessType: Constants.ACCESS_READ
         };
         await AuthService.authorizeRequestSharingRules(testAuthRequest);

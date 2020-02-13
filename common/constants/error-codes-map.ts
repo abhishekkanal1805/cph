@@ -53,7 +53,7 @@ export const errorCodeMap = {
   InvalidUserProfile: { value: "InvalidUserProfile", description: "The requested operation cannot be performed as the UserProfile is inactive" },
   UserProfileExists: { value: "UserProfileExists", description: "A UserProfile with requested email already exists" },
   ResourceExists: { value: "ResourceExists", description: "The resource already exists with same value of element(s) " },
-  OperationFailed: { value: "OperationFailed", description: "The resource status is " },
+  OperationFailed: { value: "OperationFailed", description: "A resource associated with the request contains invalid value of one or more elements" },
   InvalidAcceptLanguage: {
     value: "InvalidAcceptLanguage",
     description: "Multiple languages are not allowed in Accept-Language header"

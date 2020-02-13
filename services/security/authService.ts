@@ -125,6 +125,7 @@ export class AuthService {
         authorizationRequest.ownerReference +
         ", "
     );
+
     // check 1. if loggedin user is a valid profile
     const requesterDetails: any = await DataFetch.getUserProfile([authorizationRequest.requester]);
 
@@ -173,31 +174,28 @@ export class AuthService {
     const informationSourceId = authorizationRequest.informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = authorizationRequest.ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [authorizationRequest.requester, informationSourceId, ownerId];
+    // make sure all provided profiles are active and not deleted. throws error if requestProfileIds was empty
     const fetchedProfiles = await DataFetch.getUserProfile(requestProfileIds);
-
     // check 5. if ownerType is provided check if ownerReference is a valid profile of specified type
     if (authorizationRequest.ownerType && fetchedProfiles[ownerId].profileType !== authorizationRequest.ownerType) {
       log.error("Owner is not a valid " + authorizationRequest.ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-
-    // check 6. if Requester submitting its own request
+    // check 6. is Patient submitting its own request
     if (authorizationRequest.requester === informationSourceId && authorizationRequest.requester === ownerId) {
       log.info("Exiting AuthService, Patient is submitting its own request :: authorizeRequestSharingRules()");
       return [];
     }
-
-    // QUESTION: Can inforSource be different from requester? is this an error state?
     // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    if (ownerOrignalSubjectReference && authorizationRequest.resourceAction) {
+    if (ownerOrignalSubjectReference && authorizationRequest.resourceActions) {
       log.info("AuthService::authorizeRequestSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
         subjectReferences: [ownerOrignalSubjectReference],
-        resourceAction: authorizationRequest.resourceAction
+        resourceActions: authorizationRequest.resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.has(ownerOrignalSubjectReference)) {
@@ -312,7 +310,6 @@ export class AuthService {
       log.error("Owner or information source is required for a non-public resource.");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(authorizationRequest.ownerReference, null, researchSubjectCriteria);
     const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference]
@@ -327,23 +324,21 @@ export class AuthService {
       log.error("Owner is not a valid " + authorizationRequest.ownerType);
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-
     // check 6. if requester and requestee are the same users then allow access
     if (authorizationRequest.requester == requesteeId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeConnectionBasedSharingRules");
       return [];
     }
-
     // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    if (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 && authorizationRequest.resourceAction) {
+    if (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 && authorizationRequest.resourceActions) {
       log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
         subjectReferences: [authorizationRequest.ownerReference],
-        resourceAction: authorizationRequest.resourceAction
+        resourceActions: authorizationRequest.resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.has(authorizationRequest.ownerReference)) {
@@ -586,7 +581,7 @@ export class AuthService {
     requesteeIds: string[],
     resourceType: string,
     accessType: string,
-    resourceAction?: string
+    resourceActions?: string[]
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -645,12 +640,12 @@ export class AuthService {
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIdsForAccessCheck, Constants.RESEARCHSUBJECT_REFERENCE);
     log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));
     // let allowedSubjects: string[] = null;
-    if (uniqueSubjectReferences.length > 0 && resourceAction) {
+    if (uniqueSubjectReferences.length > 0 && resourceActions) {
       log.info("AuthService::authorizeMultipleConnectionsBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
         subjectReferences: uniqueSubjectReferences,
-        resourceAction
+        resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.size > 0) {

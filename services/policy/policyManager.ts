@@ -49,7 +49,7 @@ class PolicyManager {
         const subjectPolicies = await PolicyManager.requestResourceScopedAccess({
           requesterReference: accessRequest.requesterReference,
           scopedResources: resourcesAccessed,
-          resourceAction: accessRequest.resourceAction
+          resourceActions: accessRequest.resourceActions
         });
         if (subjectPolicies && subjectPolicies.length > 0) {
           log.info("Access granted for researchSubject=" + researchSubject.id);
@@ -73,7 +73,7 @@ class PolicyManager {
       log.info("PolicyManager - scopedResources not available. policy based access cannot be determined.");
       return null;
     }
-    if (!accessRequest.resourceAction) {
+    if (!accessRequest.resourceActions) {
       log.info("PolicyManager - resourceAction not available. policy based access cannot be determined.");
       return null;
     }
@@ -84,7 +84,7 @@ class PolicyManager {
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
-    return PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceAction);
+    return PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
     // TODO: return a grant object to specify all the resources requester has access to. This might be useful in filtering search results
     // for this to work maybe we will need a join
   }

@@ -7,9 +7,8 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { RequestParams, UpdateMetaDataElements, UpdateRequestParams } from "../../common/interfaces/baseInterfaces";
-import { BadRequestResult, ForbiddenResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
@@ -84,7 +83,7 @@ export class BasePut {
       ownerReference: ownerReferences[0],
       resourceType: serviceName,
       accessType: Constants.ACCESS_EDIT,
-      resourceAction: requestParams.resourceAction,
+      resourceActions: requestParams.resourceActions,
       ownerType: requestParams.ownerType
     });
     // For system user/ loggedin user to get his own record we won't add sharing rules
