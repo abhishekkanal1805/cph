@@ -8,7 +8,7 @@ import { IFindOptions } from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { ResearchSubjectDataResource } from "../../models/CPH/researchSubject/researchSubjectDataResource";
-import {ReferenceUtility} from "../utilities/referenceUtility";
+import { ReferenceUtility } from "../utilities/referenceUtility";
 import { DAOService } from "./daoService";
 
 class ResearchSubjectDAO {
