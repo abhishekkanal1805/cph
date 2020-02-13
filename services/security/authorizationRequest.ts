@@ -33,7 +33,7 @@ interface AuthorizationRequest {
   /**
    * Sent by the respective lambda handler to identify the action a requester is intending to perform.
    */
-  resourceAction?: string;
+  resourceActions?: string[];
   /**
    * Optional attribute. If provided will be used to validate that the owner's UserProfile.type attribute is the same value.
    * Possible values are: Constants.SYSTEM_USER, Constants.PATIENT_USER, Constants.CAREPARTNER_USER or Constants.PRACTITIONER_USER

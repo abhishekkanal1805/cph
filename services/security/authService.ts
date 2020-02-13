@@ -181,12 +181,12 @@ export class AuthService {
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    if (ownerOrignalSubjectReference && authorizationRequest.resourceAction) {
+    if (ownerOrignalSubjectReference && authorizationRequest.resourceActions) {
       log.info("AuthService::authorizeRequestSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
         subjectReferences: [ownerOrignalSubjectReference],
-        resourceAction: authorizationRequest.resourceAction
+        resourceActions: authorizationRequest.resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.has(ownerOrignalSubjectReference)) {
@@ -321,12 +321,12 @@ export class AuthService {
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
-    if (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 && authorizationRequest.resourceAction) {
+    if (authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 && authorizationRequest.resourceActions) {
       log.info("AuthService::authorizeConnectionBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + authorizationRequest.requester,
         subjectReferences: [authorizationRequest.ownerReference],
-        resourceAction: authorizationRequest.resourceAction
+        resourceActions: authorizationRequest.resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.has(authorizationRequest.ownerReference)) {
@@ -569,7 +569,7 @@ export class AuthService {
       requesteeIds: string[],
       resourceType: string,
       accessType: string,
-      resourceAction?: string
+      resourceActions?: string[]
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -628,12 +628,12 @@ export class AuthService {
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIdsForAccessCheck, Constants.RESEARCHSUBJECT_REFERENCE);
     log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));
     // let allowedSubjects: string[] = null;
-    if (uniqueSubjectReferences.length > 0 && resourceAction) {
+    if (uniqueSubjectReferences.length > 0 && resourceActions) {
       log.info("AuthService::authorizeMultipleConnectionsBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
         subjectReferences: uniqueSubjectReferences,
-        resourceAction
+        resourceActions: resourceActions
       };
       const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
       if (grantedPolicies && grantedPolicies.size > 0) {
