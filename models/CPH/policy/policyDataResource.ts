@@ -6,12 +6,13 @@ import { ResourceMetadata } from "../../common/resourceMetadata";
 
 class PolicyDataResource {
   id: string;
+  resourceType: string;
   status: string;
   name: string;
   description: string;
   effect: string;
   action: string[];
-  resourceType: string;
+  version: string;
   meta: ResourceMetadata;
 }
 
