@@ -19,6 +19,7 @@ export * from "./services/utilities/queryGenerator";
 export * from "./services/utilities/jsonParser";
 export * from "./services/utilities/dataFetch";
 export * from "./services/utilities/dataTransform";
+export * from "./services/utilities/referenceUtility";
 export * from "./services/utilities/sharingRulesHelper";
 export { GenericResponse } from "./services/common/genericResponse";
 export * from "./services/common/s3Service";
@@ -62,6 +63,9 @@ export * from "./models/common/extension";
 
 export * from "./models/CPH/medication/repeat";
 export * from "./models/CPH/medication/timing";
+export * from "./models/CPH/policy/policy";
+export * from "./models/CPH/policy/policyDataResource";
+export * from "./models/CPH/policy/policyAssignment";
 export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
@@ -85,3 +89,7 @@ export * from "./common/constants/resourceCategory";
 export * from "./services/utilities/timingEventsGenerator";
 export * from "./services/utilities/timingUtility";
 export * from "./services/validators/timingValidator";
+
+export * from "./services/policy/policyManager";
+export * from "./services/policy/resourceAccessRequest";
+export * from "./services/policy/subjectAccessRequest";

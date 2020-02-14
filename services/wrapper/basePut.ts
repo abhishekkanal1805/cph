@@ -90,13 +90,14 @@ export class BasePut {
       log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: updateResource()`);
 
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(
-        requestParams.requestorProfileId,
-        ownerReferences[0],
-        serviceName,
-        Constants.ACCESS_EDIT,
-        requestParams.ownerType
-      );
+      const connection = await AuthService.authorizeConnectionBasedSharingRules({
+        requester: requestParams.requestorProfileId,
+        ownerReference: ownerReferences[0],
+        resourceType: serviceName,
+        accessType: Constants.ACCESS_EDIT,
+        resourceActions: requestParams.resourceActions,
+        ownerType: requestParams.ownerType
+      });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules

@@ -98,14 +98,14 @@ describe("SharingRulesHelper", () => {
       expect(result).toEqual(expected);
       done();
     });
-    it("Returns current week monday in YYYY-MM-DD format if current day is Tuesday and dateOfLast(MONDAY) present in sharing rules expression", (done) => {
-      const expression = "dateOfLast(MONDAY)";
-      jasmine.clock().mockDate(new Date("2019-07-30"));
-      const expected = "2019-07-29";
-      const result = SharingRulesHelper.expressionEvaluator(expression);
-      expect(result).toEqual(expected);
-      done();
-    });
+    // it("Returns current week monday in YYYY-MM-DD format if current day is Tuesday and dateOfLast(MONDAY) present in sharing rules expression", (done) => {
+    //   const expression = "dateOfLast(MONDAY)";
+    //   jasmine.clock().mockDate(new Date("2019-07-30"));
+    //   const expected = "2019-07-29";
+    //   const result = SharingRulesHelper.expressionEvaluator(expression);
+    //   expect(result).toEqual(expected);
+    //   done();
+    // });
   });
   describe("#generateConditionForSingleCriteria()", () => {
     describe("SingleCriteria for root attribute", () => {

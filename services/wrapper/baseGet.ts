@@ -42,7 +42,13 @@ export class BaseGet {
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
       const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+      const connection = await AuthService.authorizeConnectionBasedSharingRules({
+        requester: requestorProfileId,
+        ownerReference: patientIds[0],
+        resourceType: serviceName,
+        accessType: Constants.ACCESS_READ,
+        resourceActions: getOptions ? getOptions.resourceActions : null
+      });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
@@ -143,7 +149,8 @@ export class BaseGet {
   ) {
     let connections = [];
     let isSharingRuleCheckRequired: boolean = true;
-    let filteredQueryParameter = {};
+    const filteredQueryParameter = {};
+
     let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
     let offset = Constants.DEFAULT_OFFSET;
     // Validate limit parameter
@@ -167,8 +174,9 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
-    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
-      log.info("Search for resource accessible to all: " + model.name);
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(tableNameToResourceTypeMapping[model.getTableName()], Constants.ACCESS_READ);
+    if (isResoucePublicAccessable) {
+      log.info("Read is allowed as resource type");
       isSharingRuleCheckRequired = false;
     } else {
       if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
@@ -182,38 +190,35 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
-      try {
-        connections = await AuthService.authorizeMultipleConnectionsBasedSharingRules(
-          requestorProfileId,
-          requestedProfiles,
-          serviceName,
-          Constants.ACCESS_READ
+      log.info("requestedProfiles = " + JSON.stringify(requestedProfiles));
+      // requestedProfiles now contains ResearchSubject references and UserProfile references
+      // make sure requestedProfiles contains the subjects not profiles
+      const authResponse = await AuthService.authorizeMultipleConnectionsBased(
+        requestorProfileId,
+        requestedProfiles,
+        serviceName,
+        Constants.ACCESS_READ,
+        searchOptions ? searchOptions.resourceActions : null
+      );
+      connections = authResponse.authorizedConnections;
+      // authResponse.authorizedRequestees are the references that require no sharing rule check
+      if (!_.isEmpty(authResponse.authorizedRequestees)) {
+        // access to all the references in filteredQueryParameter will be given unconditionally
+        filteredQueryParameter[resourceOwnerElement] = [authResponse.authorizedRequestees.join(Constants.COMMA_VALUE)].filter(Boolean);
+      }
+
+      // if fullAuthGranted dont filter the subjects. full search access was granted to all
+      // else if authorizedRequestees, fullAccess is granted with no sharingRules check to these references
+      // if connections were also returned means only conditional access can be granted. we want to know if any reference belongs to self
+      // if fullAuthGranted=false, authorizedRequestees empty and connections empty meaning you have no access at all, return empty
+      if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections)) {
+        log.info(
+          "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
         );
-        // validate if loggedin user present in searchParams or not and filter query parameter
-        if (connections.length > 0) {
-          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
-            requestorProfileId,
-            resourceOwnerElement,
-            requestedProfiles,
-            Constants.ACCESS_READ
-          );
-        }
-      } catch (err) {
-        log.error("Error occoured during connection check" + err.stack, err);
-        if (err.errorCode === errorCodeMap.Forbidden.value) {
-          // validate if loggedin user present in searchParams or not and filter query parameter
-          filteredQueryParameter = await AuthService.getFilteredQueryParameter(
-            requestorProfileId,
-            resourceOwnerElement,
-            requestedProfiles,
-            Constants.ACCESS_READ
-          );
-          if (_.isEmpty(filteredQueryParameter)) {
-            return [];
-          }
-        }
+        return [];
       }
     }
+
     // if isDeleted attribute not present in query parameter then return active records
     if (!queryParams[Constants.IS_DELETED]) {
       queryParams[Constants.IS_DELETED] = [Constants.IS_DELETED_DEFAULT_VALUE];

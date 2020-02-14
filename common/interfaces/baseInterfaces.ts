@@ -3,12 +3,14 @@
  */
 
 export interface GetOptions {
-  acceptLanguage: string;
+  acceptLanguage?: string;
+  resourceActions?: string[];
 }
 
 export interface SearchOptions {
   acceptLanguage?: string;
   fetchLimit?: number;
+  resourceActions?: string[];
 }
 export interface RequestParams {
   requestLogRef?: string;
@@ -18,6 +20,7 @@ export interface RequestParams {
   referenceValidationModel?: any;
   referenceValidationElement?: string;
   ownerType?: string;
+  resourceActions?: string[];
 }
 
 export interface UpdateRequestParams {
@@ -28,6 +31,7 @@ export interface UpdateRequestParams {
   referenceValidationElement?: string;
   uniquesReferenceIds?: any;
   ownerElement?: string;
+  resourceActions?: string[];
 }
 
 export interface DeleteRequestParams {
@@ -35,6 +39,7 @@ export interface DeleteRequestParams {
   requestLogRef?: string;
   ownerElement?: string;
   permanent: string | boolean;
+  resourceActions?: string[];
 }
 
 export interface DeleteObjectParams {

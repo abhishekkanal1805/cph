@@ -52,12 +52,13 @@ export class BaseDelete {
       }
       const ownerIds = JsonParser.findValuesForKey([record], requestParams.ownerElement, false);
       const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules(
-        requestParams.requestorProfileId,
-        ownerIds[0],
-        serviceName,
-        Constants.ACCESS_EDIT
-      );
+      const connection = await AuthService.authorizeConnectionBasedSharingRules({
+        requester: requestParams.requestorProfileId,
+        ownerReference: ownerIds[0],
+        resourceType: serviceName,
+        accessType: Constants.ACCESS_EDIT,
+        resourceActions: requestParams.resourceActions
+      });
       // For system user/ loggedin user to get his own record we won't add sharing rules
       if (connection.length > 0) {
         const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);

@@ -54,6 +54,9 @@ class Constants {
   public static readonly MEDICATION_PLAN_SERVICE = "MedicationPlan";
   public static readonly MEDICATION_ACTIVITY_SERVICE = "MedicationActivity";
 
+  public static readonly POLICY_EFFECT_ALLOW = "allow";
+  public static readonly POLICY_STATUS_ACTIVE = "active";
+
   public static readonly SYSTEM_USER = "system";
   public static readonly PATIENT_USER = "patient";
   public static readonly CAREPARTNER_USER = "carepartner";
