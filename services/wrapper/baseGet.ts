@@ -174,8 +174,9 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
-    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
-      log.info("Search for resource accessible to all: " + model.name);
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(tableNameToResourceTypeMapping[model.getTableName()], Constants.ACCESS_READ);
+    if (isResoucePublicAccessable) {
+      log.info("Read is allowed as resource type");
       isSharingRuleCheckRequired = false;
     } else {
       if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
