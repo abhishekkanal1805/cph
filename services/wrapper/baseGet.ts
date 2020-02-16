@@ -174,11 +174,12 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
-    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(tableNameToResourceTypeMapping[model.getTableName()], Constants.ACCESS_READ);
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
     if (isResoucePublicAccessable) {
       log.info("Read is allowed as resource type");
       isSharingRuleCheckRequired = false;
-    } else {
+    } else if (resourceOwnerElement) {
       if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
         log.info("queryParams is empty or resourceOwnerElement not present");
         queryParams[resourceOwnerElement] = [requestorProfileId];
@@ -186,7 +187,6 @@ export class BaseGet {
       }
       let requestedProfiles =
         queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
@@ -217,6 +217,15 @@ export class BaseGet {
         );
         return [];
       }
+    } else if (searchOptions.resourceScope && searchOptions.resourceActions) {
+      isSharingRuleCheckRequired = false;
+      const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, searchOptions.resourceScope);
+      if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+        log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to search this resource.");
+        return [];
+      }
+    } else {
+      log.info("you have no access to search this resource.");
     }
 
     // if isDeleted attribute not present in query parameter then return active records

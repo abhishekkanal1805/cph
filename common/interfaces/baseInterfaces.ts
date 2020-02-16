@@ -11,6 +11,7 @@ export interface SearchOptions {
   acceptLanguage?: string;
   fetchLimit?: number;
   resourceActions?: string[];
+  resourceScope?: string[];
 }
 export interface RequestParams {
   requestLogRef?: string;
