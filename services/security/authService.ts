@@ -663,6 +663,65 @@ export class AuthService {
   }
 
   /**
+   * Validate authorizePolicyBased rules between loggedin user and requested user
+   *
+   * @static
+   * @param {string} requesterId
+   * @param {string[]} requesteeIds
+   * @param {string} resourceType
+   * @param {string} accessType
+   * @returns 1) [] is returned for admin user, when requester is self, their own subject references or if resource is set public.
+   * This indicates full access for all the requested subjects. Sharing rules check not required.
+   * 2) returns the list of Connections for when at least one was found between the requested
+   * 3) if no connections found then throws error
+   * @memberof AuthService
+   */
+  public static async authorizePolicyBased(requesterId: string, resourceActions: string[], resourceScope: string[]) {
+    const authResponse = {
+      fullAuthGranted: true,
+      authorizedResourceScopes: []
+    };
+    log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
+    // 1 - Check loggedin user
+    const fetchedProfiles = await DataFetch.getUserProfile([requesterId]);
+
+    // check 2: if requester should be system user then allow access
+    if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
+      return authResponse;
+    }
+    // if we are here means full auth was not granted. Determining the partial Auth
+    authResponse.fullAuthGranted = false;
+
+    // check 3: study/site based access control can only be determined if the owner is ResearchSubject
+    // TODO: maybe we should not limit policy based access check based on presence of subject reference.
+    // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
+    // This is okay only if this function is only called from clinical resource perspective.
+    // if we use requesteeIds the UserProfile for these subjects may not be valid
+    const allPromises = [];
+    resourceScope.forEach((eachScope) => {
+      const policiesPromise = PolicyManager.requestResourceScopedAccess({
+        requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
+        scopedResources: [eachScope],
+        resourceActions
+      });
+      allPromises.push(policiesPromise);
+    });
+    await Promise.all(allPromises).then((requesterPolicies) => {
+      requesterPolicies = requesterPolicies.filter(Boolean);
+      if (requesterPolicies.length) {
+        authResponse.authorizedResourceScopes = requesterPolicies;
+      }
+    });
+
+    if (authResponse.authorizedResourceScopes && authResponse.authorizedResourceScopes.length > 0) {
+      log.info("Access granted for resoriceScope=", authResponse);
+    }
+    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
+    return authResponse;
+  }
+
+  /**
    * Validate connection between requested users with loggedin user
    *
    * @static
