@@ -691,26 +691,15 @@ export class AuthService {
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
     // if we use requesteeIds the UserProfile for these subjects may not be valid
-    const allPromises = [];
-    resourceScope.forEach((eachScope) => {
-      const policiesPromise = PolicyManager.requestResourceScopedAccess({
-        requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
-        scopedResources: [eachScope],
-        resourceActions,
-        requestToken: eachScope
-      });
-      allPromises.push(policiesPromise);
+    const resourceAccessResponse: ResourceAccessResponse = await PolicyManager.requestResourceScopedAccess({
+      requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
+      scopedResources: resourceScope,
+      resourceActions
     });
-
-    // constructing authResponse.authorizedResourceScopes from returned response
-    await Promise.all(allPromises).then((resourceAccessResponses: ResourceAccessResponse[]) => {
-      resourceAccessResponses.forEach((resourceAccessResponse) => {
-        if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
-          log.info("Access granted for resource =" + resourceAccessResponse.requestToken);
-          authResponse.authorizedResourceScopes.push(resourceAccessResponse.requestToken);
-        }
-      });
-    });
+    if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
+      log.info("Access granted for resource =", resourceAccessResponse.grantedResources);
+      authResponse.authorizedResourceScopes.concat(resourceAccessResponse.grantedResources);
+    }
 
     log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
     return authResponse;
