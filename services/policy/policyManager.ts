@@ -10,7 +10,9 @@ import { ResearchSubjectDataResource } from "../../models/CPH/researchSubject/re
 import { PolicyAssignmentDAO } from "../dao/policyAssignmentDAO";
 import { PolicyDAO } from "../dao/policyDAO";
 import { ResearchSubjectDAO } from "../dao/researchSubjectDAO";
+import { ReferenceUtility } from "../utilities/referenceUtility";
 import { ResourceAccessRequest } from "./resourceAccessRequest";
+import { ResourceAccessResponse } from "./resourceAccessResponse";
 import { SubjectAccessRequest } from "./subjectAccessRequest";
 
 class PolicyManager {
@@ -21,6 +23,7 @@ class PolicyManager {
    * The Request can be used only for determining access to one subject.
    * PolicyAssignments will be looked up for the requester with the scope of provided resources.
    * We will then search in the all the assigned/applicable policies whether the provided action is permitted.
+   * TODO: can we combine policyDAO and assignmentDAO lookup?
    * @param {SubjectAccessRequest} accessRequest
    * @returns Map<string, PolicyDataResource[]> map of subject references and what policies were granted to it
    */
@@ -35,8 +38,8 @@ class PolicyManager {
       log.info("PolicyManager - subject references was not found. policy based access cannot be determined.");
       return null;
     }
-    const policyGrants = new Map<string, PolicyDataResource[]>();
-    // FIXME: can we adjust the policyDAO and assignmentDAO to lookup for multiple subjects together
+
+    const allPromises: Array<Promise<ResourceAccessResponse>> = [];
     for (const researchSubject of searchResult) {
       if (researchSubject) {
         const resourcesAccessed = [researchSubject.study.reference];
@@ -45,19 +48,26 @@ class PolicyManager {
           resourcesAccessed.push(researchSubject.site.reference);
         }
         // QUESTION: should we make sure if site is present then it belong to the same study?
-        // TODO: we can call this only once outside of the for-loop?
-        const subjectPolicies = await PolicyManager.requestResourceScopedAccess({
+        const subjectPoliciesPromise = PolicyManager.requestResourceScopedAccess({
           requesterReference: accessRequest.requesterReference,
           scopedResources: resourcesAccessed,
-          resourceActions: accessRequest.resourceActions
+          resourceActions: accessRequest.resourceActions,
+          requestToken: researchSubject.id
         });
-        if (subjectPolicies && subjectPolicies.length > 0) {
-          log.info("Access granted for researchSubject=" + researchSubject.id);
-          policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + researchSubject.id, subjectPolicies);
-        }
+        allPromises.push(subjectPoliciesPromise);
       }
     }
-    log.info("Granted policies=" + JSON.stringify(policyGrants));
+
+    const policyGrants = new Map<string, PolicyDataResource[]>();
+    await Promise.all(allPromises).then((resourceAccessResponses: ResourceAccessResponse[]) => {
+      resourceAccessResponses.forEach((resourceAccessResponse) => {
+        if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
+          log.info("Access granted for researchSubject=" + resourceAccessResponse.requestToken);
+          policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + resourceAccessResponse.requestToken, resourceAccessResponse.grantedPolicies);
+        }
+      });
+    });
+
     return policyGrants;
   }
 
@@ -65,10 +75,9 @@ class PolicyManager {
    * The function determines whether the requester has access to perform the specified action by the invoked resource handler.
    * PolicyAssignments will be looked up for the requester with the scope of provided resources.
    * We will then search in the all the assigned/applicable policies whether the provided action is permitted.
-   * TODO: determine what will be returned. maybe return the policy that grants access
    * @param {ResourceAccessRequest} accessRequest
    */
-  public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest) {
+  public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest): Promise<ResourceAccessResponse> {
     if (!accessRequest.scopedResources || accessRequest.scopedResources.length < 1) {
       log.info("PolicyManager - scopedResources not available. policy based access cannot be determined.");
       return null;
@@ -84,9 +93,28 @@ class PolicyManager {
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
-    return PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
-    // TODO: return a grant object to specify all the resources requester has access to. This might be useful in filtering search results
-    // for this to work maybe we will need a join
+    const grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
+
+    // create an array of IDs from Policies
+    const grantedPolicyIds: string[] = grantedPolices.map((grantedPolicy: PolicyDataResource) => grantedPolicy.id);
+    // see which policyAssignments are actually available based on granted policies. for that assignment capture the resourceScope.resource.reference
+    const grantedResources: string[] = [];
+    grantedPolicyAssignments.forEach((grantedPolicyAssignment: PolicyAssignmentDataResource) => {
+      const grantedPolicyId: string = ReferenceUtility.convertToResourceId(grantedPolicyAssignment.policy.reference, Constants.POLICY_REFERENCE);
+      if (grantedPolicyIds.includes(grantedPolicyId)) {
+        grantedResources.push(grantedPolicyAssignment.resourceScope.resource.reference);
+      }
+    });
+
+    // constructing the response
+    const resourceAccessResponse: ResourceAccessResponse = {
+      grantedPolicies: grantedPolices,
+      grantedResources: [...new Set(grantedResources)],
+      requestToken: accessRequest.requestToken
+    };
+
+    log.info("grantedResources = " + JSON.stringify(resourceAccessResponse.grantedResources));
+    return resourceAccessResponse;
   }
 }
 

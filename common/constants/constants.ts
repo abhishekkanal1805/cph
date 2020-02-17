@@ -107,6 +107,7 @@ class Constants {
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly RESEARCHSUBJECT_REFERENCE = "ResearchSubject/";
+  public static readonly POLICY_REFERENCE = "Policy/";
   public static readonly INDIVIDUAL = "individual";
   public static readonly PDF_EXTENSION = ".pdf";
   public static readonly ATTACHMENT = "attachment";
