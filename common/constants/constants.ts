@@ -7,6 +7,7 @@ class Constants {
   public static readonly BUNDLE_TYPE = "searchset";
 
   public static readonly RESPONSE_TYPE_OK = "ok";
+  public static readonly RESPONSE_TYPE_ACCEPTED = "accepted";
   public static readonly RESPONSE_TYPE_BAD_REQUEST = "badRequest";
   public static readonly UNPROCESSABLE_ENTITY = "unprocessableEntity";
   public static readonly RESPONSE_TYPE_INTERNAL_SERVER_ERROR = "internalServerError";
