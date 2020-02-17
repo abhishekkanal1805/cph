@@ -86,6 +86,26 @@ class PolicyManager {
       log.info("PolicyManager - resourceAction not available. policy based access cannot be determined.");
       return null;
     }
+    // TODO: move care team in cph-common and apply filtering here
+    // look up care team with this below query
+    // const query = {
+    //   where: {
+    //     study; [] OR  site: [],
+    //     member: requester
+    //     period
+    //     meta.isdeleted = false
+    //     status: active
+    //   }
+    // };
+    // 999
+    // scope=study/000 site/555
+    // careteam[] = careTeamDAO.findAll(query) careteam[000, 111]  careteam[000, 555]
+    //     // scope=study/000
+
+    // if no care team return no access
+    // if at least one care team found, then gather all allowed Site+Study, then apply filter to original scopedResource
+    // if the filtered scopedResource is empty, return from here
+
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
       accessRequest.requesterReference,
