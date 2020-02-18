@@ -15,6 +15,7 @@ import { PolicyDataResource } from "../../models/CPH/policy/policyDataResource";
 import { ResearchSubject } from "../../models/CPH/researchSubject/researchSubject";
 import { DAOService } from "../dao/daoService";
 import { PolicyManager } from "../policy/policyManager";
+import { ResourceAccessResponse } from "../policy/resourceAccessResponse";
 import { SubjectAccessRequest } from "../policy/subjectAccessRequest";
 import { DataFetch } from "../utilities/dataFetch";
 import { ReferenceUtility } from "../utilities/referenceUtility";
@@ -592,19 +593,11 @@ export class AuthService {
       return authResponse;
     }
 
-    // check 4. If resourceType publicly accessible, then no connection check required
-    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
-    if (isPublicResource) {
-      log.info("Exiting AuthService, Resource type is public :: authorizeMultipleConnectionsBasedSharingRules()");
-      return authResponse;
-    }
-    log.info("Requester is not a system user. validating connection between requester and requestee.");
-
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     // FIXME: identify subjects with valid profiles and only used those for Policy check
     const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
 
-    // check 5. if requester accessing his own ResearchSubject then allow access
+    // check 4. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return authResponse;
@@ -613,12 +606,12 @@ export class AuthService {
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
-    // check 6 check if any references belong to the owner, no need to check policies for them
+    // check 5. check if any references belong to the owner, no need to check policies for them
     const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
     log.info("AuthService:: requesterOwnedReferences = " + JSON.stringify(requesterOwnedReferences));
     authResponse.authorizedRequestees = requesterOwnedReferences;
 
-    // check 7 study/site based access control can only be determined if the owner is ResearchSubject
+    // check 6. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
@@ -653,7 +646,7 @@ export class AuthService {
     const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
     log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck));
 
-    // check 8. validate connection between requester and requestee
+    // check 7. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     authResponse.authorizedConnections = await AuthService.getConnections(requesteeIdsForConnectionCheck, requesterId, connectionType, connectionStatus);
@@ -681,7 +674,7 @@ export class AuthService {
       fullAuthGranted: true,
       authorizedResourceScopes: []
     };
-    log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
+    log.info("Entering AuthService :: authorizePolicyBased()");
     // 1 - Check loggedin user
     const fetchedProfiles = await DataFetch.getUserProfile([requesterId]);
 
@@ -698,25 +691,16 @@ export class AuthService {
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
     // if we use requesteeIds the UserProfile for these subjects may not be valid
-    const allPromises = [];
-    resourceScope.forEach((eachScope) => {
-      const policiesPromise = PolicyManager.requestResourceScopedAccess({
-        requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
-        scopedResources: [eachScope],
-        resourceActions
-      });
-      allPromises.push(policiesPromise);
+    const resourceAccessResponse: ResourceAccessResponse = await PolicyManager.requestResourceScopedAccess({
+      requesterReference: Constants.USERPROFILE_REFERENCE + requesterId,
+      scopedResources: resourceScope,
+      resourceActions
     });
-    await Promise.all(allPromises).then((requesterPolicies) => {
-      requesterPolicies = requesterPolicies.filter(Boolean);
-      if (requesterPolicies.length) {
-        authResponse.authorizedResourceScopes = requesterPolicies;
-      }
-    });
-
-    if (authResponse.authorizedResourceScopes && authResponse.authorizedResourceScopes.length > 0) {
-      log.info("Access granted for resoriceScope=", authResponse);
+    if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
+      log.info("Access granted for resource =", resourceAccessResponse.grantedResources);
+      authResponse.authorizedResourceScopes.concat(resourceAccessResponse.grantedResources);
     }
+
     log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
     return authResponse;
   }

@@ -217,9 +217,13 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions.resourceScope && searchOptions.resourceActions) {
+    } else if (searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap) {
       isSharingRuleCheckRequired = false;
-      const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, searchOptions.resourceScope);
+      const resourceScope: string[] = [];
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
+        resourceScope.concat(scope);
+      });
+      const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
         log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to search this resource.");
         return [];
