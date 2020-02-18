@@ -217,7 +217,7 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap) {
+    } else if (searchOptions && searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap) {
       isSharingRuleCheckRequired = false;
       const resourceScope: string[] = [];
       Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {

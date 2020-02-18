@@ -28,7 +28,7 @@ class PolicyDAO {
 
     if (!policyReferences || policyReferences.length < 1) {
       log.info("PolicyDAO - no policy references provided.");
-      return null;
+      return [];
     }
 
     // converting references to ids
