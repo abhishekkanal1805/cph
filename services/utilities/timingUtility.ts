@@ -124,7 +124,7 @@ export class TimingUtility {
           dateArray.push(TimingUtility.getEndDateForCode(startDate, boundsDurationValue, boundsDurationCode));
         }
       }
-      if (code && repeat.count) {
+      if (code && repeat && repeat.count) {
         switch (code) {
           case "SDY":
             dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count, Constants.FHIR_DAY_UNIT));

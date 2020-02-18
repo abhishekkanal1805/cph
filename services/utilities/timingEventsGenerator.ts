@@ -22,6 +22,7 @@ export class TimingEventsGenerator {
   public static generateDateEventsFromTiming(timing: any, requestStartDate: string, requestEndDate: string) {
     log.info("Entering TimingEventsGenerator.generateDateEventsFromTiming()");
     let events: any = [];
+    let code;
     // timing element is mandatory
     if (timing) {
       // if found EVENT array, ignore everything else and use the dates specified there
@@ -29,15 +30,21 @@ export class TimingEventsGenerator {
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
           log.info("EVENT:generateSDTEvents with: " + timing.event);
+          if (timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code) {
+            code = timing.code.coding[0].code;
+            log.info("Code : " + code);
+            if (code != "SDT") {
+              throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + Constants.TIMING_CODE);
+            }
+          }
           requestStartDate = TimingUtility.calculateStartDate(requestStartDate, requestEndDate, timing.repeat);
-          requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, timing.code.coding[0].code);
+          requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, code);
           events = TimingEventsGenerator.generateSDTEvents(timing.event, requestStartDate, requestEndDate, true);
         } else {
           log.error("timing.event is not an array or empty");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
         }
       } else {
-        let code;
         // if code present then validate code related attributes
         if (timing.code && timing.code.coding && timing.code.coding[0] && timing.code.coding[0].code) {
           // validate the attributes required with code to generate events

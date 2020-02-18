@@ -220,7 +220,7 @@ export class BaseGet {
     } else if (searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap) {
       isSharingRuleCheckRequired = false;
       const resourceScope: string[] = [];
-      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach((scope: string[]) => {
         resourceScope.concat(scope);
       });
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
