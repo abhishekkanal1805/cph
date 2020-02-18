@@ -16,7 +16,7 @@ class PolicyAssignmentDAO {
 
     if (!resources || resources.length < 1) {
       log.info("PolicyAssignmentDAO - no resource references provided.");
-      return null;
+      return [];
     }
 
     const policyAssignmentQuery: IFindOptions<PolicyAssignment> = {
