@@ -30,6 +30,6 @@ export const resourceTypeToTableNameMapping = {
   RequestGroup: "RequestGroup",
   StudySite: "StudySite",
   Visit: "Visit",
-  Policy: "Policy",
-  CareTeam: "CareTeam"
+  Policy: "Policy",
+  CareTeam: "CareTeam"
 };
