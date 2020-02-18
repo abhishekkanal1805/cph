@@ -643,6 +643,8 @@ export class AuthService {
 
     log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees));
     // remove the subjects that already were granted access from the connection check
+    // FIXME:BUG if some or any of the subject were granted policy access, their user profiles should be removed from this list
+    // FIXME: UserProfile for the respective subject can only stay if there is still at least one subject left for whom policy access was denied
     const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
     log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck));
 
