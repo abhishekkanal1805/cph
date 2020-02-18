@@ -72,7 +72,6 @@ export class BaseGet {
   }
 
   /**
-   * @deprecated use getResource instead.
    * @param {string} id
    * @param {*} model
    * @param {string} requestorProfileId
@@ -86,7 +85,13 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+    await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;

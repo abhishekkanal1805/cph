@@ -7,7 +7,7 @@ import * as log from "lambda-log";
 import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
-  describe("#generateDateEventsFromTiming()", () => {
+  /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events based on SID", async (done) => {
       const timing = {
         repeat: {
@@ -147,22 +147,6 @@ describe("TimingEventsGenerator", () => {
     });
   });
   describe("#generateDateEventsFromTiming()", () => {
-    it("generate events based on period for period unit as mo", async (done) => {
-      const timing = {
-        repeat: {
-          count: 4,
-          frequency: 1,
-          period: 1,
-          periodUnit: "mo"
-        }
-      };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-29T08:51:50.242", "2020-05-29T08:51:50.242");
-      log.info(JSON.stringify(events));
-      expect(events.length).toBeGreaterThan(1);
-      done();
-    });
-  });
-  describe("#generateDateEventsFromTiming()", () => {
     it("generate events based on events array", async (done) => {
       const timing = {
         event: ["2020-02-28T10:22:31.106Z"]
@@ -198,6 +182,25 @@ describe("TimingEventsGenerator", () => {
       };
       const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
       log.info("Events length: " + events.length);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on period for period unit as mo", async (done) => {
+      const timing = {
+        repeat: {
+          frequency: 1,
+          period: 1,
+          periodUnit: "d",
+          boundsPeriod: {
+            star: "2020-02-10T00:00:00.000",
+            end: "2020-02-20T12:00:00.000"
+          }
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-02-01T12:00:00.000-02:00", null);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
