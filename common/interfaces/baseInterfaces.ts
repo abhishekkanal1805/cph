@@ -11,6 +11,7 @@ export interface SearchOptions {
   acceptLanguage?: string;
   fetchLimit?: number;
   resourceActions?: string[];
+  queryParamToResourceScopeMap?: Map<string, string[]>;
 }
 export interface RequestParams {
   requestLogRef?: string;

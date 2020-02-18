@@ -89,3 +89,7 @@ export * from "./common/constants/resourceCategory";
 export * from "./services/utilities/timingEventsGenerator";
 export * from "./services/utilities/timingUtility";
 export * from "./services/validators/timingValidator";
+
+export * from "./services/policy/policyManager";
+export * from "./services/policy/resourceAccessRequest";
+export * from "./services/policy/subjectAccessRequest";

@@ -59,6 +59,11 @@ export class APIResponseBuilder {
     APIResponseBuilder._returnAs<T>(result, HttpStatusCode.OK, callback, origin);
   }
 
+  public static accepted<T>(result: T, callback: ApiCallback, contentLocation: string, origin?: string): void {
+    APIResponseBuilder.defaultHeaders["Content-Location"] = contentLocation;
+    APIResponseBuilder._returnAs<T>(result, HttpStatusCode.ACCEPTED, callback, origin);
+  }
+
   public static nocontent<T>(result: T, callback: ApiCallback, origin?: string): void {
     APIResponseBuilder._returnAs(result, HttpStatusCode.NO_CONTENT, callback, origin);
   }

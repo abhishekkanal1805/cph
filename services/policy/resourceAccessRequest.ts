@@ -19,6 +19,11 @@ interface ResourceAccessRequest {
    * this keyword will be compare to a policyAction in Policy
    */
   resourceActions: string[];
+  /**
+   * This value will be simply returned back in the response so we can track/indicate which  which resource are we trying
+   * to determine access for if it is other than the scoped resource. If not provided nothing will be returned.
+   */
+  requestToken?: string;
 }
 
 export { ResourceAccessRequest };
