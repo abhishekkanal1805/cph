@@ -66,6 +66,7 @@ export * from "./models/CPH/medication/timing";
 export * from "./models/CPH/policy/policy";
 export * from "./models/CPH/policy/policyDataResource";
 export * from "./models/CPH/policy/policyAssignment";
+export * from "./models/CPH/policy/policyAssignmentDataResource";
 export * from "./models/CPH/userProfile/userProfile";
 export * from "./models/CPH/userProfile/userProfileDataResource";
 export * from "./models/CPH/connection/connection";
