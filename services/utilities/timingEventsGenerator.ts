@@ -24,15 +24,13 @@ export class TimingEventsGenerator {
     let events: any = [];
     // timing element is mandatory
     if (timing) {
-      requestStartDate = TimingUtility.getStartDate(requestStartDate);
-      log.info("start ---: " + requestStartDate);
-      requestEndDate = TimingUtility.getEndDate(requestStartDate, requestEndDate);
-      log.info("endDate ---: " + requestEndDate);
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
         if (Array.isArray(timing.event) && timing.event.length != 0) {
           log.info("EVENT:generateSDTEvents with: " + timing.event);
+          requestStartDate = TimingUtility.calculateStartDate(requestStartDate, requestEndDate, timing.repeat);
+          requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, timing.code.coding[0].code);
           events = TimingEventsGenerator.generateSDTEvents(timing.event, requestStartDate, requestEndDate, true);
         } else {
           log.error("timing.event is not an array or empty");
@@ -332,7 +330,7 @@ export class TimingEventsGenerator {
           /* if cycleDay is last day from dayOfCycle array then calculate the end date of cycle
              and no of days remaining days of the cycle*/
           if (cycleDay.valueOf() === repeat.dayOfCycle[repeat.dayOfCycle.length - 1]) {
-            const cycleEndDate = TimingUtility.generateDate(start, "", "", repeat.duration - 1, durationUnit, "", "", Constants.DATE_TIME, 1, offset);
+            const cycleEndDate = TimingUtility.generateDate(start, "", "", repeat.duration, durationUnit, "", "", Constants.DATE_TIME, 1, offset);
             const remainingDays = moment(cycleEndDate).diff(nextDay, Constants.DAYS);
             nextDay = TimingUtility.generateDate(start, "", "", cycleDay + remainingDays, Constants.DAYS, "", "", Constants.DATE_TIME, 1, offset);
             if (moment(nextDay).isSameOrAfter(endDate)) {

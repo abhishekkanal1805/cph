@@ -7,7 +7,7 @@ import * as log from "lambda-log";
 import { TimingEventsGenerator } from "./timingEventsGenerator";
 
 describe("TimingEventsGenerator", () => {
-  describe("#generateDateEventsFromTiming()", () => {
+  /*describe("#generateDateEventsFromTiming()", () => {
     it("generate events based on SID", async (done) => {
       const timing = {
         repeat: {
@@ -172,35 +172,79 @@ describe("TimingEventsGenerator", () => {
       expect(events.length).toEqual(1);
       done();
     });
-  });
+  });*/
   describe("#generateDateEventsFromTiming()", () => {
-    it("generate events based on SID", async (done) => {
+    it("generate events based on SDW", async (done) => {
       const timing = {
         code: {
-          text: "Code For SID",
+          text: "Code For SDW",
           coding: [
             {
-              code: "SID",
+              code: "SDW",
               display: "Specific Intervals"
             }
           ]
         },
         repeat: {
           boundsPeriod: {
-            start: "2020-02-01T12:00:00.000Z",
-            end: "2020-02-10T23:59:59.000Z"
+            start: "2020-03-12T00:07:40.929Z",
+            end: "2020-04-27T17:07:40.929Z"
           },
-          frequency: 1,
-          period: 1,
-          periodUnit: "d",
-          timeOfDay: ["14:00:00"]
+          period: 2,
+          periodUnit: "wk",
+          dayOfWeek: ["mon", "fri"],
+          timeOfDay: ["18:00:00"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
       log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
       done();
     });
   });
+
+  /*describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on SDY", async (done) => {
+      const timing = {
+        code: {
+          text: "Code For SDY",
+          coding: [
+            {
+              code: "SDY",
+              display: "Specific Intervals"
+            }
+          ]
+        },
+        repeat: {
+          frequency: 1,
+          dayOfWeek: [],
+          count: 0,
+          periodUnit: "d",
+          boundsPeriod: {
+            end: "2020-02-15T00:00:00.000Z",
+            start: "2020-02-04T00:00:00.000Z"
+          },
+          timeOfDay: [
+            "18:30:00", "09:30:00"
+          ],
+          dayOfCycle: [
+            1
+          ],
+          boundsDuration: {
+            unit: "",
+            value: 0,
+            system: "",
+            code: "s"
+          },
+          period: 1
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, null, null);
+      log.info("Events length: " + events.length);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });*/
 });

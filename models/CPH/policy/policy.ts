@@ -3,13 +3,12 @@
  */
 
 import { Column, DataType, Model, Table } from "sequelize-typescript";
-import {ResourceCategory} from "../../../common/constants/resourceCategory";
-import {ResourceMetadata} from "../../common/resourceMetadata";
+import { ResourceCategory } from "../../../common/constants/resourceCategory";
+import { ResourceMetadata } from "../../common/resourceMetadata";
 import { PolicyDataResource } from "./policyDataResource";
 
 @Table({ tableName: "Policy" })
 class Policy extends Model<Policy> {
-
   static readonly resourceCategory: ResourceCategory = ResourceCategory.DEFINITION;
 
   @Column({ type: DataType.UUID, primaryKey: true })
