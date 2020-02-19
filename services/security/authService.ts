@@ -700,7 +700,7 @@ export class AuthService {
     });
     if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
       log.info("Access granted for resource =", resourceAccessResponse.grantedResources);
-      authResponse.authorizedResourceScopes.concat(resourceAccessResponse.grantedResources);
+      authResponse.authorizedResourceScopes = authResponse.authorizedResourceScopes.concat(resourceAccessResponse.grantedResources);
     }
 
     log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
