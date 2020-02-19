@@ -302,5 +302,7 @@ class Constants {
   public static readonly YEARS = "years";
   public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
   public static readonly DURATION_UNITS = ["s", "min", "h", "d"];
+  public static readonly ZULU_OFFSET = "Z";
+  public static readonly UTC_OFFSET = "+";
 }
 export { Constants };
