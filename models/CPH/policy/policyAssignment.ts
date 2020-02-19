@@ -48,7 +48,6 @@ class PolicyAssignment extends Model<PolicyAssignment> {
   set principal(value: Reference) {
     this._principal = value.reference;
   }
-
 }
 
 export { PolicyAssignment };

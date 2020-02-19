@@ -64,10 +64,10 @@ class PolicyManager {
       if (resourceAccessResponses && resourceAccessResponses.length > 0) {
         resourceAccessResponses.forEach((resourceAccessResponse) => {
           if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
-             log.info("Access granted for researchSubject=" + resourceAccessResponse.requestToken);
-             policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + resourceAccessResponse.requestToken, resourceAccessResponse.grantedPolicies);
-            }
-          });
+            log.info("Access granted for researchSubject=" + resourceAccessResponse.requestToken);
+            policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + resourceAccessResponse.requestToken, resourceAccessResponse.grantedPolicies);
+          }
+        });
       }
     });
 
@@ -124,7 +124,7 @@ class PolicyManager {
     // looking up policy
     const grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
     if (grantedPolices.length < 1) {
-        return resourceAccessResponse;
+      return resourceAccessResponse;
     }
     // create an array of IDs from Policies
     const grantedPolicyIds: string[] = grantedPolices.map((grantedPolicy: PolicyDataResource) => grantedPolicy.id);

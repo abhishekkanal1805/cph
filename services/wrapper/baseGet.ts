@@ -72,7 +72,6 @@ export class BaseGet {
   }
 
   /**
-   * @deprecated use getResource instead.
    * @param {string} id
    * @param {*} model
    * @param {string} requestorProfileId
@@ -86,7 +85,13 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+    await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -218,12 +223,19 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions && searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap && searchOptions.queryParamToResourceScopeMap.size > 0) {
-      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
+    } else if (
+      searchOptions &&
+      searchOptions.resourceActions &&
+      searchOptions.queryParamToResourceScopeMap &&
+      searchOptions.queryParamToResourceScopeMap.size > 0
+    ) {
+      log.info(
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+      );
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
-      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach((scope: string[]) => {
         resourceScope = resourceScope.concat(scope);
       });
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
