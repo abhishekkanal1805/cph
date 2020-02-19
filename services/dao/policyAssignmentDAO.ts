@@ -16,13 +16,13 @@ class PolicyAssignmentDAO {
 
     if (!resources || resources.length < 1) {
       log.info("PolicyAssignmentDAO - no resource references provided.");
-      return null;
+      return [];
     }
 
     const policyAssignmentQuery: IFindOptions<PolicyAssignment> = {
       where: {
         principal: userReference,
-        resourceScopeReference: resources
+        resourceScope: resources
       }
     };
     log.info("PolicyAssignmentDAO - query=" + JSON.stringify(policyAssignmentQuery));

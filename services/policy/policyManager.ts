@@ -31,16 +31,18 @@ class PolicyManager {
     // if we are here we can assume that we are trying to determine access based on study/site/subject
     // subject reference if present is assumed to be valid
     log.info("PolicyManager - requestAccess for =" + JSON.stringify(accessRequest));
+    // initializing the return Map
+    const policyGrants = new Map<string, PolicyDataResource[]>();
     // should the DAO look at the period for this subject before returning
-    const searchResult: ResearchSubjectDataResource[] = await ResearchSubjectDAO.getByReferences(accessRequest.subjectReferences);
+    const researchSubjectDataResources: ResearchSubjectDataResource[] = await ResearchSubjectDAO.getByReferences(accessRequest.subjectReferences);
 
-    if (!searchResult || searchResult.length < 1) {
+    if (!researchSubjectDataResources || researchSubjectDataResources.length < 1) {
       log.info("PolicyManager - subject references was not found. policy based access cannot be determined.");
-      return null;
+      return policyGrants;
     }
 
     const allPromises: Array<Promise<ResourceAccessResponse>> = [];
-    for (const researchSubject of searchResult) {
+    for (const researchSubject of researchSubjectDataResources) {
       if (researchSubject) {
         const resourcesAccessed = [researchSubject.study.reference];
         // site reference is optional so handling that
@@ -58,14 +60,15 @@ class PolicyManager {
       }
     }
 
-    const policyGrants = new Map<string, PolicyDataResource[]>();
     await Promise.all(allPromises).then((resourceAccessResponses: ResourceAccessResponse[]) => {
-      resourceAccessResponses.forEach((resourceAccessResponse) => {
-        if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
-          log.info("Access granted for researchSubject=" + resourceAccessResponse.requestToken);
-          policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + resourceAccessResponse.requestToken, resourceAccessResponse.grantedPolicies);
-        }
-      });
+      if (resourceAccessResponses && resourceAccessResponses.length > 0) {
+        resourceAccessResponses.forEach((resourceAccessResponse) => {
+          if (resourceAccessResponse.grantedPolicies && resourceAccessResponse.grantedPolicies.length > 0) {
+             log.info("Access granted for researchSubject=" + resourceAccessResponse.requestToken);
+             policyGrants.set(Constants.RESEARCHSUBJECT_REFERENCE + resourceAccessResponse.requestToken, resourceAccessResponse.grantedPolicies);
+            }
+          });
+      }
     });
 
     return policyGrants;
@@ -78,13 +81,19 @@ class PolicyManager {
    * @param {ResourceAccessRequest} accessRequest
    */
   public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest): Promise<ResourceAccessResponse> {
+    const resourceAccessResponse: ResourceAccessResponse = {
+      grantedPolicies: [],
+      grantedResources: [],
+      requestToken: accessRequest.requestToken
+    };
+
     if (!accessRequest.scopedResources || accessRequest.scopedResources.length < 1) {
       log.info("PolicyManager - scopedResources not available. policy based access cannot be determined.");
-      return null;
+      return resourceAccessResponse;
     }
     if (!accessRequest.resourceActions) {
       log.info("PolicyManager - resourceAction not available. policy based access cannot be determined.");
-      return null;
+      return resourceAccessResponse;
     }
     // TODO: move care team in cph-common and apply filtering here
     // look up care team with this below query
@@ -114,7 +123,9 @@ class PolicyManager {
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
     const grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
-
+    if (grantedPolices.length < 1) {
+        return resourceAccessResponse;
+    }
     // create an array of IDs from Policies
     const grantedPolicyIds: string[] = grantedPolices.map((grantedPolicy: PolicyDataResource) => grantedPolicy.id);
     // see which policyAssignments are actually available based on granted policies. for that assignment capture the resourceScope.resource.reference
@@ -126,13 +137,9 @@ class PolicyManager {
       }
     });
 
-    // constructing the response
-    const resourceAccessResponse: ResourceAccessResponse = {
-      grantedPolicies: grantedPolices,
-      grantedResources: [...new Set(grantedResources)],
-      requestToken: accessRequest.requestToken
-    };
-
+    // populating the response
+    resourceAccessResponse.grantedPolicies = grantedPolices;
+    resourceAccessResponse.grantedResources = [...new Set(grantedResources)];
     log.info("grantedResources = " + JSON.stringify(resourceAccessResponse.grantedResources));
     return resourceAccessResponse;
   }

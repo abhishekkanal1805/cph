@@ -185,8 +185,9 @@ export class BaseGet {
       log.info("Read is allowed as resource type");
       isSharingRuleCheckRequired = false;
     } else if (resourceOwnerElement) {
+      log.info(resourceOwnerElement + " is the resourceOwnerElement. Attempting to perform owner based Authorization.");
       if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
-        log.info("queryParams is empty or resourceOwnerElement not present");
+        log.info("queryParams is empty or does not contain the resourceOwnerElement. Adding the logged in user as resourceOwner in queryParams.");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
       }
@@ -222,11 +223,13 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap) {
+    } else if (searchOptions && searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap && searchOptions.queryParamToResourceScopeMap.size > 0) {
+      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
       isSharingRuleCheckRequired = false;
-      const resourceScope: string[] = [];
+      let resourceScope: string[] = [];
+      // concatenating all resources in the map values
       Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
-        resourceScope.concat(scope);
+        resourceScope = resourceScope.concat(scope);
       });
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
