@@ -223,12 +223,19 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions && searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap && searchOptions.queryParamToResourceScopeMap.size > 0) {
-      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
+    } else if (
+      searchOptions &&
+      searchOptions.resourceActions &&
+      searchOptions.queryParamToResourceScopeMap &&
+      searchOptions.queryParamToResourceScopeMap.size > 0
+    ) {
+      log.info(
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+      );
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
-      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach((scope: string[]) => {
         resourceScope = resourceScope.concat(scope);
       });
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
