@@ -185,7 +185,7 @@ describe("TimingEventsGenerator", () => {
           timeOfDay: ["14:00:00"]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-29T12:00:00.000Z");
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-01-30T12:00:00.000Z", "2020-02-28T12:00:00.000Z");
       log.info("Events length: " + events.length);
       log.info(JSON.stringify(events));
       expect(events.length).toBeGreaterThan(1);
@@ -206,7 +206,7 @@ describe("TimingEventsGenerator", () => {
           ]
         }
       };
-      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-02-03T10:22:31.106Z", null);
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-02-03T10:22:31.106Z", "2020-03-02T10:22:31.106Z");
       log.info(JSON.stringify(events));
       expect(events.length).toEqual(1);
       done();

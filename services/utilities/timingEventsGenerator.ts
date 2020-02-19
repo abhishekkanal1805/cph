@@ -23,8 +23,13 @@ export class TimingEventsGenerator {
     log.info("Entering TimingEventsGenerator.generateDateEventsFromTiming()");
     let events: any = [];
     let code;
+    let isStartAndEndDateValid;
     // timing element is mandatory
     if (timing) {
+      requestStartDate = TimingUtility.getStartDate(requestStartDate);
+      log.info("start ---: " + requestStartDate);
+      requestEndDate = TimingUtility.getEndDate(requestStartDate, requestEndDate);
+      log.info("endDate ---: " + requestEndDate);
       // if found EVENT array, ignore everything else and use the dates specified there
       if (timing.event) {
         log.info("timing  event object found. Generating events using event object");
@@ -39,7 +44,10 @@ export class TimingEventsGenerator {
           }
           requestStartDate = TimingUtility.calculateStartDate(requestStartDate, requestEndDate, timing.repeat);
           requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, code);
-          events = TimingEventsGenerator.generateSDTEvents(timing.event, requestStartDate, requestEndDate, true);
+          isStartAndEndDateValid = TimingValidator.validateStartEndDates(requestStartDate, requestEndDate);
+          if (isStartAndEndDateValid) {
+            events = TimingEventsGenerator.generateSDTEvents(timing.event, requestStartDate, requestEndDate, true);
+          }
         } else {
           log.error("timing.event is not an array or empty");
           throw new BadRequestResult(errorCodeMap.InvalidElementValue.value, errorCodeMap.InvalidElementValue.description + "timing.event");
@@ -66,14 +74,14 @@ export class TimingEventsGenerator {
         log.info("Code identified as: " + code);
         requestStartDate = TimingUtility.calculateStartDate(requestStartDate, requestEndDate, timing.repeat);
         requestEndDate = TimingUtility.calculateEndDate(requestStartDate, requestEndDate, timing.repeat, timing.code.coding[0].code);
-        if (requestStartDate && requestEndDate) {
-          TimingValidator.validateStartEndDates(requestStartDate, requestEndDate);
-        }
-        events = TimingEventsGenerator.generateEventsFromCode(requestStartDate, requestEndDate, timing);
-        if (events.length > 1) {
-          events = events.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
+        isStartAndEndDateValid = TimingValidator.validateStartEndDates(requestStartDate, requestEndDate);
+        if (isStartAndEndDateValid) {
+          events = TimingEventsGenerator.generateEventsFromCode(requestStartDate, requestEndDate, timing);
         }
       }
+    }
+    if (events.length > 1) {
+      events = events.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
     }
     log.info("Existing TimingEventsGenerator.generateDateEventsFromTiming()");
     return events;

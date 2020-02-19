@@ -33,10 +33,6 @@ export class TimingUtility {
         }
         dateArray.push(requestStartDate);
       }
-      if (dateArray.length < 1) {
-        requestStartDate = TimingUtility.getStartDate();
-        dateArray.push(requestStartDate);
-      }
       // sort end dates
       dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
     } catch (err) {
@@ -146,10 +142,6 @@ export class TimingUtility {
               dateArray.push(date);
             }
         }
-      }
-      if (dateArray.length == 0) {
-        endDate = TimingUtility.getEndDate(startDate, null);
-        dateArray.push(endDate);
       }
       // sort date array
       dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
@@ -280,12 +272,14 @@ export class TimingUtility {
    * @param start
    * @returns start
    */
-  public static getStartDate() {
+  public static getStartDate(start) {
     log.info("Entering TimingUtility.getStartDate()");
-    const start = moment
-      .utc()
-      .utcOffset(0)
-      .toISOString();
+    if (!start) {
+      start = moment
+        .utc()
+        .utcOffset(0)
+        .toISOString();
+    }
     log.info("Exiting TimingUtility.getStartDate()");
     return start;
   }
