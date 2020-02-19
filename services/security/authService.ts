@@ -223,7 +223,7 @@ export class AuthService {
     }
   }
 
-  /*/!**
+  /**
    * It will perform authorization for get and search methods
    * It will validate the profile ids and check connection between them
    *
@@ -233,7 +233,7 @@ export class AuthService {
    * @param {string} from patient ID coming from request bundle in format 123
    * @returns/
    * @memberof AuthService
-   *!/
+   */
   public static async authorizeConnectionBased(requesterId: string, requesteeReference: string, resourceType: string, accessType: string) {
     log.info("Inside AuthService :: authorizeConnectionBased()");
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
@@ -270,7 +270,8 @@ export class AuthService {
     }
     log.info("Exiting AuthService, requester and requestee are connected  :: hasConnectionBasedAccess");
     return connection;
-  }*/
+  }
+
   /**
    * It will perform authorization for get and search methods with sharing rules
    * It will validate the profile ids and check connection between them
