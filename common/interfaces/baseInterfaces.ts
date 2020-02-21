@@ -5,6 +5,7 @@
 export interface GetOptions {
   acceptLanguage?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface SearchOptions {
@@ -22,6 +23,7 @@ export interface RequestParams {
   referenceValidationElement?: string;
   ownerType?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface UpdateRequestParams {
@@ -33,6 +35,7 @@ export interface UpdateRequestParams {
   uniquesReferenceIds?: any;
   ownerElement?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface DeleteRequestParams {
@@ -41,6 +44,7 @@ export interface DeleteRequestParams {
   ownerElement?: string;
   permanent: string | boolean;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface DeleteObjectParams {

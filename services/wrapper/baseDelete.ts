@@ -173,4 +173,44 @@ export class BaseDelete {
     }
     log.info("Exiting BaseDelete :: deleteResources()");
   }
+
+  /**
+   *  Deletes the record for provided Model from database
+   *  For use with services which has multiple owners. This function performs policy based authorization for scoped references.
+   *
+   * @static
+   * @param {*} record in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} requestParams
+   * @returns
+   * @memberof BaseDelete
+   */
+  public static async deleteResourceScopeBased(record: any, model: any, modelDataResource: any, requestParams: DeleteRequestParams) {
+    log.info("Entering BaseDelete :: deleteResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(requestParams.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestParams.requestorProfileId,
+      requestParams.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_EDIT
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    const deleteOptions: DeleteObjectParams = {
+      permanent: requestParams.permanent,
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId
+    };
+    await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
+    log.info("Exiting BaseDelete :: deleteResourceScopeBased()");
+  }
 }
