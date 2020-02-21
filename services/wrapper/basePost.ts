@@ -6,6 +6,7 @@ import * as log from "lambda-log";
 import * as _ from "lodash";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
+import { errorCodeMap } from "../../common/constants/error-codes-map";
 import { MetaDataElements, RequestParams } from "../../common/interfaces/baseInterfaces";
 import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
