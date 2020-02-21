@@ -671,7 +671,13 @@ export class AuthService {
    * 3) if no connections found then throws error
    * @memberof AuthService
    */
-  public static async authorizePolicyBased(requesterId: string, resourceActions: string[], resourceScope: string[]) {
+  public static async authorizePolicyBased(
+    requesterId: string,
+    resourceActions: string[],
+    resourceScope: string[],
+    resourceType?: string,
+    accessType?: string
+  ) {
     const authResponse = {
       fullAuthGranted: true,
       authorizedResourceScopes: []
@@ -683,6 +689,13 @@ export class AuthService {
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
+      return authResponse;
+    }
+
+    // check 3. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeConnectionBasedSharingRules()");
       return authResponse;
     }
     // if we are here means full auth was not granted. Determining the partial Auth

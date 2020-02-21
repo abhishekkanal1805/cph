@@ -106,7 +106,6 @@ export class BaseGet {
 
   /**
    * Wrapper function to perform GET for record without authorization
-   * @deprecated use getResource instead.
    * @static
    * @param {string} id
    * @param {*} model
@@ -314,5 +313,46 @@ export class BaseGet {
     });
     log.info("TranslateResource Complete");
     return translatedRecords;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy acess.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourceScopeBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(getOptions.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestorProfileId,
+      getOptions.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_READ
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
   }
 }
