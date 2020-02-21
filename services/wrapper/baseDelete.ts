@@ -7,14 +7,11 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { DeleteCriteriaRequestParams, DeleteObjectParams, DeleteRequestParams } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
-import { InternalServerErrorResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
-import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
@@ -43,35 +40,24 @@ export class BaseDelete {
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
-    const isDefinitionalResource = model.resourceCategory ? model.resourceCategory == ResourceCategory.DEFINITION : Constants.FALSE;
-    // If Resource is non-Definitional, then there will be validation for ownerElement
-    if (!isDefinitionalResource) {
-      if (!requestParams.ownerElement) {
-        log.error(`Resource category is non-Definitional and ownerElement is ${requestParams.ownerElement}`);
-        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+    const ownerIds = JsonParser.findValuesForKey([record], requestParams.ownerElement, false);
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const connection = await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestParams.requestorProfileId,
+      ownerReference: ownerIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_EDIT,
+      resourceActions: requestParams.resourceActions
+    });
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.error("Sharing rules not present for requested user :: deleteResource()");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-      const ownerIds = JsonParser.findValuesForKey([record], requestParams.ownerElement, false);
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules({
-        requester: requestParams.requestorProfileId,
-        ownerReference: ownerIds[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_EDIT,
-        resourceActions: requestParams.resourceActions
-      });
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      if (connection.length > 0) {
-        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_EDIT);
-        if (_.isEmpty(whereClause[Op.and])) {
-          log.error("Sharing rules not present for requested user :: deleteResource()");
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-        }
-        record = await DAOService.fetchOne(model, { where: whereClause });
-        record = record.dataResource;
-      }
-    } else {
-      await DataFetch.getUserProfile([requestParams.requestorProfileId]);
-      log.info("User Authorization is successful ");
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
     }
     const deleteOptions: DeleteObjectParams = {
       permanent: requestParams.permanent,

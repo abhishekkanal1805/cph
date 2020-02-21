@@ -7,9 +7,8 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { RequestParams, UpdateMetaDataElements, UpdateRequestParams } from "../../common/interfaces/baseInterfaces";
-import { BadRequestResult, ForbiddenResult, InternalServerErrorResult, NotFoundResult } from "../../common/objects/custom-errors";
+import { BadRequestResult, ForbiddenResult, NotFoundResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { Utility } from "../common/Utility";
@@ -36,20 +35,8 @@ export class BasePut {
     const keysToFetch = new Map();
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
-    const isDefinitionalResource = model.resourceCategory ? model.resourceCategory == ResourceCategory.DEFINITION : Constants.FALSE;
-    // If Resource is non-Definitional, then there will be validation for ownerElement & informationSourceElement
-    if (!isDefinitionalResource) {
-      if (!requestParams.ownerElement || !requestParams.informationSourceElement) {
-        log.error(
-          `Resource category is non-Definitional and ownerElement is ${requestParams.ownerElement} and RequestParams.ownerElement is ${
-            requestParams.informationSourceElement
-          }`
-        );
-        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
-      }
-      keysToFetch.set(requestParams.ownerElement, []);
-      keysToFetch.set(requestParams.informationSourceElement, []);
-    }
+    keysToFetch.set(requestParams.ownerElement, []);
+    keysToFetch.set(requestParams.informationSourceElement, []);
 
     // additional reference validataion if present
     const isValidReferenceElement: boolean = requestParams.referenceValidationModel && requestParams.referenceValidationElement ? true : false;
@@ -71,52 +58,47 @@ export class BasePut {
 
     const queryObject = { id: primaryKeyIds };
     let whereClause: any = {};
-    if (!isDefinitionalResource) {
-      // perform user validation for owner reference
-      const ownerReferences = [...new Set(keysMap.get(requestParams.ownerElement))].filter(Boolean);
-      RequestValidator.validateSingularUserReference(ownerReferences);
-      log.info(`OwnerElement: ${requestParams.ownerElement} validation is successful :: updateResource()`);
+    // perform user validation for owner reference
+    const ownerReferences = [...new Set(keysMap.get(requestParams.ownerElement))];
+    RequestValidator.validateSingularUserReference(ownerReferences);
+    log.info(`OwnerElement: ${requestParams.ownerElement} validation is successful :: updateResource()`);
 
-      // perform user validation for informationSource reference
-      const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))].filter(Boolean);
-      RequestValidator.validateSingularUserReference(informationSourceReferences);
-      // Sharing rules will validate connection between loggedIn user and recordOwner for access permission
-      // Additional check added to validate InformationSource which must be an active user
+    // perform user validation for informationSource reference
+    const informationSourceReferences = [...new Set(keysMap.get(requestParams.informationSourceElement))];
+    RequestValidator.validateSingularUserReference(informationSourceReferences);
+    // Sharing rules will validate connection between loggedIn user and recordOwner for access permission
+    // Additional check added to validate InformationSource which must be an active user
+    if (informationSourceReferences[0]) {
       const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(informationSourceReferences[0]);
       const informationSourceReferenceValue = researchSubjectProfiles[informationSourceReferences[0]]
         ? researchSubjectProfiles[informationSourceReferences[0]]
         : informationSourceReferences[0];
       await DataFetch.getUserProfile([informationSourceReferenceValue.split(Constants.USERPROFILE_REFERENCE)[1]]);
-      log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: updateResource()`);
+    }
+    log.info(`InformationSourceElement: ${requestParams.informationSourceElement} validation is successful :: updateResource()`);
 
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-      const connection = await AuthService.authorizeConnectionBasedSharingRules({
-        requester: requestParams.requestorProfileId,
-        ownerReference: ownerReferences[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_EDIT,
-        resourceActions: requestParams.resourceActions,
-        ownerType: requestParams.ownerType
-      });
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      if (connection.length > 0) {
-        // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
-        whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
-        if (_.isEmpty(whereClause[Op.and])) {
-          log.error("Sharing rules not present for requested user :: updateResource()");
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-        }
-      } else {
-        // If logged in user type is system/patient then validate with primaryKeyIds
-        whereClause = queryObject;
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const connection = await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestParams.requestorProfileId,
+      ownerReference: ownerReferences[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_EDIT,
+      resourceActions: requestParams.resourceActions,
+      ownerType: requestParams.ownerType
+    });
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      // If logged in user trying to updated others records then validate with filtered primaryKeyIds based on sharing rules
+      whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], payloadModel, Constants.ACCESS_EDIT);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.error("Sharing rules not present for requested user :: updateResource()");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
-      log.info("User Authorization is successful :: updateResource()");
     } else {
-      await DataFetch.getUserProfile([requestParams.requestorProfileId]);
-      log.info("User Authorization is successful :: updateResource()");
-      // In case of Definition resource, we will just validate the primary key and update
+      // If logged in user type is system/patient then validate with primaryKeyIds
       whereClause = queryObject;
     }
+    log.info("User Authorization is successful :: updateResource()");
     const options = { where: whereClause, attributes: [Constants.ID] };
     // Get filtered recordsIds after applying sharing rules
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);

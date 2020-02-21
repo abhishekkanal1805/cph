@@ -35,30 +35,28 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement?: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResource()");
-    const queryObject = { id, "meta.isDeleted": false };
+    const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules({
-        requester: requestorProfileId,
-        ownerReference: patientIds[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_READ,
-        resourceActions: getOptions ? getOptions.resourceActions : null
-      });
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      if (connection.length > 0) {
-        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
-        if (_.isEmpty(whereClause[Op.and])) {
-          log.info("Sharing rules not present for requested user");
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-        }
-        record = await DAOService.fetchOne(model, { where: whereClause });
-        record = record.dataResource;
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
     }
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
