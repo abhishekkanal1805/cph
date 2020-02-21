@@ -7,6 +7,7 @@ class Constants {
   public static readonly BUNDLE_TYPE = "searchset";
 
   public static readonly RESPONSE_TYPE_OK = "ok";
+  public static readonly RESPONSE_TYPE_ACCEPTED = "accepted";
   public static readonly RESPONSE_TYPE_BAD_REQUEST = "badRequest";
   public static readonly UNPROCESSABLE_ENTITY = "unprocessableEntity";
   public static readonly RESPONSE_TYPE_INTERNAL_SERVER_ERROR = "internalServerError";
@@ -106,6 +107,9 @@ class Constants {
   public static readonly CONTENT_TYPE_MULTIPART = "multipart/form-data";
   public static readonly USERPROFILE_REFERENCE = "UserProfile/";
   public static readonly RESEARCHSUBJECT_REFERENCE = "ResearchSubject/";
+  public static readonly POLICY_REFERENCE = "Policy/";
+  public static readonly STUDY_SITE_REFERENCE = "StudySite/";
+  public static readonly STUDY_REFERENCE = "Study/";
   public static readonly INDIVIDUAL = "individual";
   public static readonly PDF_EXTENSION = ".pdf";
   public static readonly ATTACHMENT = "attachment";
@@ -298,5 +302,7 @@ class Constants {
   public static readonly YEARS = "years";
   public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
   public static readonly DURATION_UNITS = ["s", "min", "h", "d"];
+  public static readonly ZULU_OFFSET = "Z";
+  public static readonly UTC_OFFSET = "+";
 }
 export { Constants };

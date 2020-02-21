@@ -3,9 +3,11 @@
  */
 
 import * as log from "lambda-log";
+import * as _ from "lodash";
 import * as uuid from "uuid";
 import { Constants } from "../../common/constants/constants";
 import { MetaDataElements, RequestParams } from "../../common/interfaces/baseInterfaces";
+import { ForbiddenResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
@@ -118,5 +120,73 @@ export class BasePost {
     });
     log.info("Exiting BasePost :: prepareModelAndSave()");
     return savedRecords;
+  }
+
+  /**
+   * For use with services which has multiple owners. This function performs policy based authorization for scoped references.
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async saveResourceScopeBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResourceScopeBased()");
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    log.info("Record Array created successfully in :: saveResourceScopeBased()");
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device and User Keys retrieved successfully :: saveResourceScopeBased()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: saveResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(requestParams.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestParams.requestorProfileId,
+      requestParams.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_EDIT
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("User Authorization is successful ");
+    // validate references
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload,
+      requestParams.referenceValidationModel,
+      requestParams.referenceValidationElement
+    );
+    // prepare meta data object
+    const resourceMetaData: MetaDataElements = {
+      createdBy: requestParams.requestorProfileId,
+      lastUpdatedBy: requestParams.requestorProfileId,
+      requestLogRef: requestParams.requestLogRef
+    };
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
+      saveResponse.savedRecords = savedResources;
+    }
+    log.info("Exiting BasePost :: saveResourceScopeBased()");
+    return saveResponse;
   }
 }

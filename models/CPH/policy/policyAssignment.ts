@@ -3,7 +3,10 @@
  */
 
 import { Column, DataType, Model, Table } from "sequelize-typescript";
+import { Reference } from "../../common/reference";
+import { ResourceMetadata } from "../../common/resourceMetadata";
 import { PolicyAssignmentDataResource } from "./policyAssignmentDataResource";
+import { ResourceScope } from "./resourceScope";
 
 /**
  * Internal table for managing policy assignments to a user
@@ -26,14 +29,25 @@ class PolicyAssignment extends Model<PolicyAssignment> {
   @Column({ type: DataType.UUID, primaryKey: true })
   id: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
-  principal: string;
+  @Column({ type: DataType.STRING, field: "principal", allowNull: false })
+  _principal: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
-  resourceScopeReference: string;
+  @Column({ type: DataType.STRING, field: "resourceScope", allowNull: false })
+  _resourceScope: string;
 
   @Column({ type: DataType.JSONB })
   dataResource: PolicyAssignmentDataResource;
+
+  @Column({ type: DataType.JSONB })
+  meta: ResourceMetadata;
+
+  set resourceScope(value: ResourceScope) {
+    this._resourceScope = value.resource.reference;
+  }
+
+  set principal(value: Reference) {
+    this._principal = value.reference;
+  }
 }
 
 export { PolicyAssignment };

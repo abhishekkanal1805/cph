@@ -16,48 +16,99 @@ export class TimingUtility {
    * @param repeat
    * @param previousEndDate
    */
-  public static calculateStartDate(requestStart, requestEnd, repeat) {
+  public static calculateStartDate(requestStartDate, requestEndDate, repeat) {
     log.info("Entering TimingUtility.calculateStartDate()");
     let dateArray = [];
+    let offsetString;
     let boundsPeriodPresent = false;
     try {
-      if (requestStart) {
-        dateArray.push(requestStart);
-      }
       if (repeat && repeat.boundsPeriod && repeat.boundsPeriod.start) {
         boundsPeriodPresent = true;
+        offsetString = this.getOffsetString(repeat.boundsPeriod.start);
         dateArray.push(repeat.boundsPeriod.start);
+      }
+      if (requestStartDate) {
+        if (offsetString) {
+          requestStartDate = this.formatDate(requestStartDate, offsetString);
+        }
+        dateArray.push(requestStartDate);
       }
       // sort end dates
       dateArray = dateArray.sort((dateOne, dateTwo) => moment(dateOne).diff(dateTwo)).filter(Boolean);
     } catch (err) {
       throw new BadRequestResult(errorCodeMap.OperationFailed.value, errorCodeMap.OperationFailed.description);
     }
-    if (dateArray.length == 0 && !requestEnd) {
-      log.error("startDate is neither present in request nor in boundsPeriod.start object");
-      throw new BadRequestResult(errorCodeMap.InvalidRange.value, errorCodeMap.InvalidRange.description);
-    } else if (requestStart && boundsPeriodPresent) {
+    if (requestStartDate && boundsPeriodPresent) {
       log.info("start date calculated as :: " + dateArray[dateArray.length - 1]);
       return dateArray[dateArray.length - 1];
-    } else if ((requestStart && !boundsPeriodPresent) || (!requestStart && boundsPeriodPresent)) {
+    } else {
       log.info("start date calculated as :: " + dateArray[0]);
       return dateArray[0];
     }
   }
 
   /**
+   * Returns offset in string format of the given date
+   * @param date
+   * @param offsetString
+   */
+  public static getOffsetString(date) {
+    log.info("Entering TimingUtility.getOffsetString()");
+    let offsetString;
+    const dateString = date.toString();
+    if (dateString.includes(Constants.ZULU_OFFSET)) {
+      const indexOf = dateString.indexOf(Constants.ZULU_OFFSET);
+      offsetString = dateString.substring(indexOf);
+    } else if (dateString.includes(Constants.UTC_OFFSET)) {
+      const indexOf = dateString.indexOf(Constants.UTC_OFFSET);
+      offsetString = dateString.substring(indexOf);
+    } else {
+      offsetString = " ";
+    }
+    log.info("Exiting TimingUtility.getOffsetString()");
+    return offsetString;
+  }
+
+  /**
+   * this function adds offsetString to the inputDate
+   * @param inputDate
+   * @param offsetString
+   * @returns dateString
+   */
+  public static formatDate(inputDate, offsetString) {
+    log.info("Entering TimingUtility.formatDate()");
+    let dateString = inputDate.toString();
+    offsetString = offsetString.trim();
+    if (!offsetString) {
+      // if no offset specified in boundsStartDate then format inputDate with no offset
+      if (dateString.includes(Constants.ZULU_OFFSET)) {
+        dateString = dateString.split(Constants.ZULU_OFFSET)[0];
+        dateString = dateString.concat(offsetString);
+      } else if (dateString.includes(Constants.UTC_OFFSET)) {
+        dateString = dateString.split(Constants.UTC_OFFSET)[0];
+        dateString = dateString.concat(offsetString);
+      }
+    } else if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
+      // if no offset specified in inputDate then format inputDate with offset specified in boundsStartDate
+      dateString = dateString.concat(offsetString);
+    }
+    log.info("Exiting TimingUtility.formatDate()");
+    return dateString;
+  }
+
+  /**
    * Generates end date for activity generation
    * @param startDate
-   * @param requestEnd
+   * @param endDate
    * @param repeat
    * @param code
    */
-  public static calculateEndDate(startDate, requestEnd, repeat, code) {
+  public static calculateEndDate(startDate, endDate, repeat, code) {
     log.info("Entering TimingUtility.calculateEndDate()");
     let dateArray = [];
     try {
-      if (requestEnd) {
-        dateArray.push(requestEnd);
+      if (endDate) {
+        dateArray.push(endDate);
       }
       if (repeat) {
         if (repeat.boundsPeriod && repeat.boundsPeriod.end) {
@@ -69,7 +120,7 @@ export class TimingUtility {
           dateArray.push(TimingUtility.getEndDateForCode(startDate, boundsDurationValue, boundsDurationCode));
         }
       }
-      if (code && repeat.count) {
+      if (code && repeat && repeat.count) {
         switch (code) {
           case "SDY":
             dateArray.push(TimingUtility.getEndDateForCode(startDate, repeat.count, Constants.FHIR_DAY_UNIT));

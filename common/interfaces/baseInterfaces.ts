@@ -5,12 +5,14 @@
 export interface GetOptions {
   acceptLanguage?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface SearchOptions {
   acceptLanguage?: string;
   fetchLimit?: number;
   resourceActions?: string[];
+  queryParamToResourceScopeMap?: Map<string, string[]>;
 }
 export interface RequestParams {
   requestLogRef?: string;
@@ -21,6 +23,7 @@ export interface RequestParams {
   referenceValidationElement?: string;
   ownerType?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface UpdateRequestParams {
@@ -32,6 +35,7 @@ export interface UpdateRequestParams {
   uniquesReferenceIds?: any;
   ownerElement?: string;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface DeleteRequestParams {
@@ -40,6 +44,7 @@ export interface DeleteRequestParams {
   ownerElement?: string;
   permanent: string | boolean;
   resourceActions?: string[];
+  resourceScopeMap?: Map<string, string[]>;
 }
 
 export interface DeleteObjectParams {

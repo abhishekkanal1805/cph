@@ -29,5 +29,7 @@ export const resourceTypeToTableNameMapping = {
   ActivityDefinition: "ActivityDefinition",
   RequestGroup: "RequestGroup",
   StudySite: "StudySite",
-  Visit: "Visit"
+  Visit: "Visit",
+  Policy: "Policy",
+  CareTeam: "CareTeam"
 };

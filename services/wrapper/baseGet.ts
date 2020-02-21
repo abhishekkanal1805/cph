@@ -70,7 +70,6 @@ export class BaseGet {
   }
 
   /**
-   * @deprecated use getResource instead.
    * @param {string} id
    * @param {*} model
    * @param {string} requestorProfileId
@@ -84,7 +83,13 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+    await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -99,7 +104,6 @@ export class BaseGet {
 
   /**
    * Wrapper function to perform GET for record without authorization
-   * @deprecated use getResource instead.
    * @static
    * @param {string} id
    * @param {*} model
@@ -172,18 +176,20 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
-    if (model.resourceCategory && model.resourceCategory === ResourceCategory.DEFINITION) {
-      log.info("Search for resource accessible to all: " + model.name);
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
+    if (isResoucePublicAccessable) {
+      log.info("Read is allowed as resource type");
       isSharingRuleCheckRequired = false;
-    } else {
+    } else if (resourceOwnerElement) {
+      log.info(resourceOwnerElement + " is the resourceOwnerElement. Attempting to perform owner based Authorization.");
       if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
-        log.info("queryParams is empty or resourceOwnerElement not present");
+        log.info("queryParams is empty or does not contain the resourceOwnerElement. Adding the logged in user as resourceOwner in queryParams.");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
       }
       let requestedProfiles =
         queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
-      const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
@@ -214,6 +220,28 @@ export class BaseGet {
         );
         return [];
       }
+    } else if (
+      searchOptions &&
+      searchOptions.resourceActions &&
+      searchOptions.queryParamToResourceScopeMap &&
+      searchOptions.queryParamToResourceScopeMap.size > 0
+    ) {
+      log.info(
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+      );
+      isSharingRuleCheckRequired = false;
+      let resourceScope: string[] = [];
+      // concatenating all resources in the map values
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach((scope: string[]) => {
+        resourceScope = resourceScope.concat(scope);
+      });
+      const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
+      if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+        log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to search this resource.");
+        return [];
+      }
+    } else {
+      log.info("you have no access to search this resource.");
     }
 
     // if isDeleted attribute not present in query parameter then return active records
@@ -283,5 +311,46 @@ export class BaseGet {
     });
     log.info("TranslateResource Complete");
     return translatedRecords;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy acess.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourceScopeBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(getOptions.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestorProfileId,
+      getOptions.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_READ
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
   }
 }
