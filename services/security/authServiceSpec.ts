@@ -215,11 +215,8 @@ describe("AuthService", () => {
     it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only patient owner allowed", async (done) => {
       const allowedOwnerType = Constants.PATIENT_USER;
       const testPractitionerOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
-      const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
-      spyOn(DataFetch, "getUserProfile").and.returnValues(
-        DataFetchStub.getUserAccess(testPractitionerOwnerProfile),
-        DataFetchStub.getUserAccess(testSystemOwnerProfile)
-      );
+      const testCarePartnerOwnerProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testPractitionerOwnerProfile, testCarePartnerOwnerProfile));
       // test 1, Practitioner owner will be forbidden
       let actualError;
       try {
@@ -243,7 +240,7 @@ describe("AuthService", () => {
         await AuthService.authorizeRequest(
           "any",
           "UserProfile/dontcare",
-          "UserProfile/" + testSystemOwnerProfile.id,
+          "UserProfile/" + testCarePartnerOwnerProfile.id,
           null,
           Constants.ACCESS_READ,
           allowedOwnerType
@@ -670,11 +667,8 @@ describe("AuthService", () => {
     it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only practitioner owner allowed", async (done) => {
       const allowedOwnerType = Constants.PRACTITIONER_USER;
       const testPatientOwnerProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
-      const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
-      spyOn(DataFetch, "getUserProfile").and.returnValues(
-        DataFetchStub.getUserAccess(testPatientOwnerProfile),
-        DataFetchStub.getUserAccess(testSystemOwnerProfile)
-      );
+      const testCarePartnerOwnerProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testPatientOwnerProfile, testCarePartnerOwnerProfile));
 
       // test 1, Patient owner will be forbidden
       let actualError;
@@ -701,7 +695,7 @@ describe("AuthService", () => {
         const testAuthRequest: AuthorizationRequest = {
           requester: "any",
           informationSourceReference: "UserProfile/dontcare",
-          ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
+          ownerReference: "UserProfile/" + testCarePartnerOwnerProfile.id,
           resourceType: null,
           resourceActions: null,
           accessType: Constants.ACCESS_READ,
@@ -719,11 +713,8 @@ describe("AuthService", () => {
     it("Do not allow access if provided profiles are valid, owner's user type does not match the provided one - only patient owner allowed", async (done) => {
       const allowedOwnerType = Constants.PATIENT_USER;
       const testPractitionerOwnerProfile = UserProfileRepositoryStub.ACTIVE_PRACTITIONER_USER_PROFILES[0];
-      const testSystemOwnerProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
-      spyOn(DataFetch, "getUserProfile").and.returnValues(
-        DataFetchStub.getUserAccess(testPractitionerOwnerProfile),
-        DataFetchStub.getUserAccess(testSystemOwnerProfile)
-      );
+      const testCarePartnerOwnerProfile = UserProfileRepositoryStub.ACTIVE_CAREPARTNER_USER_PROFILES[0];
+      spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testPractitionerOwnerProfile, testCarePartnerOwnerProfile));
 
       // test 1, Practitioner owner will be forbidden
       let actualError;
@@ -750,7 +741,7 @@ describe("AuthService", () => {
         const testAuthRequest: AuthorizationRequest = {
           requester: "any",
           informationSourceReference: "UserProfile/dontcare",
-          ownerReference: "UserProfile/" + testSystemOwnerProfile.id,
+          ownerReference: "UserProfile/" + testCarePartnerOwnerProfile.id,
           resourceType: null,
           resourceActions: null,
           accessType: Constants.ACCESS_READ,
