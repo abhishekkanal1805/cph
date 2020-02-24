@@ -374,7 +374,7 @@ export class BaseGet {
       Constants.ACCESS_READ,
       getOptions.resourceActions
     );
-    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) || _.isEmpty(authResponse.authorizedConnections))) {
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
       log.info(
         "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
       );
