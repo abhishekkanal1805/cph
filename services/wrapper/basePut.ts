@@ -240,4 +240,180 @@ export class BasePut {
     log.info("Exiting BasePut :: updateModelAndSave()");
     return result;
   }
+
+  public static async updateResourceWithoutAuthorization<T>(
+      requestPayload: any,
+      payloadModel: T,
+      payloadDataResourceModel: any,
+      requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePut :: updateResource()");
+    // validate request payload
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    const total = requestPayload.length;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(Constants.ID, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
+
+    // perform primaryKeyIds validation
+    const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
+    RequestValidator.validateLength(primaryKeyIds, total);
+    log.info("unique primaryKeyIds validation is successful :: updateResource()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: updateResource()");
+    const whereClause: any = { id: primaryKeyIds };
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get filtered recordsIds after applying sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
+    if (!filteredPrimaryKeyIds.length) {
+      log.error("ValidIds list is empty :: updateResource()");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+    const updateRequestParams: UpdateRequestParams = {
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId,
+      requestPrimaryIds: filteredPrimaryKeyIds,
+      referenceValidationModel: requestParams.referenceValidationModel,
+      referenceValidationElement: requestParams.referenceValidationElement,
+      ownerElement: requestParams.ownerElement
+    };
+    const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
+    log.info("Payload updated successfully :: updateResource()");
+    return result;
+  }
+
+  public static async updateResourceScopeBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePut :: updateResource()");
+    // validate request payload
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    const total = requestPayload.length;
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(Constants.ID, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
+
+    // perform primaryKeyIds validation
+    const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
+    RequestValidator.validateLength(primaryKeyIds, total);
+    log.info("unique primaryKeyIds validation is successful :: updateResource()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: updateResource()");
+    const whereClause: any = { id: primaryKeyIds };
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(requestParams.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestParams.requestorProfileId,
+      requestParams.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_EDIT
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("User Authorization is successful :: updateResource()");
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get filtered recordsIds after applying sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
+    if (!filteredPrimaryKeyIds.length) {
+      log.error("ValidIds list is empty :: updateResource()");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+    const updateRequestParams: UpdateRequestParams = {
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId,
+      requestPrimaryIds: filteredPrimaryKeyIds,
+      referenceValidationModel: requestParams.referenceValidationModel,
+      referenceValidationElement: requestParams.referenceValidationElement,
+      ownerElement: requestParams.ownerElement
+    };
+    const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
+    log.info("Payload updated successfully :: updateResource()");
+    return result;
+  }
+
+  public static async updateResourceMultipleOwnerBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePut :: updateResource()");
+    // validate request payload
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    const total = requestPayload.length;
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(Constants.ID, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
+
+    // perform primaryKeyIds validation
+    const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
+    RequestValidator.validateLength(primaryKeyIds, total);
+    log.info("unique primaryKeyIds validation is successful :: updateResource()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: updateResource()");
+    const whereClause: any = { id: primaryKeyIds };
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const authResponse = await AuthService.authorizeMultipleOwnerBased(
+      requestParams.requestorProfileId,
+      requestParams.subjectReferences,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceActions
+    );
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
+      log.info(
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+      );
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("User Authorization is successful :: updateResource()");
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get filtered recordsIds after applying sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
+    if (!filteredPrimaryKeyIds.length) {
+      log.error("ValidIds list is empty :: updateResource()");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+    const updateRequestParams: UpdateRequestParams = {
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId,
+      requestPrimaryIds: filteredPrimaryKeyIds,
+      referenceValidationModel: requestParams.referenceValidationModel,
+      referenceValidationElement: requestParams.referenceValidationElement,
+      ownerElement: requestParams.ownerElement
+    };
+    const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
+    log.info("Payload updated successfully :: updateResource()");
+    return result;
+  }
 }

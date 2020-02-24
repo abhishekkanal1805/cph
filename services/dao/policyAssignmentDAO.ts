@@ -22,7 +22,10 @@ class PolicyAssignmentDAO {
     const policyAssignmentQuery: IFindOptions<PolicyAssignment> = {
       where: {
         principal: userReference,
-        resourceScope: resources
+        resourceScope: resources,
+        meta: {
+          isDeleted: false
+        }
       }
     };
     log.info("PolicyAssignmentDAO - query=" + JSON.stringify(policyAssignmentQuery));

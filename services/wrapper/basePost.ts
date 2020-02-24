@@ -13,6 +13,7 @@ import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameTo
 import { GenericResponse } from "../common/genericResponse";
 import { DAOService } from "../dao/daoService";
 import { AuthService } from "../security/authService";
+import { DataFetch } from "../utilities/dataFetch";
 import { DataTransform } from "../utilities/dataTransform";
 import { JsonParser } from "../utilities/jsonParser";
 import { ReferenceValidator } from "../validators/referenceValidator";
@@ -165,6 +166,123 @@ export class BasePost {
     );
     if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
       log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("User Authorization is successful ");
+    // validate references
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload,
+      requestParams.referenceValidationModel,
+      requestParams.referenceValidationElement
+    );
+    // prepare meta data object
+    const resourceMetaData: MetaDataElements = {
+      createdBy: requestParams.requestorProfileId,
+      lastUpdatedBy: requestParams.requestorProfileId,
+      requestLogRef: requestParams.requestLogRef
+    };
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
+      saveResponse.savedRecords = savedResources;
+    }
+    log.info("Exiting BasePost :: saveResourceScopeBased()");
+    return saveResponse;
+  }
+
+  /**
+   * For use with services which doesn't send owner element. This function just validates the payload and saves the resource.
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async saveResourceWithoutPolicyAuthorization<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResourceWithoutPolicyAuthorization()");
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    log.info("Record Array created successfully in :: saveResourceWithoutPolicyAuthorization()");
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device and User Keys retrieved successfully :: saveResourceWithoutPolicyAuthorization()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: saveResourceWithoutPolicyAuthorization()");
+    // query userprofile for the requester profile id
+    await DataFetch.getUserProfile([requestParams.requestorProfileId]);
+    log.info("User Authorization is successful :: saveResourceWithoutPolicyAuthorization()");
+    // validate references
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload,
+      requestParams.referenceValidationModel,
+      requestParams.referenceValidationElement
+    );
+    // prepare meta data object
+    const resourceMetaData: MetaDataElements = {
+      createdBy: requestParams.requestorProfileId,
+      lastUpdatedBy: requestParams.requestorProfileId,
+      requestLogRef: requestParams.requestLogRef
+    };
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
+      saveResponse.savedRecords = savedResources;
+    }
+    log.info("Exiting BasePost :: saveResourceWithoutPolicyAuthorization()");
+    return saveResponse;
+  }
+
+  /**
+   * For use with services which has multiple owners. This function performs policy based authorization for research subject references.
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async saveResourceMultipleOwnerBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResourceScopeBased()");
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    log.info("Record Array created successfully in :: saveResourceScopeBased()");
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device and User Keys retrieved successfully :: saveResourceScopeBased()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: saveResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const authResponse = await AuthService.authorizeMultipleOwnerBased(
+      requestParams.requestorProfileId,
+      requestParams.subjectReferences,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceActions
+    );
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
+      log.info(
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+      );
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     log.info("User Authorization is successful ");
