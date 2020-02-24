@@ -7,7 +7,6 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GetOptions, SearchOptions } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
