@@ -40,6 +40,9 @@ class PolicyDAO {
         status: Constants.POLICY_STATUS_ACTIVE,
         dataResource: {
           [Op.and]: []
+        },
+        meta: {
+          isDeleted: false
         }
       }
     };
