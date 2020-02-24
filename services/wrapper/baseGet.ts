@@ -192,7 +192,7 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
-      log.info("requestedProfiles = " + JSON.stringify(requestedProfiles));
+      log.info("requestedProfiles = ", requestedProfiles);
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(

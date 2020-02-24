@@ -30,7 +30,7 @@ class PolicyManager {
   public static async requestSubjectScopedAccess(accessRequest: SubjectAccessRequest): Promise<Map<string, PolicyDataResource[]>> {
     // if we are here we can assume that we are trying to determine access based on study/site/subject
     // subject reference if present is assumed to be valid
-    log.info("PolicyManager - requestAccess for =" + JSON.stringify(accessRequest));
+    log.info("PolicyManager - requestAccess for =", accessRequest);
     // initializing the return Map
     const policyGrants = new Map<string, PolicyDataResource[]>();
     // should the DAO look at the period for this subject before returning
@@ -140,7 +140,7 @@ class PolicyManager {
     // populating the response
     resourceAccessResponse.grantedPolicies = grantedPolices;
     resourceAccessResponse.grantedResources = [...new Set(grantedResources)];
-    log.info("grantedResources = " + JSON.stringify(resourceAccessResponse.grantedResources));
+    log.info("grantedResources = ", resourceAccessResponse.grantedResources);
     return resourceAccessResponse;
   }
 }

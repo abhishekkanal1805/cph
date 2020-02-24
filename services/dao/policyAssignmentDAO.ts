@@ -28,7 +28,7 @@ class PolicyAssignmentDAO {
         }
       }
     };
-    log.info("PolicyAssignmentDAO - query=" + JSON.stringify(policyAssignmentQuery));
+    log.info("PolicyAssignmentDAO - query=", policyAssignmentQuery);
 
     const assignments = await DAOService.search(PolicyAssignment, policyAssignmentQuery);
     return _.map(assignments, Constants.DEFAULT_SEARCH_ATTRIBUTES);
