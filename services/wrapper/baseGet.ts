@@ -7,7 +7,6 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GetOptions, SearchOptions } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
@@ -341,6 +340,44 @@ export class BaseGet {
     );
     if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
       log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy acess.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourceMultipleOwnerBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const authResponse = await AuthService.authorizeMultipleOwnerBased(
+      requestorProfileId,
+      getOptions.subjectReferences,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceActions
+    );
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) || _.isEmpty(authResponse.authorizedConnections))) {
+      log.info(
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+      );
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     // Translate Resource based on accept language

@@ -69,7 +69,6 @@ export class BaseDelete {
   }
 
   /**
-   * @deprecated use deleteResource instead.
    * Variation of the deleteResource where access authorization checks are not performed before performing delete.
    * A get is first performed to make the record exists in database.
    *
@@ -189,6 +188,43 @@ export class BaseDelete {
     );
     if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
       log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    const deleteOptions: DeleteObjectParams = {
+      permanent: requestParams.permanent,
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId
+    };
+    await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
+    log.info("Exiting BaseDelete :: deleteResourceScopeBased()");
+  }
+
+  /**
+   *  Deletes the record for provided Model from database
+   *  For use with services which has multiple owners. This function performs policy based authorization for subject references.
+   *
+   * @static
+   * @param {*} record in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} requestParams
+   * @returns
+   * @memberof BaseDelete
+   */
+  public static async deleteResourceMultipleOwnerBased(record: any, model: any, modelDataResource: any, requestParams: DeleteRequestParams) {
+    log.info("Entering BaseDelete :: deleteResourceMultipleOwnerBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const authResponse = await AuthService.authorizeMultipleOwnerBased(
+      requestParams.requestorProfileId,
+      requestParams.subjectReferences,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceActions
+    );
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) || _.isEmpty(authResponse.authorizedConnections))) {
+      log.info(
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+      );
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
     const deleteOptions: DeleteObjectParams = {
