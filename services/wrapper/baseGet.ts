@@ -149,6 +149,7 @@ export class BaseGet {
     searchOptions?: SearchOptions
   ) {
     let connections = [];
+    let subjectToProfileMap = {};
     let isSharingRuleCheckRequired: boolean = true;
     const filteredQueryParameter = {};
 
@@ -176,7 +177,7 @@ export class BaseGet {
       delete queryParams.offset;
     }
     // For definational resource resourceOwnerElement will be null
-    if (_.isEmpty(queryParams) && resourceOwnerElement ) {
+    if (_.isEmpty(queryParams) && resourceOwnerElement) {
       log.info("queryParams is empty, Adding the logged in user as resourceOwner in queryParams.");
       queryParams[resourceOwnerElement] = [requestorProfileId];
     }
@@ -208,6 +209,7 @@ export class BaseGet {
         searchOptions ? searchOptions.resourceActions : null
       );
       connections = authResponse.authorizedConnections;
+      subjectToProfileMap = authResponse.subjectToProfileMap || {};
       // authResponse.authorizedRequestees are the references that require no sharing rule check
       if (!_.isEmpty(authResponse.authorizedRequestees)) {
         // access to all the references in filteredQueryParameter will be given unconditionally
@@ -230,7 +232,9 @@ export class BaseGet {
       searchOptions.queryParamToResourceScopeMap &&
       searchOptions.queryParamToResourceScopeMap.size > 0
     ) {
-      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
+      log.info(
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+      );
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
@@ -269,7 +273,9 @@ export class BaseGet {
     } else {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
       connections.forEach((eachConnection: any) => {
-        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(eachConnection, Constants.FROM_REFERENCE_KEY)] });
+        let resourceOwnerElementValue = _.get(eachConnection, Constants.FROM_REFERENCE_KEY);
+        resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue] ? subjectToProfileMap[resourceOwnerElementValue] : [resourceOwnerElementValue];
+        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [resourceOwnerElementValue.join(Constants.COMMA_VALUE)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
           ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)

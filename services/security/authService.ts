@@ -535,6 +535,7 @@ export class AuthService {
     const researchSubjectReferences = ReferenceUtility.getUniqueReferences(profileReferences, Constants.RESEARCHSUBJECT_REFERENCE);
 
     // get user profiles for the subjects
+    const subjectToProfileMap = {};
     if (researchSubjectReferences.length) {
       let whereClause = {
         [Constants.ID]: ReferenceUtility.convertToResourceIds(researchSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
@@ -544,14 +545,23 @@ export class AuthService {
         whereClause = Object.assign(whereClause, criteria);
       }
       const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(whereClause, ResearchSubject);
-      userProfileReferences.push(..._.map(researchSubjectIdsProfiles, Constants.INDIVIDUAL_REFERENCE_KEY).filter(Boolean));
+      researchSubjectIdsProfiles.forEach((eachSubject) => {
+        const profile = _.get(eachSubject, Constants.INDIVIDUAL_REFERENCE_KEY);
+        if (!subjectToProfileMap[profile]) {
+          subjectToProfileMap[profile] = userProfileReferences.includes(profile) ? [profile] : [];
+        }
+        subjectToProfileMap[profile].push(Constants.RESEARCHSUBJECT_REFERENCE + eachSubject.id);
+      });
+      userProfileReferences.push(...Object.keys(subjectToProfileMap).filter(Boolean));
     }
     let validUserProfiles = [];
     if (userProfileReferences.length) {
       validUserProfiles = await DataFetch.getUserProfiles({
         [Constants.ID]: _.uniq(
           _.map(userProfileReferences, (userProfileReference) => {
-            return userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
+            return userProfileReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1
+              ? userProfileReference
+              : userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
           })
         ),
         status: Constants.ACTIVE,
@@ -559,8 +569,13 @@ export class AuthService {
       });
       validUserProfiles = _.map(validUserProfiles, Constants.ID);
     }
+    Object.keys(subjectToProfileMap).forEach((profile: string) => {
+      if (!validUserProfiles.includes(profile.split(Constants.USERPROFILE_REFERENCE)[1])) {
+        delete subjectToProfileMap[profile];
+      }
+    });
     log.info("Exiting AuthService :: validateProfiles()");
-    return validUserProfiles;
+    return subjectToProfileMap;
   }
 
   /**
@@ -587,7 +602,8 @@ export class AuthService {
     const authResponse = {
       fullAuthGranted: true,
       authorizedConnections: [],
-      authorizedRequestees: []
+      authorizedRequestees: [],
+      subjectToProfileMap: {}
     };
     log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
     // 1 - Check loggedin user
@@ -607,7 +623,9 @@ export class AuthService {
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     // FIXME: identify subjects with valid profiles and only used those for Policy check
-    const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const subjectToProfileMap = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const validRequesteeIds = Object.keys(subjectToProfileMap);
+    authResponse.subjectToProfileMap = subjectToProfileMap;
 
     // check 4. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
@@ -836,7 +854,9 @@ export class AuthService {
     const authResponse = {
       fullAuthGranted: true,
       authorizedConnections: [],
-      authorizedRequestees: []
+      authorizedRequestees: [],
+      subjectToProfileMap: {}
+
     };
     log.info("Entering AuthService :: authorizeMultipleOwnerBased()");
     // 1 - Check loggedin user
@@ -856,7 +876,9 @@ export class AuthService {
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     // FIXME: identify subjects with valid profiles and only used those for Policy check
-    const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const subjectToProfileMap = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const validRequesteeIds = Object.keys(subjectToProfileMap);
+    authResponse.subjectToProfileMap = subjectToProfileMap;
 
     // check 4. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
