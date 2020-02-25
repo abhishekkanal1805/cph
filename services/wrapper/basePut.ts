@@ -352,10 +352,13 @@ export class BasePut {
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
     log.info("DeviceId validation is successful :: updateResourcePolicyManagerBased()");
-    const whereClause: any = { id: primaryKeyIds };
+    const queryObject = { id: primaryKeyIds };
+    let whereClause: any = {
+      [Op.or]: []
+    };
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     log.info("Calling authorizePolicyManagerBased() :: updateResourcePolicyManagerBased()");
-    await AuthService.authorizePolicyManagerBased(
+    const authResponse = await AuthService.authorizePolicyManagerBased(
       requestParams.requestorProfileId,
       serviceName,
       Constants.ACCESS_EDIT,
@@ -363,6 +366,24 @@ export class BasePut {
       requestParams.subjectReferences,
       requestParams.resourceActions
     );
+    if (authResponse && !_.isEmpty(authResponse.authorizedConnections)) {
+      if (authResponse.authorizedConnections.length > 0) {
+        let sharingRulesClausePresent: boolean = false;
+        authResponse.authorizedConnections.forEach((eachConnection: any) => {
+          const sharingRulesClause = SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_EDIT);
+          if (!_.isEmpty(sharingRulesClause[Op.and])) {
+            whereClause[Op.or].push(sharingRulesClause);
+            sharingRulesClausePresent = true;
+          }
+        });
+        if (!sharingRulesClausePresent) {
+          log.info("Sharing rules not present for requested users");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+      }
+    } else {
+      whereClause = queryObject;
+    }
     log.info("User Authorization is successful :: updateResourcePolicyManagerBased()");
     const options = { where: whereClause, attributes: [Constants.ID] };
     // Get filtered recordsIds after applying sharing rules

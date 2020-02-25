@@ -327,7 +327,7 @@ export class BaseGet {
     log.info("In BaseGet :: getResourceScopeBased()");
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     log.info("Calling authorizePolicyManagerBased() :: getResourcePolicyManagerBased()");
-    await AuthService.authorizePolicyManagerBased(
+    const authResponse = await AuthService.authorizePolicyManagerBased(
       requestorProfileId,
       serviceName,
       Constants.ACCESS_READ,
@@ -335,6 +335,31 @@ export class BaseGet {
       getOptions.subjectReferences,
       getOptions.resourceActions
     );
+    log.info("AuthResponse: " + JSON.stringify(authResponse));
+    if (authResponse && !_.isEmpty(authResponse.authorizedConnections)) {
+      if (authResponse.authorizedConnections.length > 0) {
+        const id = record.id;
+        const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
+        const whereClause: any = {
+          [Op.or]: []
+        };
+        let sharingRulesClausePresent: boolean = false;
+        authResponse.authorizedConnections.forEach((eachConnection: any) => {
+          const sharingRulesClause = SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_EDIT);
+          if (!_.isEmpty(sharingRulesClause[Op.and])) {
+            whereClause[Op.or].push(sharingRulesClause);
+            sharingRulesClausePresent = true;
+          }
+        });
+        if (!sharingRulesClausePresent) {
+          log.info("Sharing rules not present for requested users");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        log.info("whereClause : " + JSON.stringify(whereClause));
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
+      }
+    }
     log.info("User Authorization is successful ");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
