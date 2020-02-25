@@ -175,14 +175,19 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
+    // For definational resource resourceOwnerElement will be null
+    if (_.isEmpty(queryParams) && resourceOwnerElement ) {
+      log.info("queryParams is empty, Adding the logged in user as resourceOwner in queryParams.");
+      queryParams[resourceOwnerElement] = [requestorProfileId];
+    }
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
     if (isResoucePublicAccessable) {
-      log.info("Read is allowed as resource type");
+      log.info("Resource access type is public, no authorization required");
       isSharingRuleCheckRequired = false;
     } else if (resourceOwnerElement) {
       log.info(resourceOwnerElement + " is the resourceOwnerElement. Attempting to perform owner based Authorization.");
-      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
+      if (!queryParams[resourceOwnerElement]) {
         log.info("queryParams is empty or does not contain the resourceOwnerElement. Adding the logged in user as resourceOwner in queryParams.");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
@@ -225,9 +230,7 @@ export class BaseGet {
       searchOptions.queryParamToResourceScopeMap &&
       searchOptions.queryParamToResourceScopeMap.size > 0
     ) {
-      log.info(
-        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
-      );
+      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
@@ -240,7 +243,8 @@ export class BaseGet {
         return [];
       }
     } else {
-      log.info("you have no access to search this resource.");
+      log.info("loggedin user don't have to search this resource.");
+      return [];
     }
 
     // if isDeleted attribute not present in query parameter then return active records
