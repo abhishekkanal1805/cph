@@ -856,7 +856,6 @@ export class AuthService {
       authorizedConnections: [],
       authorizedRequestees: [],
       subjectToProfileMap: {}
-
     };
     log.info("Entering AuthService :: authorizeMultipleOwnerBased()");
     // 1 - Check loggedin user

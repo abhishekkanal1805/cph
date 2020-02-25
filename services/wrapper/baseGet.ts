@@ -274,7 +274,9 @@ export class BaseGet {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
       connections.forEach((eachConnection: any) => {
         let resourceOwnerElementValue = _.get(eachConnection, Constants.FROM_REFERENCE_KEY);
-        resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue] ? subjectToProfileMap[resourceOwnerElementValue] : [resourceOwnerElementValue];
+        resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue]
+          ? subjectToProfileMap[resourceOwnerElementValue]
+          : [resourceOwnerElementValue];
         const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [resourceOwnerElementValue.join(Constants.COMMA_VALUE)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
