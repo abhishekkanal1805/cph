@@ -171,6 +171,40 @@ export class BaseDelete {
    * @returns
    * @memberof BaseDelete
    */
+  public static async deleteResourcePolicyManagerBased(record: any, model: any, modelDataResource: any, requestParams: DeleteRequestParams) {
+    log.info("Entering BaseDelete :: deleteResourcePolicyManagerBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    log.info("Calling authorizePolicyManagerBased() :: deleteResourcePolicyManagerBased()");
+    await AuthService.authorizePolicyManagerBased(
+      requestParams.requestorProfileId,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceScopeMap,
+      requestParams.subjectReferences,
+      requestParams.resourceActions
+    );
+    log.info("User Authorization is successful ");
+    const deleteOptions: DeleteObjectParams = {
+      permanent: requestParams.permanent,
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId
+    };
+    await BaseDelete.deleteObject(record, model, modelDataResource, deleteOptions);
+    log.info("Exiting BaseDelete :: deleteResourcePolicyManagerBased()");
+  }
+
+  /**
+   *  Deletes the record for provided Model from database
+   *  For use with services which has multiple owners. This function performs policy based authorization for scoped references.
+   *
+   * @static
+   * @param {*} record in JSON format
+   * @param {*} model Model which need to be saved
+   * @param {*} modelDataResource Data resource model which can be used for object mapping.
+   * @param {*} requestParams
+   * @returns
+   * @memberof BaseDelete
+   */
   public static async deleteResourceScopeBased(record: any, model: any, modelDataResource: any, requestParams: DeleteRequestParams) {
     log.info("Entering BaseDelete :: deleteResourceScopeBased()");
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];

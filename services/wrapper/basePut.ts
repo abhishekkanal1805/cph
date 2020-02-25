@@ -21,6 +21,16 @@ import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
 import { RequestValidator } from "../validators/requestValidator";
 
 export class BasePut {
+  /**
+   * For all clinical resource patientElement hold the profile reference to who the record belongs,
+   * requestorId points to the logged in user.
+   * For use with FHIR resources we would set the informationSourceElement same as patientElement
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async updateResource<T>(
     requestPayload: any,
     payloadModel: T,
@@ -129,6 +139,13 @@ export class BasePut {
     return result;
   }
 
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async bulkUpdate(requestPayload, model, modelDataResource, requestParams: UpdateRequestParams) {
     log.info("Entering BasePut :: bulkUpdate()");
     let parentOwnerElement;
@@ -232,6 +249,13 @@ export class BasePut {
     return result;
   }
 
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {} resourceMetaData
+   * @returns {} result
+   */
   public static async updateModelAndSave(requestPayload: any, model: any, modelDataResource: any, resourceMetaData: UpdateMetaDataElements) {
     log.info("Entering BasePut :: updateModelAndSave()");
     requestPayload.meta = DataTransform.getUpdateMetaData(requestPayload, resourceMetaData);
@@ -241,11 +265,18 @@ export class BasePut {
     return result;
   }
 
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async updateResourceWithoutAuthorization<T>(
-      requestPayload: any,
-      payloadModel: T,
-      payloadDataResourceModel: any,
-      requestParams: RequestParams
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
   ): Promise<GenericResponse<T>> {
     log.info("Entering BasePut :: updateResource()");
     // validate request payload
@@ -288,13 +319,20 @@ export class BasePut {
     return result;
   }
 
-  public static async updateResourceScopeBased<T>(
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async updateResourcePolicyManagerBased<T>(
     requestPayload: any,
     payloadModel: T,
     payloadDataResourceModel: any,
     requestParams: RequestParams
   ): Promise<GenericResponse<T>> {
-    log.info("Entering BasePut :: updateResource()");
+    log.info("Entering BasePut :: updateResourcePolicyManagerBased()");
     // validate request payload
     requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
     const total = requestPayload.length;
@@ -303,17 +341,83 @@ export class BasePut {
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
+    log.info("Device, Id, User Keys retrieved successfully :: updateResourcePolicyManagerBased()");
 
     // perform primaryKeyIds validation
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
     RequestValidator.validateLength(primaryKeyIds, total);
-    log.info("unique primaryKeyIds validation is successful :: updateResource()");
+    log.info("unique primaryKeyIds validation is successful :: updateResourcePolicyManagerBased()");
 
     // perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.info("DeviceId validation is successful :: updateResource()");
+    log.info("DeviceId validation is successful :: updateResourcePolicyManagerBased()");
+    const whereClause: any = { id: primaryKeyIds };
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    log.info("Calling authorizePolicyManagerBased() :: updateResourcePolicyManagerBased()");
+    await AuthService.authorizePolicyManagerBased(
+      requestParams.requestorProfileId,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceScopeMap,
+      requestParams.subjectReferences,
+      requestParams.resourceActions
+    );
+    log.info("User Authorization is successful :: updateResourcePolicyManagerBased()");
+    const options = { where: whereClause, attributes: [Constants.ID] };
+    // Get filtered recordsIds after applying sharing rules
+    let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
+    filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
+    if (!filteredPrimaryKeyIds.length) {
+      log.error("ValidIds list is empty :: updateResource()");
+      throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
+    }
+    const updateRequestParams: UpdateRequestParams = {
+      requestLogRef: requestParams.requestLogRef,
+      requestorProfileId: requestParams.requestorProfileId,
+      requestPrimaryIds: filteredPrimaryKeyIds,
+      referenceValidationModel: requestParams.referenceValidationModel,
+      referenceValidationElement: requestParams.referenceValidationElement,
+      ownerElement: requestParams.ownerElement
+    };
+    const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
+    log.info("Payload updated successfully :: updateResourcePolicyManagerBased()");
+    return result;
+  }
+
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async updateResourceScopeBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePut :: updateResourceScopeBased()");
+    // validate request payload
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    const total = requestPayload.length;
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    keysToFetch.set(Constants.ID, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device, Id, User Keys retrieved successfully :: updateResourceScopeBased()");
+
+    // perform primaryKeyIds validation
+    const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
+    RequestValidator.validateLength(primaryKeyIds, total);
+    log.info("unique primaryKeyIds validation is successful :: updateResourceScopeBased()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: updateResourceScopeBased()");
     const whereClause: any = { id: primaryKeyIds };
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     let resourceScope: string[] = [];
@@ -332,13 +436,13 @@ export class BasePut {
       log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    log.info("User Authorization is successful :: updateResource()");
+    log.info("User Authorization is successful :: updateResourceScopeBased()");
     const options = { where: whereClause, attributes: [Constants.ID] };
     // Get filtered recordsIds after applying sharing rules
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     if (!filteredPrimaryKeyIds.length) {
-      log.error("ValidIds list is empty :: updateResource()");
+      log.error("ValidIds list is empty :: updateResourceScopeBased()");
       throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     const updateRequestParams: UpdateRequestParams = {
@@ -350,10 +454,17 @@ export class BasePut {
       ownerElement: requestParams.ownerElement
     };
     const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
-    log.info("Payload updated successfully :: updateResource()");
+    log.info("Payload updated successfully :: updateResourceScopeBased()");
     return result;
   }
 
+  /**
+   * @param {*} requestPayload
+   * @param {T} model
+   * @param {*} modelDataResource
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
   public static async updateResourceMultipleOwnerBased<T>(
     requestPayload: any,
     payloadModel: T,
@@ -369,17 +480,17 @@ export class BasePut {
     keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
     keysToFetch.set(Constants.ID, []);
     const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Device, Id, User Keys retrieved successfully :: updateResource()");
+    log.info("Device, Id, User Keys retrieved successfully :: updateResourceMultipleOwnerBased()");
 
     // perform primaryKeyIds validation
     const primaryKeyIds = [...new Set(keysMap.get(Constants.ID))];
     RequestValidator.validateLength(primaryKeyIds, total);
-    log.info("unique primaryKeyIds validation is successful :: updateResource()");
+    log.info("unique primaryKeyIds validation is successful :: updateResourceMultipleOwnerBased()");
 
     // perform deviceId validation
     const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
     await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.info("DeviceId validation is successful :: updateResource()");
+    log.info("DeviceId validation is successful :: updateResourceMultipleOwnerBased()");
     const whereClause: any = { id: primaryKeyIds };
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const authResponse = await AuthService.authorizeMultipleOwnerBased(
@@ -395,13 +506,13 @@ export class BasePut {
       );
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
-    log.info("User Authorization is successful :: updateResource()");
+    log.info("User Authorization is successful :: updateResourceMultipleOwnerBased()");
     const options = { where: whereClause, attributes: [Constants.ID] };
     // Get filtered recordsIds after applying sharing rules
     let filteredPrimaryKeyIds: any = await DAOService.search(payloadModel, options);
     filteredPrimaryKeyIds = _.map(filteredPrimaryKeyIds, Constants.ID);
     if (!filteredPrimaryKeyIds.length) {
-      log.error("ValidIds list is empty :: updateResource()");
+      log.error("ValidIds list is empty :: updateResourceMultipleOwnerBased()");
       throw new NotFoundResult(errorCodeMap.NotFound.value, errorCodeMap.NotFound.description);
     }
     const updateRequestParams: UpdateRequestParams = {
@@ -413,7 +524,7 @@ export class BasePut {
       ownerElement: requestParams.ownerElement
     };
     const result = await BasePut.bulkUpdate(requestPayload, payloadModel, payloadDataResourceModel, updateRequestParams);
-    log.info("Payload updated successfully :: updateResource()");
+    log.info("Payload updated successfully :: updateResourceMultipleOwnerBased()");
     return result;
   }
 }

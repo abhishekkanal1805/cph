@@ -125,6 +125,119 @@ export class BasePost {
   }
 
   /**
+   * For use with services which has multiple owners. This function performs policy based authorization for scoped references or multiple subject references.
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async saveResourcePolicyManagerBased<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResourcePolicyManagerBased()");
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    log.info("Record Array created successfully in :: saveResourcePolicyManagerBased()");
+    const model = payloadModel as any;
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device and User Keys retrieved successfully :: saveResourcePolicyManagerBased()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: saveResourcePolicyManagerBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    log.info("Calling authorizePolicyManagerBased() :: saveResourcePolicyManagerBased()");
+    await AuthService.authorizePolicyManagerBased(
+      requestParams.requestorProfileId,
+      serviceName,
+      Constants.ACCESS_EDIT,
+      requestParams.resourceScopeMap,
+      requestParams.subjectReferences,
+      requestParams.resourceActions
+    );
+    log.info("User Authorization is successful ");
+    // validate references
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload,
+      requestParams.referenceValidationModel,
+      requestParams.referenceValidationElement
+    );
+    // prepare meta data object
+    const resourceMetaData: MetaDataElements = {
+      createdBy: requestParams.requestorProfileId,
+      lastUpdatedBy: requestParams.requestorProfileId,
+      requestLogRef: requestParams.requestLogRef
+    };
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
+      saveResponse.savedRecords = savedResources;
+    }
+    log.info("Exiting BasePost :: saveResourcePolicyManagerBased()");
+    return saveResponse;
+  }
+
+  /**
+   * For use with services which doesn't send owner element. This function just validates the payload and saves the resource.
+   * @param {*} requestPayload
+   * @param {T} payloadModel
+   * @param {*} payloadDataResourceModel
+   * @param {RequestParams} requestParams
+   * @returns {Promise<GenericResponse<T>>}
+   */
+  public static async saveResourceWithoutPolicyAuthorization<T>(
+    requestPayload: any,
+    payloadModel: T,
+    payloadDataResourceModel: any,
+    requestParams: RequestParams
+  ): Promise<GenericResponse<T>> {
+    log.info("Entering BasePost :: saveResourceWithoutPolicyAuthorization()");
+    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
+    log.info("Record Array created successfully in :: saveResourceWithoutPolicyAuthorization()");
+    const keysToFetch = new Map();
+    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
+    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
+    log.info("Device and User Keys retrieved successfully :: saveResourceWithoutPolicyAuthorization()");
+
+    // perform deviceId validation
+    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
+    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
+    log.info("DeviceId validation is successful :: saveResourceWithoutPolicyAuthorization()");
+    // query userprofile for the requester profile id
+    await DataFetch.getUserProfile([requestParams.requestorProfileId]);
+    log.info("User Authorization is successful :: saveResourceWithoutPolicyAuthorization()");
+    // validate references
+    const validatedResources = await ReferenceValidator.validateReference(
+      requestPayload,
+      requestParams.referenceValidationModel,
+      requestParams.referenceValidationElement
+    );
+    // prepare meta data object
+    const resourceMetaData: MetaDataElements = {
+      createdBy: requestParams.requestorProfileId,
+      lastUpdatedBy: requestParams.requestorProfileId,
+      requestLogRef: requestParams.requestLogRef
+    };
+    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
+    saveResponse.errorRecords = validatedResources.errorResults;
+    if (validatedResources.validResources.length > 0) {
+      log.info("Calling prepareModelAndSave method ");
+      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
+      saveResponse.savedRecords = savedResources;
+    }
+    log.info("Exiting BasePost :: saveResourceWithoutPolicyAuthorization()");
+    return saveResponse;
+  }
+
+  /**
    * For use with services which has multiple owners. This function performs policy based authorization for scoped references.
    * @param {*} requestPayload
    * @param {T} payloadModel
@@ -189,58 +302,6 @@ export class BasePost {
       saveResponse.savedRecords = savedResources;
     }
     log.info("Exiting BasePost :: saveResourceScopeBased()");
-    return saveResponse;
-  }
-
-  /**
-   * For use with services which doesn't send owner element. This function just validates the payload and saves the resource.
-   * @param {*} requestPayload
-   * @param {T} payloadModel
-   * @param {*} payloadDataResourceModel
-   * @param {RequestParams} requestParams
-   * @returns {Promise<GenericResponse<T>>}
-   */
-  public static async saveResourceWithoutPolicyAuthorization<T>(
-    requestPayload: any,
-    payloadModel: T,
-    payloadDataResourceModel: any,
-    requestParams: RequestParams
-  ): Promise<GenericResponse<T>> {
-    log.info("Entering BasePost :: saveResourceWithoutPolicyAuthorization()");
-    requestPayload = RequestValidator.processAndValidateRequestPayload(requestPayload);
-    log.info("Record Array created successfully in :: saveResourceWithoutPolicyAuthorization()");
-    const keysToFetch = new Map();
-    keysToFetch.set(Constants.DEVICE_REFERENCE_KEY, []);
-    const keysMap = JsonParser.findValuesForKeyMap(requestPayload, keysToFetch);
-    log.info("Device and User Keys retrieved successfully :: saveResourceWithoutPolicyAuthorization()");
-
-    // perform deviceId validation
-    const uniqueDeviceIds = [...new Set(keysMap.get(Constants.DEVICE_REFERENCE_KEY))].filter(Boolean);
-    await RequestValidator.validateDeviceIds(uniqueDeviceIds);
-    log.info("DeviceId validation is successful :: saveResourceWithoutPolicyAuthorization()");
-    // query userprofile for the requester profile id
-    await DataFetch.getUserProfile([requestParams.requestorProfileId]);
-    log.info("User Authorization is successful :: saveResourceWithoutPolicyAuthorization()");
-    // validate references
-    const validatedResources = await ReferenceValidator.validateReference(
-      requestPayload,
-      requestParams.referenceValidationModel,
-      requestParams.referenceValidationElement
-    );
-    // prepare meta data object
-    const resourceMetaData: MetaDataElements = {
-      createdBy: requestParams.requestorProfileId,
-      lastUpdatedBy: requestParams.requestorProfileId,
-      requestLogRef: requestParams.requestLogRef
-    };
-    const saveResponse: GenericResponse<T> = new GenericResponse<T>();
-    saveResponse.errorRecords = validatedResources.errorResults;
-    if (validatedResources.validResources.length > 0) {
-      log.info("Calling prepareModelAndSave method ");
-      const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
-    }
-    log.info("Exiting BasePost :: saveResourceWithoutPolicyAuthorization()");
     return saveResponse;
   }
 
