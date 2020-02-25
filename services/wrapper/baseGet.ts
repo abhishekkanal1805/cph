@@ -313,6 +313,41 @@ export class BaseGet {
   }
 
   /**
+   * Function to authorize retrieved record using scope based policy access or multiple owner based.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourcePolicyManagerBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    log.info("Calling authorizePolicyManagerBased() :: getResourcePolicyManagerBased()");
+    await AuthService.authorizePolicyManagerBased(
+      requestorProfileId,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceScopeMap,
+      getOptions.subjectReferences,
+      getOptions.resourceActions
+    );
+    log.info("User Authorization is successful ");
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
+  }
+
+  /**
    * Function to authorize retrieved record using scope based policy acess.
    * Function to be used by multiple owner services
    *
