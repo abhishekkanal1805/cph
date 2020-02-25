@@ -286,6 +286,10 @@ export class BaseGet {
         }
       });
       if (isSharingRuleCheckRequired && !_.isEmpty(filteredQueryParameter)) {
+        // if delete flag present then add to additional filter parameter
+        if (queryParams[Constants.IS_DELETED]) {
+          filteredQueryParameter[Constants.IS_DELETED] = queryParams[Constants.IS_DELETED];
+        }
         queryObject = QueryGenerator.getFilterCondition(filteredQueryParameter, attributesMapping);
         whereClause[Op.or].push(queryObject);
       }
