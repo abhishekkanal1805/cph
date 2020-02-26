@@ -40,9 +40,11 @@ export class JsonParser {
   public static findValuesForKey(records: any[], searchKey: string, uniqueValuesOnly: boolean = true): any[] {
     log.info("Inside JsonParser: findValuesForKey()");
     const keyValues = records.map((record) => {
-      return searchKey.split(".").reduce((key, value) => {
-        return typeof key == "undefined" || key === null ? key : key[value];
-      }, record);
+      return searchKey
+        ? searchKey.split(".").reduce((key, value) => {
+            return typeof key == "undefined" || key === null ? key : key[value];
+          }, record)
+        : null;
     });
     if (uniqueValuesOnly) {
       return [...new Set(keyValues)];
@@ -65,7 +67,7 @@ export class JsonParser {
   public static findValuesForKeyMap(records: any[], searchKeys: Map<string, any[]>): Map<string, any[]> {
     log.info("Inside JsonParser: findValuesForKeyMap()");
     const getValues = (object, path, defaultValue) =>
-      path.split(Constants.DOT_VALUE).reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object);
+      path ? path.split(Constants.DOT_VALUE).reduce((key, value) => (key && key[value] ? key[value] : defaultValue || null), object) : null;
     records.forEach((record) => {
       searchKeys.forEach((value, key) => {
         value.push(getValues(record, key, null));
@@ -102,8 +104,6 @@ export class JsonParser {
     excludeElements = excludeElements || [];
     const isElementPartOfExcludList = (elementPath) => {
       elementPath = elementPath.join(Constants.DOT_VALUE);
-      // console.log("excludeElements", JSON.stringify(excludeElements));
-      // console.log("elementPath", elementPath);
       return excludeElements.indexOf(elementPath) == -1 ? false : true;
     };
     const getReferencesMapping = (payload, referenceObj, currPath, prevPath) => {

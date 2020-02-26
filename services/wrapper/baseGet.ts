@@ -7,7 +7,6 @@ import * as _ from "lodash";
 import { Op } from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { ResourceCategory } from "../../common/constants/resourceCategory";
 import { GetOptions, SearchOptions } from "../../common/interfaces/baseInterfaces";
 import { BadRequestResult, ForbiddenResult } from "../../common/objects/custom-errors";
 import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameToResourceTypeMapping";
@@ -35,30 +34,28 @@ export class BaseGet {
    */
   public static async getResource(id: string, model, requestorProfileId: string, patientElement?: string, getOptions?: GetOptions) {
     log.info("In BaseGet :: getResource()");
-    const queryObject = { id, "meta.isDeleted": false };
+    const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
     const options = { where: queryObject };
     let record = await DAOService.fetchOne(model, options);
     record = record.dataResource;
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    if (!model.resourceCategory || model.resourceCategory !== ResourceCategory.DEFINITION) {
-      const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
-      const connection = await AuthService.authorizeConnectionBasedSharingRules({
-        requester: requestorProfileId,
-        ownerReference: patientIds[0],
-        resourceType: serviceName,
-        accessType: Constants.ACCESS_READ,
-        resourceActions: getOptions ? getOptions.resourceActions : null
-      });
-      // For system user/ loggedin user to get his own record we won't add sharing rules
-      if (connection.length > 0) {
-        const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
-        if (_.isEmpty(whereClause[Op.and])) {
-          log.info("Sharing rules not present for requested user");
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-        }
-        record = await DAOService.fetchOne(model, { where: whereClause });
-        record = record.dataResource;
+    const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
+    const connection = await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
+    // For system user/ loggedin user to get his own record we won't add sharing rules
+    if (connection.length > 0) {
+      const whereClause = SharingRulesHelper.addSharingRuleClause(queryObject, connection[0], model, Constants.ACCESS_READ);
+      if (_.isEmpty(whereClause[Op.and])) {
+        log.info("Sharing rules not present for requested user");
+        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
+      record = await DAOService.fetchOne(model, { where: whereClause });
+      record = record.dataResource;
     }
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -72,7 +69,6 @@ export class BaseGet {
   }
 
   /**
-   * @deprecated use getResource instead.
    * @param {string} id
    * @param {*} model
    * @param {string} requestorProfileId
@@ -86,7 +82,13 @@ export class BaseGet {
     record = record.dataResource;
     const patientIds = JsonParser.findValuesForKey([record], patientElement, false);
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
-    await AuthService.authorizeConnectionBased(requestorProfileId, patientIds[0], serviceName, Constants.ACCESS_READ);
+    await AuthService.authorizeConnectionBasedSharingRules({
+      requester: requestorProfileId,
+      ownerReference: patientIds[0],
+      resourceType: serviceName,
+      accessType: Constants.ACCESS_READ,
+      resourceActions: getOptions ? getOptions.resourceActions : null
+    });
     log.info("getResourceWithoutSharingRules() :: Record retrieved successfully");
     // Translate Resource based on accept language
     const acceptLanguage = getOptions && getOptions.acceptLanguage;
@@ -101,7 +103,6 @@ export class BaseGet {
 
   /**
    * Wrapper function to perform GET for record without authorization
-   * @deprecated use getResource instead.
    * @static
    * @param {string} id
    * @param {*} model
@@ -148,6 +149,7 @@ export class BaseGet {
     searchOptions?: SearchOptions
   ) {
     let connections = [];
+    let subjectToProfileMap = {};
     let isSharingRuleCheckRequired: boolean = true;
     const filteredQueryParameter = {};
 
@@ -174,14 +176,19 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
+    // For definational resource resourceOwnerElement will be null
+    if (_.isEmpty(queryParams) && resourceOwnerElement) {
+      log.info("queryParams is empty, Adding the logged in user as resourceOwner in queryParams.");
+      queryParams[resourceOwnerElement] = [requestorProfileId];
+    }
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
     if (isResoucePublicAccessable) {
-      log.info("Read is allowed as resource type");
+      log.info("Resource access type is public, no authorization required");
       isSharingRuleCheckRequired = false;
     } else if (resourceOwnerElement) {
       log.info(resourceOwnerElement + " is the resourceOwnerElement. Attempting to perform owner based Authorization.");
-      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
+      if (!queryParams[resourceOwnerElement]) {
         log.info("queryParams is empty or does not contain the resourceOwnerElement. Adding the logged in user as resourceOwner in queryParams.");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
@@ -191,7 +198,7 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
-      log.info("requestedProfiles = " + JSON.stringify(requestedProfiles));
+      log.info("requestedProfiles = ", requestedProfiles);
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
@@ -202,6 +209,7 @@ export class BaseGet {
         searchOptions ? searchOptions.resourceActions : null
       );
       connections = authResponse.authorizedConnections;
+      subjectToProfileMap = authResponse.subjectToProfileMap || {};
       // authResponse.authorizedRequestees are the references that require no sharing rule check
       if (!_.isEmpty(authResponse.authorizedRequestees)) {
         // access to all the references in filteredQueryParameter will be given unconditionally
@@ -218,12 +226,19 @@ export class BaseGet {
         );
         return [];
       }
-    } else if (searchOptions && searchOptions.resourceActions && searchOptions.queryParamToResourceScopeMap && searchOptions.queryParamToResourceScopeMap.size > 0) {
-      log.info("searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization.");
+    } else if (
+      searchOptions &&
+      searchOptions.resourceActions &&
+      searchOptions.queryParamToResourceScopeMap &&
+      searchOptions.queryParamToResourceScopeMap.size > 0
+    ) {
+      log.info(
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+      );
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
-      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach( (scope: string[]) => {
+      Array.from(searchOptions.queryParamToResourceScopeMap.values()).forEach((scope: string[]) => {
         resourceScope = resourceScope.concat(scope);
       });
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
@@ -232,7 +247,8 @@ export class BaseGet {
         return [];
       }
     } else {
-      log.info("you have no access to search this resource.");
+      log.info("loggedin user don't have to search this resource.");
+      return [];
     }
 
     // if isDeleted attribute not present in query parameter then return active records
@@ -257,7 +273,11 @@ export class BaseGet {
     } else {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
       connections.forEach((eachConnection: any) => {
-        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(eachConnection, Constants.FROM_REFERENCE_KEY)] });
+        let resourceOwnerElementValue = _.get(eachConnection, Constants.FROM_REFERENCE_KEY);
+        resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue]
+          ? subjectToProfileMap[resourceOwnerElementValue]
+          : [resourceOwnerElementValue];
+        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [resourceOwnerElementValue.join(Constants.COMMA_VALUE)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
           ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)
@@ -268,6 +288,10 @@ export class BaseGet {
         }
       });
       if (isSharingRuleCheckRequired && !_.isEmpty(filteredQueryParameter)) {
+        // if delete flag present then add to additional filter parameter
+        if (queryParams[Constants.IS_DELETED]) {
+          filteredQueryParameter[Constants.IS_DELETED] = queryParams[Constants.IS_DELETED];
+        }
         queryObject = QueryGenerator.getFilterCondition(filteredQueryParameter, attributesMapping);
         whereClause[Op.or].push(queryObject);
       }
@@ -302,5 +326,144 @@ export class BaseGet {
     });
     log.info("TranslateResource Complete");
     return translatedRecords;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy access or multiple owner based.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourcePolicyManagerBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    log.info("Calling authorizePolicyManagerBased() :: getResourcePolicyManagerBased()");
+    const authResponse = await AuthService.authorizePolicyManagerBased(
+      requestorProfileId,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceScopeMap,
+      getOptions.subjectReferences,
+      getOptions.resourceActions
+    );
+    log.info("AuthResponse: " + JSON.stringify(authResponse));
+    if (authResponse && !_.isEmpty(authResponse.authorizedConnections)) {
+      if (authResponse.authorizedConnections.length > 0) {
+        const id = record.id;
+        const queryObject = { id, [Constants.META_IS_DELETED_KEY]: false };
+        const whereClause: any = {
+          [Op.or]: []
+        };
+        let sharingRulesClausePresent: boolean = false;
+        authResponse.authorizedConnections.forEach((eachConnection: any) => {
+          const sharingRulesClause = SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_EDIT);
+          if (!_.isEmpty(sharingRulesClause[Op.and])) {
+            whereClause[Op.or].push(sharingRulesClause);
+            sharingRulesClausePresent = true;
+          }
+        });
+        if (!sharingRulesClausePresent) {
+          log.info("Sharing rules not present for requested users");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
+        log.info("whereClause : " + JSON.stringify(whereClause));
+        record = await DAOService.fetchOne(model, { where: whereClause });
+        record = record.dataResource;
+      }
+    }
+    log.info("User Authorization is successful ");
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy acess.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourceScopeBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    let resourceScope: string[] = [];
+    // concatenating all resources in the map values
+    Array.from(getOptions.resourceScopeMap.values()).forEach((scope: string[]) => {
+      resourceScope = resourceScope.concat(scope);
+    });
+    const authResponse = await AuthService.authorizePolicyBased(
+      requestorProfileId,
+      getOptions.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_READ
+    );
+    if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
+  }
+
+  /**
+   * Function to authorize retrieved record using scope based policy acess.
+   * Function to be used by multiple owner services
+   *
+   * @static
+   * @param {*} record
+   * @param {string} requestorProfileId
+   * @param {*} getOptions
+   * @returns {*} translatedRecord
+   * @memberOf BaseGet
+   */
+  public static async getResourceMultipleOwnerBased(record: any, model, requestorProfileId: string, getOptions?: GetOptions) {
+    log.info("In BaseGet :: getResourceScopeBased()");
+    const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
+    const authResponse = await AuthService.authorizeMultipleOwnerBased(
+      requestorProfileId,
+      getOptions.subjectReferences,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceActions
+    );
+    if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
+      log.info(
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+      );
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    // Translate Resource based on accept language
+    const acceptLanguage = getOptions && getOptions.acceptLanguage;
+    if (!acceptLanguage) {
+      log.info("Translation option not present");
+      return record;
+    }
+    const translatedRecord = I18N.translateResource(record, acceptLanguage);
+    log.info("getResourceScopeBased() :: Record retrieved successfully");
+    return translatedRecord;
   }
 }

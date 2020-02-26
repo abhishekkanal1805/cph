@@ -18,13 +18,13 @@ class ResearchSubjectDAO {
    */
   public static async getByReferences(references: string[]): Promise<ResearchSubjectDataResource[]> {
     // filtering out duplicates and empty values
-    log.info("ResearchSubjectDAO - References requested: " + JSON.stringify(references));
+    log.info("ResearchSubjectDAO - References requested: ", references);
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(references, Constants.RESEARCHSUBJECT_REFERENCE);
     if (uniqueSubjectReferences.length < 1) {
       log.info("ResearchSubjectDAO - no valid ResearchSubject references found, returning null");
       return null;
     }
-    log.info("ResearchSubjectDAO - unique and subject References: " + JSON.stringify(uniqueSubjectReferences));
+    log.info("ResearchSubjectDAO - unique and subject References: ", uniqueSubjectReferences);
 
     const researchSubjectQuery: IFindOptions<ResearchSubject> = {
       where: {
@@ -35,7 +35,7 @@ class ResearchSubjectDAO {
       },
       attributes: [Constants.DEFAULT_SEARCH_ATTRIBUTES]
     };
-    log.info("ResearchSubjectDAO - query=" + JSON.stringify(researchSubjectQuery));
+    log.info("ResearchSubjectDAO - query=", researchSubjectQuery);
 
     const researchSubjects = await DAOService.search(ResearchSubject, researchSubjectQuery);
     return _.map(researchSubjects, Constants.DEFAULT_SEARCH_ATTRIBUTES);
