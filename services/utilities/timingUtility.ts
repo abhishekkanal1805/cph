@@ -59,13 +59,13 @@ export class TimingUtility {
     if (dateString.includes(Constants.ZULU_OFFSET)) {
       const indexOf = dateString.indexOf(Constants.ZULU_OFFSET);
       offsetString = dateString.substring(indexOf);
-    } else if (dateString.includes(Constants.UTC_OFFSET)) {
-      const indexOf = dateString.indexOf(Constants.UTC_OFFSET);
+    } else if (dateString.includes(Constants.UTC_OFFSET_P)) {
+      const indexOf = dateString.indexOf(Constants.UTC_OFFSET_P);
       offsetString = dateString.substring(indexOf);
     } else {
       offsetString = " ";
     }
-    log.info("Exiting TimingUtility.getOffsetString()");
+    log.info("Exiting TimingUtility.getOffsetString()" + offsetString);
     return offsetString;
   }
 
@@ -79,15 +79,16 @@ export class TimingUtility {
     log.info("Entering TimingUtility.formatDate()");
     let dateString = inputDate.toString();
     offsetString = offsetString.trim();
-    if (!offsetString) {
-      // if no offset specified in boundsStartDate then format inputDate with no offset
-      if (dateString.includes(Constants.ZULU_OFFSET)) {
-        dateString = dateString.split(Constants.ZULU_OFFSET)[0];
-        dateString = dateString.concat(offsetString);
-      } else if (dateString.includes(Constants.UTC_OFFSET)) {
-        dateString = dateString.split(Constants.UTC_OFFSET)[0];
-        dateString = dateString.concat(offsetString);
-      }
+    // if no offset specified in boundsStartDate then format inputDate with no offset
+    if (dateString.includes(Constants.ZULU_OFFSET)) {
+      dateString = dateString.split(Constants.ZULU_OFFSET)[0];
+      dateString = dateString.concat(offsetString);
+    } else if (dateString.includes(Constants.UTC_OFFSET_P)) {
+      dateString = dateString.split(Constants.UTC_OFFSET_P)[0];
+      dateString = dateString.concat(offsetString);
+    } else if (dateString.includes(Constants.UTC_OFFSET_N)) {
+      dateString = dateString.split(Constants.UTC_OFFSET_N)[0];
+      dateString = dateString.concat(offsetString);
     } else if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
       // if no offset specified in inputDate then format inputDate with offset specified in boundsStartDate
       dateString = dateString.concat(offsetString);
@@ -203,10 +204,10 @@ export class TimingUtility {
       if (offset == 0) {
         // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
         date = moment
-          .utc(inputDate)
-          .add(period, periodUnit)
-          .subtract(1, unit)
-          .endOf(endOfDayTime);
+            .utc(inputDate)
+            .add(period, periodUnit)
+            .subtract(1, unit)
+            .endOf(endOfDayTime);
         // if start date contains only date and time then format date according to that only
         if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
           date = date.format(Constants.DATE_TIME_ONLY);
@@ -216,12 +217,12 @@ export class TimingUtility {
         }
       } else {
         date = moment
-          .utc(inputDate)
-          .add(period, periodUnit)
-          .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
-          .endOf(endOfDayTime)
-          .utcOffset(offset)
-          .format(Constants.DATE_TIME);
+            .utc(inputDate)
+            .add(period, periodUnit)
+            .subtract(1, unit) // while adding period, moment adds period from next periodUnit value so subtract one periodUnit value
+            .endOf(endOfDayTime)
+            .utcOffset(offset)
+            .format(Constants.DATE_TIME);
       }
       log.info("Exiting TimingUtility.getEndDateForCode()");
       return date;
@@ -256,10 +257,10 @@ export class TimingUtility {
         }
       } else {
         date = moment
-          .utc(inputDate)
-          .add(period, periodUnit)
-          .utcOffset(offset)
-          .format(Constants.DATE_TIME);
+            .utc(inputDate)
+            .add(period, periodUnit)
+            .utcOffset(offset)
+            .format(Constants.DATE_TIME);
       }
       log.info("Exiting TimingUtility.addMomentDuration()");
       return date;
@@ -276,9 +277,9 @@ export class TimingUtility {
     log.info("Entering TimingUtility.getStartDate()");
     if (!start) {
       start = moment
-        .utc()
-        .utcOffset(0)
-        .toISOString();
+          .utc()
+          .utcOffset(0)
+          .toISOString();
     }
     log.info("Exiting TimingUtility.getStartDate()");
     return start;
@@ -298,10 +299,10 @@ export class TimingUtility {
         if (offset == 0) {
           // offset zero means start date is a zulu date and end date needs to have same offset as of start dare
           end = moment
-            .utc(start)
-            .endOf(Constants.DAY)
-            .add(1, Constants.YEARS)
-            .utcOffset(offset);
+              .utc(start)
+              .endOf(Constants.DAY)
+              .add(1, Constants.YEARS)
+              .utcOffset(offset);
           // if start contains only date and time then format end according to that only
           if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
             end = end.format(Constants.DATE_TIME_ONLY);
@@ -311,11 +312,11 @@ export class TimingUtility {
         } else {
           // start date is utc date and end date needs to have same offset as of start date
           end = moment
-            .utc(start)
-            .endOf(Constants.DAY)
-            .add(1, Constants.YEARS)
-            .utcOffset(offset)
-            .format(Constants.DATE_TIME);
+              .utc(start)
+              .endOf(Constants.DAY)
+              .add(1, Constants.YEARS)
+              .utcOffset(offset)
+              .format(Constants.DATE_TIME);
         }
       }
       log.info("Exiting TimingUtility.getEndDate()");
@@ -336,10 +337,10 @@ export class TimingUtility {
     if (moment(endDate, Constants.DATE, true).isValid()) {
       log.info("end Date Format is : " + Constants.DATE);
       endDate = moment
-        .utc(endDate)
-        .endOf(Constants.DAY)
-        .utcOffset(offset)
-        .toISOString();
+          .utc(endDate)
+          .endOf(Constants.DAY)
+          .utcOffset(offset)
+          .toISOString();
     }
     log.info("Exiting TimingUtility.formatEndDate()");
     return endDate;
@@ -365,12 +366,12 @@ export class TimingUtility {
     try {
       if (offset == 0) {
         date = moment
-          .utc(start)
-          .add(count * period, periodUnit)
-          .startOf(startOfDay)
-          .endOf(endOfDay)
-          .day(dayOfWeek)
-          .add(moment.duration(timeOfDay));
+            .utc(start)
+            .add(count * period, periodUnit)
+            .startOf(startOfDay)
+            .endOf(endOfDay)
+            .day(dayOfWeek)
+            .add(moment.duration(timeOfDay));
         // if start date contains only date and time then format date according to that only
         if (moment(start, Constants.DATE_TIME_ONLY, true).isValid()) {
           date = date.format(Constants.DATE_TIME_ONLY);
@@ -380,14 +381,14 @@ export class TimingUtility {
         }
       } else {
         date = moment
-          .utc(start)
-          .utcOffset(offset)
-          .add(count * period, periodUnit)
-          .startOf(startOfDay)
-          .endOf(endOfDay)
-          .day(dayOfWeek)
-          .add(moment.duration(timeOfDay))
-          .format(dateFormat);
+            .utc(start)
+            .utcOffset(offset)
+            .add(count * period, periodUnit)
+            .startOf(startOfDay)
+            .endOf(endOfDay)
+            .day(dayOfWeek)
+            .add(moment.duration(timeOfDay))
+            .format(dateFormat);
       }
       // log.info("Generated Date : " + date);
       log.info("Exiting TimingUtility.generateDate()");
