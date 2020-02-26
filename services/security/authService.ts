@@ -536,6 +536,9 @@ export class AuthService {
 
     // get user profiles for the subjects
     const subjectToProfileMap = {};
+    userProfileReferences.forEach((eachProfile) => {
+      subjectToProfileMap[eachProfile] = [eachProfile];
+    });
     if (researchSubjectReferences.length) {
       let whereClause = {
         [Constants.ID]: ReferenceUtility.convertToResourceIds(researchSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
