@@ -149,6 +149,7 @@ export class BaseGet {
     searchOptions?: SearchOptions
   ) {
     let connections = [];
+    let subjectToProfileMap = {};
     let isSharingRuleCheckRequired: boolean = true;
     const filteredQueryParameter = {};
 
@@ -175,14 +176,19 @@ export class BaseGet {
       // delete offset attibute as it is not part of search attribute
       delete queryParams.offset;
     }
+    // For definational resource resourceOwnerElement will be null
+    if (_.isEmpty(queryParams) && resourceOwnerElement) {
+      log.info("queryParams is empty, Adding the logged in user as resourceOwner in queryParams.");
+      queryParams[resourceOwnerElement] = [requestorProfileId];
+    }
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
     if (isResoucePublicAccessable) {
-      log.info("Read is allowed as resource type");
+      log.info("Resource access type is public, no authorization required");
       isSharingRuleCheckRequired = false;
     } else if (resourceOwnerElement) {
       log.info(resourceOwnerElement + " is the resourceOwnerElement. Attempting to perform owner based Authorization.");
-      if (_.isEmpty(queryParams) || !queryParams[resourceOwnerElement]) {
+      if (!queryParams[resourceOwnerElement]) {
         log.info("queryParams is empty or does not contain the resourceOwnerElement. Adding the logged in user as resourceOwner in queryParams.");
         queryParams[resourceOwnerElement] = [requestorProfileId];
         isSharingRuleCheckRequired = false;
@@ -192,7 +198,7 @@ export class BaseGet {
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
-      log.info("requestedProfiles = " + JSON.stringify(requestedProfiles));
+      log.info("requestedProfiles = ", requestedProfiles);
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
@@ -203,6 +209,7 @@ export class BaseGet {
         searchOptions ? searchOptions.resourceActions : null
       );
       connections = authResponse.authorizedConnections;
+      subjectToProfileMap = authResponse.subjectToProfileMap || {};
       // authResponse.authorizedRequestees are the references that require no sharing rule check
       if (!_.isEmpty(authResponse.authorizedRequestees)) {
         // access to all the references in filteredQueryParameter will be given unconditionally
@@ -240,7 +247,8 @@ export class BaseGet {
         return [];
       }
     } else {
-      log.info("you have no access to search this resource.");
+      log.info("loggedin user don't have to search this resource.");
+      return [];
     }
 
     // if isDeleted attribute not present in query parameter then return active records
@@ -265,7 +273,11 @@ export class BaseGet {
     } else {
       log.info("status of isSharingRuleCheckRequired: " + isSharingRuleCheckRequired);
       connections.forEach((eachConnection: any) => {
-        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [_.get(eachConnection, Constants.FROM_REFERENCE_KEY)] });
+        let resourceOwnerElementValue = _.get(eachConnection, Constants.FROM_REFERENCE_KEY);
+        resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue]
+          ? subjectToProfileMap[resourceOwnerElementValue]
+          : [resourceOwnerElementValue];
+        const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [resourceOwnerElementValue.join(Constants.COMMA_VALUE)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
           ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)
@@ -276,6 +288,10 @@ export class BaseGet {
         }
       });
       if (isSharingRuleCheckRequired && !_.isEmpty(filteredQueryParameter)) {
+        // if delete flag present then add to additional filter parameter
+        if (queryParams[Constants.IS_DELETED]) {
+          filteredQueryParameter[Constants.IS_DELETED] = queryParams[Constants.IS_DELETED];
+        }
         queryObject = QueryGenerator.getFilterCondition(filteredQueryParameter, attributesMapping);
         whereClause[Op.or].push(queryObject);
       }

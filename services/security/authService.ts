@@ -535,6 +535,7 @@ export class AuthService {
     const researchSubjectReferences = ReferenceUtility.getUniqueReferences(profileReferences, Constants.RESEARCHSUBJECT_REFERENCE);
 
     // get user profiles for the subjects
+    const subjectToProfileMap = {};
     if (researchSubjectReferences.length) {
       let whereClause = {
         [Constants.ID]: ReferenceUtility.convertToResourceIds(researchSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
@@ -544,14 +545,23 @@ export class AuthService {
         whereClause = Object.assign(whereClause, criteria);
       }
       const researchSubjectIdsProfiles = await DataFetch.getUserProfiles(whereClause, ResearchSubject);
-      userProfileReferences.push(..._.map(researchSubjectIdsProfiles, Constants.INDIVIDUAL_REFERENCE_KEY).filter(Boolean));
+      researchSubjectIdsProfiles.forEach((eachSubject) => {
+        const profile = _.get(eachSubject, Constants.INDIVIDUAL_REFERENCE_KEY);
+        if (!subjectToProfileMap[profile]) {
+          subjectToProfileMap[profile] = userProfileReferences.includes(profile) ? [profile] : [];
+        }
+        subjectToProfileMap[profile].push(Constants.RESEARCHSUBJECT_REFERENCE + eachSubject.id);
+      });
+      userProfileReferences.push(...Object.keys(subjectToProfileMap).filter(Boolean));
     }
     let validUserProfiles = [];
     if (userProfileReferences.length) {
       validUserProfiles = await DataFetch.getUserProfiles({
         [Constants.ID]: _.uniq(
           _.map(userProfileReferences, (userProfileReference) => {
-            return userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
+            return userProfileReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1
+              ? userProfileReference
+              : userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
           })
         ),
         status: Constants.ACTIVE,
@@ -559,8 +569,13 @@ export class AuthService {
       });
       validUserProfiles = _.map(validUserProfiles, Constants.ID);
     }
+    Object.keys(subjectToProfileMap).forEach((profile: string) => {
+      if (!validUserProfiles.includes(profile.split(Constants.USERPROFILE_REFERENCE)[1])) {
+        delete subjectToProfileMap[profile];
+      }
+    });
     log.info("Exiting AuthService :: validateProfiles()");
-    return validUserProfiles;
+    return subjectToProfileMap;
   }
 
   /**
@@ -587,7 +602,8 @@ export class AuthService {
     const authResponse = {
       fullAuthGranted: true,
       authorizedConnections: [],
-      authorizedRequestees: []
+      authorizedRequestees: [],
+      subjectToProfileMap: {}
     };
     log.info("Entering AuthService :: authorizeMultipleConnectionsBasedSharingRules()");
     // 1 - Check loggedin user
@@ -607,20 +623,22 @@ export class AuthService {
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     // FIXME: identify subjects with valid profiles and only used those for Policy check
-    const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const subjectToProfileMap = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const validRequesteeIds = Object.keys(subjectToProfileMap);
+    authResponse.subjectToProfileMap = subjectToProfileMap;
 
     // check 4. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleConnectionsBasedSharingRules");
       return authResponse;
     }
-    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds));
+    log.info("AuthService:: validRequesteeIds = ", validRequesteeIds);
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
     // check 5. check if any references belong to the owner, no need to check policies for them
     const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
-    log.info("AuthService:: requesterOwnedReferences = " + JSON.stringify(requesterOwnedReferences));
+    log.info("AuthService:: requesterOwnedReferences = ", requesterOwnedReferences);
     authResponse.authorizedRequestees = requesterOwnedReferences;
 
     // check 6. study/site based access control can only be determined if the owner is ResearchSubject
@@ -629,9 +647,9 @@ export class AuthService {
     // This is okay only if this function is only called from clinical resource perspective.
     // if we use requesteeIds the UserProfile for these subjects may not be valid
     const requesteeIdsForAccessCheck = ReferenceUtility.removeReferences(requesteeIds, requesterOwnedReferences);
-    log.info("AuthService:: requesteeForAccessCheck = " + JSON.stringify(requesteeIdsForAccessCheck));
+    log.info("AuthService:: requesteeForAccessCheck = ", requesteeIdsForAccessCheck);
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIdsForAccessCheck, Constants.RESEARCHSUBJECT_REFERENCE);
-    log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));
+    log.info("AuthService:: uniqueSubjectReferences = ", uniqueSubjectReferences);
     // let allowedSubjects: string[] = null;
     if (uniqueSubjectReferences.length > 0 && resourceActions) {
       log.info("AuthService::authorizeMultipleConnectionsBasedSharingRules() Owner is ResearchSubject, checking for policy based access.");
@@ -644,7 +662,7 @@ export class AuthService {
       if (grantedPolicies && grantedPolicies.size > 0) {
         log.info("AuthService:: Policy based access was granted to some or all of the subjects.)");
         const accessGrantedSubjects = Array.from(grantedPolicies.keys());
-        log.info("AuthService:: accessGrantedSubjects = " + JSON.stringify(accessGrantedSubjects));
+        log.info("AuthService:: accessGrantedSubjects = ", accessGrantedSubjects);
         authResponse.authorizedRequestees = authResponse.authorizedRequestees.concat(accessGrantedSubjects);
       } else {
         log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
@@ -653,19 +671,19 @@ export class AuthService {
       log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
 
-    log.info("AuthService:: authResponse.authorizedRequestees = " + JSON.stringify(authResponse.authorizedRequestees));
+    log.info("AuthService:: authResponse.authorizedRequestees = ", authResponse.authorizedRequestees);
     // remove the subjects that already were granted access from the connection check
     // FIXME:BUG if some or any of the subject were granted policy access, their user profiles should be removed from this list
     // FIXME: UserProfile for the respective subject can only stay if there is still at least one subject left for whom policy access was denied
     const requesteeIdsForConnectionCheck = ReferenceUtility.removeReferences(validRequesteeIds, authResponse.authorizedRequestees);
-    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(requesteeIdsForConnectionCheck));
+    log.info("AuthService:: checking Connections for requesteeIds = ", requesteeIdsForConnectionCheck);
 
     // check 7. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     authResponse.authorizedConnections = await AuthService.getConnections(requesteeIdsForConnectionCheck, requesterId, connectionType, connectionStatus);
 
-    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
+    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = ", authResponse);
     return authResponse;
   }
 
@@ -728,7 +746,7 @@ export class AuthService {
       authResponse.authorizedResourceScopes = authResponse.authorizedResourceScopes.concat(resourceAccessResponse.grantedResources);
     }
 
-    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = " + JSON.stringify(authResponse));
+    log.info("Exiting AuthService :: authorizeMultipleConnectionsBasedSharingRules, authResponse = ", authResponse);
     return authResponse;
   }
 
@@ -836,7 +854,8 @@ export class AuthService {
     const authResponse = {
       fullAuthGranted: true,
       authorizedConnections: [],
-      authorizedRequestees: []
+      authorizedRequestees: [],
+      subjectToProfileMap: {}
     };
     log.info("Entering AuthService :: authorizeMultipleOwnerBased()");
     // 1 - Check loggedin user
@@ -856,21 +875,23 @@ export class AuthService {
 
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     // FIXME: identify subjects with valid profiles and only used those for Policy check
-    const validRequesteeIds = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const subjectToProfileMap = await AuthService.validateProfiles(requesteeIds, researchSubjectCriteria);
+    const validRequesteeIds = Object.keys(subjectToProfileMap);
+    authResponse.subjectToProfileMap = subjectToProfileMap;
 
     // check 4. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleOwnerBased");
       return authResponse;
     }
-    log.info("AuthService:: validRequesteeIds = " + JSON.stringify(validRequesteeIds));
+    log.info("AuthService:: validRequesteeIds = ", validRequesteeIds);
 
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
     // check 5. check if any references belong to the owner, no need to check policies for them
     const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
-    log.info("AuthService:: requesterOwnedReferences = " + JSON.stringify(requesterOwnedReferences));
+    log.info("AuthService:: requesterOwnedReferences = ", requesterOwnedReferences);
     if (requesterOwnedReferences.length >= 1) {
       authResponse.authorizedRequestees = requesterOwnedReferences;
       return authResponse;
@@ -882,7 +903,7 @@ export class AuthService {
     // This is okay only if this function is only called from clinical resource perspective.
     // if we use requesteeIds the UserProfile for these subjects may not be valid
     const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIds, Constants.RESEARCHSUBJECT_REFERENCE);
-    log.info("AuthService:: uniqueSubjectReferences = " + JSON.stringify(uniqueSubjectReferences));
+    log.info("AuthService:: uniqueSubjectReferences = ", uniqueSubjectReferences);
     // let allowedSubjects: string[] = null;
     if (uniqueSubjectReferences.length > 0 && resourceActions) {
       log.info("AuthService::authorizeMultipleOwnerBased() Owner is ResearchSubject, checking for policy based access.");
@@ -895,7 +916,7 @@ export class AuthService {
       if (grantedPolicies && grantedPolicies.size > 0) {
         log.info("AuthService:: Policy based access was granted to some or all of the subjects.)");
         const accessGrantedSubjects = Array.from(grantedPolicies.keys());
-        log.info("AuthService:: accessGrantedSubjects = " + JSON.stringify(accessGrantedSubjects));
+        log.info("AuthService:: accessGrantedSubjects = ", accessGrantedSubjects);
         authResponse.authorizedRequestees = authResponse.authorizedRequestees.concat(accessGrantedSubjects);
         return authResponse;
       } else {
@@ -904,12 +925,12 @@ export class AuthService {
     } else {
       log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
-    log.info("AuthService:: checking Connections for requesteeIds = " + JSON.stringify(validRequesteeIds));
+    log.info("AuthService:: checking Connections for requesteeIds = ", validRequesteeIds);
     // check 7. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     authResponse.authorizedConnections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);
-    log.info("Exiting AuthService :: authorizeMultipleOwnerBased, authResponse = " + JSON.stringify(authResponse));
+    log.info("Exiting AuthService :: authorizeMultipleOwnerBased, authResponse = ", authResponse);
     return authResponse;
   }
 

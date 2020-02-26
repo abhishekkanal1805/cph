@@ -67,7 +67,7 @@ class PolicyDAO {
       };
       dataResourceQuery.push(actionQuery);
     }
-    log.info("PolicyDAO - query=", JSON.stringify(policyQuery));
+    log.info("PolicyDAO - query=", policyQuery);
 
     const policies = await DAOService.search(Policy, policyQuery);
     return _.map(policies, Constants.DEFAULT_SEARCH_ATTRIBUTES);
