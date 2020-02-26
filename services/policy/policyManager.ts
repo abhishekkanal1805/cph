@@ -4,9 +4,11 @@
 
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
+import {CareTeamDataResource} from "../../models/CPH/policy/careTeamDataResource";
 import { PolicyAssignmentDataResource } from "../../models/CPH/policy/policyAssignmentDataResource";
 import { PolicyDataResource } from "../../models/CPH/policy/policyDataResource";
 import { ResearchSubjectDataResource } from "../../models/CPH/researchSubject/researchSubjectDataResource";
+import {CareTeamDAO} from "../dao/careTeamDAO";
 import { PolicyAssignmentDAO } from "../dao/policyAssignmentDAO";
 import { PolicyDAO } from "../dao/policyDAO";
 import { ResearchSubjectDAO } from "../dao/researchSubjectDAO";
@@ -95,25 +97,23 @@ class PolicyManager {
       log.info("PolicyManager - resourceAction not available. policy based access cannot be determined.");
       return resourceAccessResponse;
     }
-    // TODO: move care team in cph-common and apply filtering here
-    // look up care team with this below query
-    // const query = {
-    //   where: {
-    //     study; [] OR  site: [],
-    //     member: requester
-    //     period
-    //     meta.isdeleted = false
-    //     status: active
-    //   }
-    // };
-    // 999
-    // scope=study/000 site/555
-    // careteam[] = careTeamDAO.findAll(query) careteam[000, 111]  careteam[000, 555]
-    //     // scope=study/000
 
-    // if no care team return no access
+    const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, accessRequest.scopedResources);
+
+    // if no care team "return resourceAccessResponse"
     // if at least one care team found, then gather all allowed Site+Study, then apply filter to original scopedResource
-    // if the filtered scopedResource is empty, return from here
+    // calculate allowedScope by looping thru all careTeam and gather a string[] of all unique study and site references.
+    // check if each reference in accessRequest.scopedResources is included in allowedScope
+    // calculate a filtered list of only the included ones and only do policyAssignment check for those
+
+    // example:
+    // accessRequest.scopedResources=[study/000, site/111, site/555]
+    // careteams = careteam[study/000 site/111]  careteam[study/000 site/666]
+    // allowedScope = [study/000 site/111 site/666]
+    // filteredScope = allowedScope - accessRequest.scopedResources = [study/000, site/111]
+
+    // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
+    // if not we can now check for assignemnts and policies only for filteredScope
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
