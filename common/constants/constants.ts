@@ -303,5 +303,6 @@ class Constants {
   public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
   public static readonly DURATION_UNITS = ["s", "min", "h", "d"];
   public static readonly TIMEZONE_FORMAT = "Z";
+  public static readonly CARE_TEAM_PARTICIPANT_PATH = "dataResource.participant[*].member.reference";
 }
 export { Constants };
