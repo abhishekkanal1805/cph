@@ -69,7 +69,7 @@ class CareTeamDAO {
                 period: {
                   // check endDate is less than currentTimeStamp
                   end: {
-                    [Op.gte]: "2020-05-27T11:38:02.893Z"
+                    [Op.gte]: currentTimestamp
                   }
                 }
               }
@@ -85,7 +85,7 @@ class CareTeamDAO {
       where: whereClause
     };
     const careTeams = await DAOService.search(CareTeam, careTeamQuery);
-    log.info("Exiting CareTeamDAO :: findAll()" + currentTimestamp);
+    log.info("Exiting CareTeamDAO :: findAll()");
     return _.map(careTeams, Constants.DEFAULT_SEARCH_ATTRIBUTES);
   }
 }
