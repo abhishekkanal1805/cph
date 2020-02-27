@@ -104,8 +104,6 @@ export class JsonParser {
     excludeElements = excludeElements || [];
     const isElementPartOfExcludList = (elementPath) => {
       elementPath = elementPath.join(Constants.DOT_VALUE);
-      // console.log("excludeElements", JSON.stringify(excludeElements));
-      // console.log("elementPath", elementPath);
       return excludeElements.indexOf(elementPath) == -1 ? false : true;
     };
     const getReferencesMapping = (payload, referenceObj, currPath, prevPath) => {

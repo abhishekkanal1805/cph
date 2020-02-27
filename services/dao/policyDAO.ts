@@ -40,6 +40,9 @@ class PolicyDAO {
         status: Constants.POLICY_STATUS_ACTIVE,
         dataResource: {
           [Op.and]: []
+        },
+        meta: {
+          isDeleted: false
         }
       }
     };
@@ -64,7 +67,7 @@ class PolicyDAO {
       };
       dataResourceQuery.push(actionQuery);
     }
-    log.info("PolicyDAO - query=", JSON.stringify(policyQuery));
+    log.info("PolicyDAO - query=", policyQuery);
 
     const policies = await DAOService.search(Policy, policyQuery);
     return _.map(policies, Constants.DEFAULT_SEARCH_ATTRIBUTES);

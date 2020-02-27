@@ -55,14 +55,16 @@ export class TimingUtility {
   public static getOffsetString(date) {
     log.info("Entering TimingUtility.getOffsetString()");
     let offsetString;
-    const dateString = date.toString();
-    if (dateString.includes(Constants.ZULU_OFFSET)) {
-      const indexOf = dateString.indexOf(Constants.ZULU_OFFSET);
-      offsetString = dateString.substring(indexOf);
-    } else if (dateString.includes(Constants.UTC_OFFSET)) {
-      const indexOf = dateString.indexOf(Constants.UTC_OFFSET);
-      offsetString = dateString.substring(indexOf);
-    } else {
+    const offset = moment.parseZone(date).utcOffset();
+    if (moment(date, Constants.DATE_TIME, true).isValid()) {
+      if (offset != 0) {
+        offsetString = moment(date)
+          .utcOffset(offset)
+          .format(Constants.TIMEZONE_FORMAT);
+      } else {
+        offsetString = Constants.TIMEZONE_FORMAT;
+      }
+    } else if (moment(date, Constants.DATE_TIME_ONLY, true).isValid()) {
       offsetString = " ";
     }
     log.info("Exiting TimingUtility.getOffsetString()");
@@ -77,23 +79,19 @@ export class TimingUtility {
    */
   public static formatDate(inputDate, offsetString) {
     log.info("Entering TimingUtility.formatDate()");
-    let dateString = inputDate.toString();
+    const offset = moment.parseZone(inputDate).utcOffset();
     offsetString = offsetString.trim();
-    if (!offsetString) {
-      // if no offset specified in boundsStartDate then format inputDate with no offset
-      if (dateString.includes(Constants.ZULU_OFFSET)) {
-        dateString = dateString.split(Constants.ZULU_OFFSET)[0];
-        dateString = dateString.concat(offsetString);
-      } else if (dateString.includes(Constants.UTC_OFFSET)) {
-        dateString = dateString.split(Constants.UTC_OFFSET)[0];
-        dateString = dateString.concat(offsetString);
-      }
-    } else if (moment(inputDate, Constants.DATE_TIME_ONLY, true).isValid()) {
-      // if no offset specified in inputDate then format inputDate with offset specified in boundsStartDate
-      dateString = dateString.concat(offsetString);
+    // if date contains only date then don't need to format the date
+    if (!moment(inputDate, Constants.DATE, true).isValid()) {
+      // format date with no timezone and then append the offsetString at the end of the date
+      inputDate = moment
+        .utc(inputDate)
+        .utcOffset(offset)
+        .format(Constants.DATE_TIME_ONLY);
+      inputDate = inputDate.concat(offsetString);
     }
     log.info("Exiting TimingUtility.formatDate()");
-    return dateString;
+    return inputDate;
   }
 
   /**

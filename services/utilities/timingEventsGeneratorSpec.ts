@@ -212,4 +212,23 @@ describe("TimingEventsGenerator", () => {
       done();
     });
   });
+  describe("#generateDateEventsFromTiming()", () => {
+    it("generate events based on period and tz", async (done) => {
+      const timing = {
+        repeat: {
+          frequency: 1,
+          period: 1,
+          periodUnit: "d",
+          boundsPeriod: {
+            start: "2020-02-26T09:00:00.000+03:00",
+            end: "2020-02-29T08:00:00.000+03:00"
+          }
+        }
+      };
+      const events = TimingEventsGenerator.generateDateEventsFromTiming(timing, "2020-02-26T10:00:00.000Z", null);
+      log.info(JSON.stringify(events));
+      expect(events.length).toBeGreaterThan(1);
+      done();
+    });
+  });
 });

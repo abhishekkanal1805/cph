@@ -140,7 +140,7 @@ class Constants {
   public static readonly IS_DELETED_DEFAULT_VALUE = "false";
   public static readonly IS_TRUE = "true";
 
-  public static readonly DATE_TIME = "YYYY-MM-DDTHH:mm:ss.SSSSZ";
+  public static readonly DATE_TIME = "YYYY-MM-DDTHH:mm:ss.SSSZ";
   public static readonly DATE = "YYYY-MM-DD";
   public static readonly YEAR_MONTH = "YYYY-MM";
   public static readonly YEAR = "YYYY";
@@ -302,7 +302,6 @@ class Constants {
   public static readonly YEARS = "years";
   public static readonly DATE_TIME_ONLY = "YYYY-MM-DDTHH:mm:ss.SSS";
   public static readonly DURATION_UNITS = ["s", "min", "h", "d"];
-  public static readonly ZULU_OFFSET = "Z";
-  public static readonly UTC_OFFSET = "+";
+  public static readonly TIMEZONE_FORMAT = "Z";
 }
 export { Constants };
