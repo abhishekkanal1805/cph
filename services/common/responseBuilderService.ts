@@ -245,9 +245,19 @@ class ResponseBuilderService {
       linkObj.relation = Constants.SELF;
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
+      let revincludeValue = "";
+      if (queryParams._revinclude) {
+        revincludeValue = queryParams._revinclude[0].split(":")[0];
+      }
+      let resourceArray = entryArray;
+      let revincludeArray = [];
+      if (revincludeValue) {
+        resourceArray = objectArray.filter((eachResource: any) => eachResource.resourceType != revincludeValue);
+        revincludeArray = objectArray.filter((eachResource: any) => eachResource.resourceType == revincludeValue);
+      }
       links.push(linkObj);
-      if (objectArray.length == queryParams.limit + 1) {
-        entryArray = entryArray.slice(0, entryArray.length - 1);
+      if (resourceArray.length == queryParams.limit + 1) {
+        entryArray = [...resourceArray.slice(0, resourceArray.length - 1), ...revincludeArray];
         const nextLinkObj: Link = new Link();
         nextLinkObj.relation = Constants.NEXT;
         queryParams.limit = queryParams.limit;
