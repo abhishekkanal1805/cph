@@ -34,7 +34,7 @@ class CareTeamDAO {
     const whereClause = {};
     whereClause[Op.and] = [{ status: { [Op.eq]: Constants.ACTIVE } }, { meta: { isDeleted: { [Op.eq]: false } } }, participantCondition];
     // create query to search study, site references and  period.end
-    const searchQuery = {
+    const dataResourceQuery = {
       dataResource: {
         [Op.and]: [
           {
@@ -79,7 +79,7 @@ class CareTeamDAO {
       }
     };
     // add searchQuery to the whereClauseQuery
-    whereClause[Op.and].push(searchQuery);
+    whereClause[Op.and].push(dataResourceQuery);
     // prepare query for CareTeam
     const careTeamQuery: IFindOptions<CareTeam> = {
       where: whereClause
