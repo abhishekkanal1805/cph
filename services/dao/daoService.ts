@@ -119,10 +119,10 @@ export class DAOService {
         );
         badRequest.clientRequestId = err.fields[Constants.SEQUELIZE_CLIENTREQUESTID_ERROR];
         records.errorRecords.push(badRequest);
-        const goodRecords = records.savedRecords.filter(
+        const validRecords = records.savedRecords.filter(
           (record) => record.meta.clientRequestId !== err.fields[Constants.SEQUELIZE_CLIENTREQUESTID_ERROR].toString()
         );
-        records.savedRecords = [...goodRecords];
+        records.savedRecords = [...validRecords];
         if (records.savedRecords.length > 0) {
           await this.bulkSave(records, model);
         }
