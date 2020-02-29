@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, InternalServerErrorResult } from "../../common/objects/custom-errors";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { JsonParser } from "../utilities/jsonParser";
