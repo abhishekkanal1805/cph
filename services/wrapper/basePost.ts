@@ -91,7 +91,8 @@ export class BasePost {
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
+      saveResponse.savedRecords = savedResources.savedRecords;
+      saveResponse.errorRecords = [...saveResponse.errorRecords, ...savedResources.errorRecords];
     }
     log.info("Exiting BasePost :: saveResource()");
     return saveResponse;
@@ -115,13 +116,18 @@ export class BasePost {
       record = DataTransform.convertToModel(record, model, modelDataResource).dataValues;
       requestPayload[index] = record;
     });
-    await DAOService.bulkSave(requestPayload, model);
+    let records = {
+      savedRecords: requestPayload,
+      errorRecords: []
+    };
+    records = await DAOService.bulkSave(records, model);
     log.info("Bulk Save successfully :: saveRecord()");
-    const savedRecords = requestPayload.map((record) => {
+    const savedRecords = records.savedRecords.map((record) => {
       return record.dataResource;
     });
     log.info("Exiting BasePost :: prepareModelAndSave()");
-    return savedRecords;
+    records.savedRecords = savedRecords;
+    return records;
   }
 
   /**
@@ -179,7 +185,8 @@ export class BasePost {
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
+      saveResponse.savedRecords = savedResources.savedRecords;
+      saveResponse.errorRecords = [...saveResponse.errorRecords, ...savedResources.errorRecords];
     }
     log.info("Exiting BasePost :: saveResourcePolicyManagerBased()");
     return saveResponse;
@@ -231,7 +238,8 @@ export class BasePost {
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
+      saveResponse.savedRecords = savedResources.savedRecords;
+      saveResponse.errorRecords = [...saveResponse.errorRecords, ...savedResources.errorRecords];
     }
     log.info("Exiting BasePost :: saveResourceWithoutPolicyAuthorization()");
     return saveResponse;
@@ -299,7 +307,8 @@ export class BasePost {
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
+      saveResponse.savedRecords = savedResources.savedRecords;
+      saveResponse.errorRecords = [...saveResponse.errorRecords, ...savedResources.errorRecords];
     }
     log.info("Exiting BasePost :: saveResourceScopeBased()");
     return saveResponse;
@@ -364,7 +373,8 @@ export class BasePost {
     if (validatedResources.validResources.length > 0) {
       log.info("Calling prepareModelAndSave method ");
       const savedResources = await BasePost.prepareModelAndSave(validatedResources.validResources, payloadModel, payloadDataResourceModel, resourceMetaData);
-      saveResponse.savedRecords = savedResources;
+      saveResponse.savedRecords = savedResources.savedRecords;
+      saveResponse.errorRecords = [...saveResponse.errorRecords, ...savedResources.errorRecords];
     }
     log.info("Exiting BasePost :: saveResourceScopeBased()");
     return saveResponse;

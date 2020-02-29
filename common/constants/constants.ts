@@ -17,6 +17,8 @@ class Constants {
   public static readonly RESPONSE_TYPE_MULTI_STATUS = "multistatus";
   public static readonly RESPONSE_TYPE_NO_CONTENT = "nocontent";
   public static readonly SEQUELIZE_DATABASE_ERROR = "SequelizeDatabaseError";
+  public static readonly SEQUELIZE_UNIQUECONSTRAINT_ERROR = "SequelizeUniqueConstraintError";
+  public static readonly SEQUELIZE_CLIENTREQUESTID_ERROR = "(meta ->> 'clientRequestId'::text)";
 
   public static readonly FETCH_LIMIT = 2000;
   public static readonly POST_LIMIT = 500;
