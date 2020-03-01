@@ -4,89 +4,94 @@
 
 import * as log from "lambda-log";
 import * as _ from "lodash";
+import * as moment from "moment";
 import { Op } from "sequelize";
 import { IFindOptions } from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
+import * as config from "../../common/objects/config";
 import { CareTeam } from "../../models/CPH/policy/careTeam";
 import { CareTeamDataResource } from "../../models/CPH/policy/careTeamDataResource";
 import { Utility } from "../common/Utility";
 import { QueryGenerator } from "../utilities/queryGenerator";
-import { ReferenceUtility } from "../utilities/referenceUtility";
 import { DAOService } from "./daoService";
 
 class CareTeamDAO {
-  public static async findAll(participantReference: string, references: string[]): Promise<CareTeamDataResource[]> {
+  /**
+   * The function determines whether the requester has access to perform the specified action by the invoked resource handler.
+   * CareTeams will be looked up for the requester with the scope of provided resources.
+   * We will then search in the all CareTeams with participant member and site references.
+   * @param {string} participantReference
+   * @param {string[]} scopedReferences
+   */
+  public static async findAll(participantReference: string, scopedReferences: string[]): Promise<CareTeamDataResource[]> {
     log.info("Entering CareTeamDAO :: findAll()");
-    // filter studyReferences
-    const studyReferences: string[] = ReferenceUtility.getUniqueReferences(references, Constants.STUDY_REFERENCE);
-    // filter siteReferences
-    const siteReferences: string[] = ReferenceUtility.getUniqueReferences(references, Constants.STUDY_SITE_REFERENCE);
     const currentTimestamp: string = Utility.getTimeStamp();
-    const column = {
-      columnValueType: Constants.TYPE_ARRAY,
-      columnHierarchy: Constants.CARE_TEAM_PARTICIPANT_PATH,
-      operation: Constants.PREFIX_EQUAL
-    };
-    const participantCondition = {};
-    // call createGenericSearchConditions to create query for participantReference as participant is array in CareTeam
-    await QueryGenerator.createGenericSearchConditions(column, participantReference, participantCondition);
     // prepare whereClause
     const whereClause = {};
-    whereClause[Op.and] = [{ status: { [Op.eq]: Constants.ACTIVE } }, { meta: { isDeleted: { [Op.eq]: false } } }, participantCondition];
-    // create query to search study, site references and  period.end
+    whereClause[Op.and] = [];
+    // prepare queryParams
+    const queryParams = {
+      status: [Constants.ACTIVE],
+      isDeleted: [Constants.IS_DELETED_DEFAULT_VALUE],
+      participant: [participantReference],
+      site: [scopedReferences.join(Constants.COMMA_VALUE)],
+      participantStatus: [Constants.ACTIVE]
+    };
+    // perform search based on careTeamSearchAttributes and queryParam
+    const paramQuery: any = QueryGenerator.getFilterCondition(queryParams, config.settings.careTeamSearchAttributes);
+    // create query to search period.end
     const dataResourceQuery = {
       dataResource: {
-        [Op.and]: [
+        [Op.or]: [
           {
-            [Op.or]: [
-              {
-                study: {
-                  reference: {
-                    [Op.in]: studyReferences
-                  }
-                }
-              },
-              {
-                site: {
-                  reference: {
-                    [Op.in]: siteReferences
-                  }
-                }
+            period: {
+              // check if end date is blank
+              end: {
+                [Op.eq]: null
               }
-            ]
+            }
           },
           {
-            [Op.or]: [
-              {
-                period: {
-                  // check if end date is blank
-                  end: {
-                    [Op.eq]: null
-                  }
-                }
-              },
-              {
-                period: {
-                  // check endDate is less than currentTimeStamp
-                  end: {
-                    [Op.gte]: currentTimestamp
-                  }
-                }
+            period: {
+              // check endDate is less than currentTimeStamp
+              end: {
+                [Op.gte]: currentTimestamp
               }
-            ]
+            }
           }
         ]
       }
     };
-    // add searchQuery to the whereClauseQuery
+    // add searchQuery and dateResourceQuery to the whereClauseQuery
+    whereClause[Op.and].push(paramQuery);
     whereClause[Op.and].push(dataResourceQuery);
     // prepare query for CareTeam
     const careTeamQuery: IFindOptions<CareTeam> = {
       where: whereClause
     };
-    const careTeams = await DAOService.search(CareTeam, careTeamQuery);
+    let careTeams: any[] = await DAOService.search(CareTeam, careTeamQuery);
+    careTeams = _.map(careTeams, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+    const filteredCareTeams = [];
+    if (careTeams && careTeams.length > 0) {
+      log.info("CareTeams found: " + careTeams.length);
+      careTeams.forEach((careTeam) => {
+        for (const eachParticipant of careTeam.participant) {
+          if (eachParticipant.period) {
+            // if participant.period.end is undefined or it is greater than currentTimeStamp then only keep the careTeam else discard
+            if  (eachParticipant.period.end == undefined || moment(eachParticipant.period.end).isSameOrAfter(moment(currentTimestamp))) {
+              filteredCareTeams.push(careTeam);
+              break;
+            }
+          } else {
+            filteredCareTeams.push(careTeam);
+            break;
+          }
+        }
+      });
+      log.info("Filtered CareTeams: " + filteredCareTeams.length);
+    }
     log.info("Exiting CareTeamDAO :: findAll()");
-    return _.map(careTeams, Constants.DEFAULT_SEARCH_ATTRIBUTES);
+    return filteredCareTeams;
   }
 }
 

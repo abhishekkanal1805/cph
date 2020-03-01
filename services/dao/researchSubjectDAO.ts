@@ -26,7 +26,7 @@ class ResearchSubjectDAO {
     }
     log.info("ResearchSubjectDAO - unique and subject References: ", uniqueSubjectReferences);
 
-    const researchSubjectQuery: IFindOptions<ResearchSubject> = {
+    const  researchSubjectQuery: IFindOptions<ResearchSubject> = {
       where: {
         id: ReferenceUtility.convertToResourceIds(uniqueSubjectReferences, Constants.RESEARCHSUBJECT_REFERENCE),
         meta: {
