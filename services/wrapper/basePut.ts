@@ -237,14 +237,18 @@ export class BasePut {
         deviceId: existingRecord.meta.deviceId,
         source: existingRecord.meta.source
       };
-      const resultPromise = this.updateModelAndSave(record, model, modelDataResource, updatedResourceMetaData);
+      const resultPromise = this.updateModelAndSave(record, model, modelDataResource, updatedResourceMetaData)
+        .then((updatedRecord) => {
+          result.savedRecords.push(updatedRecord);
+        })
+        .catch((error) => {
+          result.errorRecords.push(error);
+        });
       allPromise.push(resultPromise);
     }
     // promise all to run in parallel.
     log.info("Firing bulk update all promises :: bulkUpdate()");
-    await Promise.all(allPromise).then((updatedRecord) => {
-      result.savedRecords = updatedRecord;
-    });
+    await Promise.all(allPromise);
     log.info("Exiting BasePut :: bulkUpdate()");
     return result;
   }
