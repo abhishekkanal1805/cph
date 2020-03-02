@@ -4,7 +4,6 @@
 
 import * as log from "lambda-log";
 import * as _ from "lodash";
-import * as moment from "moment";
 import { Op } from "sequelize";
 import { IFindOptions } from "sequelize-typescript";
 import { Constants } from "../../common/constants/constants";
@@ -34,8 +33,7 @@ class CareTeamDAO {
       status: [Constants.ACTIVE],
       isDeleted: [Constants.IS_DELETED_DEFAULT_VALUE],
       participant: [participantReference],
-      site: [scopedReferences.join(Constants.COMMA_VALUE)],
-      participantStatus: [Constants.ACTIVE]
+      site: [scopedReferences.join(Constants.COMMA_VALUE)]
     };
     // perform search based on careTeamSearchAttributes and queryParam
     const paramQuery: any = QueryGenerator.getFilterCondition(queryParams, config.settings.careTeamSearchAttributes);
@@ -76,13 +74,11 @@ class CareTeamDAO {
       log.info("CareTeams found: " + careTeams.length);
       careTeams.forEach((careTeam) => {
         for (const eachParticipant of careTeam.participant) {
-          if (eachParticipant.period) {
-            // if participant.period.end is undefined or it is greater than currentTimeStamp then only keep the careTeam else discard
-            if  (eachParticipant.period.end == undefined || moment(eachParticipant.period.end).isSameOrAfter(moment(currentTimestamp))) {
-              filteredCareTeams.push(careTeam);
-              break;
+          if (eachParticipant.member.reference == participantReference && eachParticipant.status == Constants.ACTIVE) {
+            // if participant status is active and participant.period.end is undefined or it is greater than currentTimeStamp then only keep the careTeam else discard
+            if (eachParticipant.period && eachParticipant.period.end && !Utility.isExpired(eachParticipant.period.end)) {
+              continue;
             }
-          } else {
             filteredCareTeams.push(careTeam);
             break;
           }

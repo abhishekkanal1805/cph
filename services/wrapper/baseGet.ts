@@ -140,13 +140,13 @@ export class BaseGet {
    * @memberof BaseSearch
    */
   public static async searchResource(
-      model: any,
-      queryParams: any,
-      resourceOwnerElement: string,
-      requestorProfileId: string,
-      attributesMapping: any,
-      attributesToRetrieve?: string[],
-      searchOptions?: SearchOptions
+    model: any,
+    queryParams: any,
+    resourceOwnerElement: string,
+    requestorProfileId: string,
+    attributesMapping: any,
+    attributesToRetrieve?: string[],
+    searchOptions?: SearchOptions
   ) {
     let connections = [];
     let subjectToProfileMap = {};
@@ -194,7 +194,7 @@ export class BaseGet {
         isSharingRuleCheckRequired = false;
       }
       let requestedProfiles =
-          queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
+        queryParams[resourceOwnerElement].length == 1 ? queryParams[resourceOwnerElement][0].split(Constants.COMMA_VALUE) : queryParams[resourceOwnerElement];
       requestedProfiles = _.map(requestedProfiles, (eachProfile: any) => {
         return eachProfile.indexOf(Constants.FORWARD_SLASH) == -1 ? [Constants.USER_PROFILE, eachProfile].join(Constants.FORWARD_SLASH) : eachProfile;
       });
@@ -202,11 +202,11 @@ export class BaseGet {
       // requestedProfiles now contains ResearchSubject references and UserProfile references
       // make sure requestedProfiles contains the subjects not profiles
       const authResponse = await AuthService.authorizeMultipleConnectionsBased(
-          requestorProfileId,
-          requestedProfiles,
-          serviceName,
-          Constants.ACCESS_READ,
-          searchOptions ? searchOptions.resourceActions : null
+        requestorProfileId,
+        requestedProfiles,
+        serviceName,
+        Constants.ACCESS_READ,
+        searchOptions ? searchOptions.resourceActions : null
       );
       connections = authResponse.authorizedConnections;
       subjectToProfileMap = authResponse.subjectToProfileMap || {};
@@ -222,18 +222,18 @@ export class BaseGet {
       // if fullAuthGranted=false, authorizedRequestees empty and connections empty meaning you have no access at all, return empty
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections)) {
         log.info(
-            "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
+          "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
         );
         return [];
       }
     } else if (
-        searchOptions &&
-        searchOptions.resourceActions &&
-        searchOptions.queryParamToResourceScopeMap &&
-        searchOptions.queryParamToResourceScopeMap.size > 0
+      searchOptions &&
+      searchOptions.resourceActions &&
+      searchOptions.queryParamToResourceScopeMap &&
+      searchOptions.queryParamToResourceScopeMap.size > 0
     ) {
       log.info(
-          "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
+        "searchOptions.resourceActions and searchOptions.queryParamToResourceScopeMap are provided. Attempting to perform resourceScope based Authorization."
       );
       isSharingRuleCheckRequired = false;
       let resourceScope: string[] = [];
@@ -275,13 +275,13 @@ export class BaseGet {
       connections.forEach((eachConnection: any) => {
         let resourceOwnerElementValue = _.get(eachConnection, Constants.FROM_REFERENCE_KEY);
         resourceOwnerElementValue = subjectToProfileMap[resourceOwnerElementValue]
-            ? subjectToProfileMap[resourceOwnerElementValue]
-            : [resourceOwnerElementValue];
+          ? subjectToProfileMap[resourceOwnerElementValue]
+          : [resourceOwnerElementValue];
         const modifiedQuery = Object.assign({}, queryParams, { [resourceOwnerElement]: [resourceOwnerElementValue.join(Constants.COMMA_VALUE)] });
         queryObject = QueryGenerator.getFilterCondition(modifiedQuery, attributesMapping);
         const sharingRulesClause = isSharingRuleCheckRequired
-            ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)
-            : queryObject;
+          ? SharingRulesHelper.addSharingRuleClause(queryObject, eachConnection, model, Constants.ACCESS_READ)
+          : queryObject;
         if (isSharingRuleCheckRequired && !_.isEmpty(sharingRulesClause[Op.and])) {
           log.info("Sharing rules not present for requested user");
           whereClause[Op.or].push(sharingRulesClause);
@@ -306,9 +306,9 @@ export class BaseGet {
     };
     let result: any = await DAOService.search(model, searchQuery);
     result =
-        attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve.indexOf(Constants.DEFAULT_SEARCH_ATTRIBUTES) == -1
-            ? result
-            : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
+      attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve.indexOf(Constants.DEFAULT_SEARCH_ATTRIBUTES) == -1
+        ? result
+        : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
     // Add offset and limit to generate next url
     queryParams.limit = fetchLimit;
     queryParams.offset = offset;
@@ -344,14 +344,14 @@ export class BaseGet {
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     log.info("Calling authorizePolicyManagerBased() :: getResourcePolicyManagerBased()");
     const authResponse = await AuthService.authorizePolicyManagerBased(
-        requestorProfileId,
-        serviceName,
-        Constants.ACCESS_READ,
-        getOptions.resourceScopeMap,
-        getOptions.subjectReferences,
-        getOptions.resourceActions
+      requestorProfileId,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceScopeMap,
+      getOptions.subjectReferences,
+      getOptions.resourceActions
     );
-    log.info("AuthResponse: " , authResponse);
+    log.info("AuthResponse: ", authResponse);
     if (authResponse && !_.isEmpty(authResponse.authorizedConnections)) {
       if (authResponse.authorizedConnections.length > 0) {
         const id = record.id;
@@ -408,11 +408,11 @@ export class BaseGet {
       resourceScope = resourceScope.concat(scope);
     });
     const authResponse = await AuthService.authorizePolicyBased(
-        requestorProfileId,
-        getOptions.resourceActions,
-        resourceScope,
-        serviceName,
-        Constants.ACCESS_READ
+      requestorProfileId,
+      getOptions.resourceActions,
+      resourceScope,
+      serviceName,
+      Constants.ACCESS_READ
     );
     if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
       log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to get this resource.");
@@ -444,15 +444,15 @@ export class BaseGet {
     log.info("In BaseGet :: getResourceScopeBased()");
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const authResponse = await AuthService.authorizeMultipleOwnerBased(
-        requestorProfileId,
-        getOptions.subjectReferences,
-        serviceName,
-        Constants.ACCESS_READ,
-        getOptions.resourceActions
+      requestorProfileId,
+      getOptions.subjectReferences,
+      serviceName,
+      Constants.ACCESS_READ,
+      getOptions.resourceActions
     );
     if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
       log.info(
-          "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
+        "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to get this resource."
       );
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
