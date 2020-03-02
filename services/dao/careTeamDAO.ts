@@ -76,7 +76,7 @@ class CareTeamDAO {
         for (const eachParticipant of careTeam.participant) {
           if (eachParticipant.member.reference == participantReference && eachParticipant.status == Constants.ACTIVE) {
             // if participant status is active and participant.period.end is undefined or it is greater than currentTimeStamp then only keep the careTeam else discard
-            if (eachParticipant.period && eachParticipant.period.end && !Utility.isExpired(eachParticipant.period.end)) {
+            if (eachParticipant.period && eachParticipant.period.end && Utility.isExpired(eachParticipant.period.end)) {
               continue;
             }
             filteredCareTeams.push(careTeam);
