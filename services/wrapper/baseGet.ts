@@ -351,7 +351,7 @@ export class BaseGet {
         getOptions.subjectReferences,
         getOptions.resourceActions
     );
-    log.info("AuthResponse: " + JSON.stringify(authResponse));
+    log.info("AuthResponse: " , authResponse);
     if (authResponse && !_.isEmpty(authResponse.authorizedConnections)) {
       if (authResponse.authorizedConnections.length > 0) {
         const id = record.id;
