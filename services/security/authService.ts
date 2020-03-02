@@ -870,7 +870,14 @@ export class AuthService {
       return authResponse;
     }
 
-    // check 3. if requester and requestee are the same users then allow access
+    // check 3. If resourceType publicly accessible, then no connection check required
+    const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
+    if (isPublicResource) {
+      log.info("Exiting AuthService, Resource type is public :: authorizeConnectionBasedSharingRules()");
+      return authResponse;
+    }
+
+    // check 4. if requester and requestee are the same users then allow access
     if (requesteeIds && requesteeIds.length == 1 && requesteeIds[0].split(Constants.FORWARD_SLASH)[1] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleOwnerBased");
       return authResponse;
@@ -882,7 +889,7 @@ export class AuthService {
     const validRequesteeIds = Object.keys(subjectToProfileMap);
     authResponse.subjectToProfileMap = subjectToProfileMap;
 
-    // check 4. if requester accessing his own ResearchSubject then allow access
+    // check 5. if requester accessing his own ResearchSubject then allow access
     if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleOwnerBased");
       return authResponse;
@@ -892,7 +899,7 @@ export class AuthService {
     // if we are here means full auth was not granted. Determining the partial Auth
     authResponse.fullAuthGranted = false;
 
-    // check 5. check if any references belong to the owner, no need to check policies for them
+    // check 6. check if any references belong to the owner, no need to check policies for them
     const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
     log.info("AuthService:: requesterOwnedReferences = ", requesterOwnedReferences);
     if (requesterOwnedReferences.length >= 1) {
@@ -900,7 +907,7 @@ export class AuthService {
       return authResponse;
     }
 
-    // check 6. study/site based access control can only be determined if the owner is ResearchSubject
+    // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
@@ -929,7 +936,7 @@ export class AuthService {
       log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
     log.info("AuthService:: checking Connections for requesteeIds = ", validRequesteeIds);
-    // check 7. validate connection between requester and requestee
+    // check 8. validate connection between requester and requestee
     const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
     const connectionStatus = [Constants.ACTIVE];
     authResponse.authorizedConnections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);

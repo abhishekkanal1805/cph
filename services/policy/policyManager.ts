@@ -101,8 +101,8 @@ class PolicyManager {
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
-        accessRequest.requesterReference,
-        accessRequest.scopedResources
+      accessRequest.requesterReference,
+      accessRequest.scopedResources
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
@@ -124,14 +124,14 @@ class PolicyManager {
     log.info("grantedResources: " + grantedResources.length);
     if (grantedResources.length > 0) {
       const siteReferences: string[] = ReferenceUtility.getUniqueReferences(grantedResources, Constants.STUDY_SITE_REFERENCE);
-      log.info("Site references: " , siteReferences);
+      log.info("Site references: ", siteReferences);
       if (siteReferences.length > 0) {
         // check if care team is active and not expired, member is active and not expired for given member and site reference
         // siteReferences= ["Site/111", "Site/222"]
         const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, siteReferences);
         if (!careTeams || careTeams.length < 1) {
           // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
-          log.info("CareTeams are not present for sites = " , siteReferences);
+          log.info("CareTeams are not present for sites = ", siteReferences);
           return resourceAccessResponse;
         }
         // careTeam[] to siteArray[]
