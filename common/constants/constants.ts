@@ -120,6 +120,7 @@ class Constants {
   public static readonly SELF = "self";
   public static readonly NEXT = "next";
   public static readonly MATCH = "match";
+  public static readonly INCLUDE = "include";
   public static readonly EXTENSION = "extension";
   public static readonly CONTENT = "content";
   public static readonly LANGUAGE = "lang";

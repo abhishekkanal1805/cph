@@ -234,17 +234,6 @@ class ResponseBuilderService {
     let responseObject: any;
     if (fullUrl) {
       log.debug("fullUrl value: " + fullUrl);
-      for (const eachObject of objectArray) {
-        const entry: any = {};
-        entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
-        entry.search = { mode: Constants.MATCH };
-        entry.resource = eachObject;
-        entryArray.push(Object.assign(new Entry(), entry));
-      }
-      const linkObj: Link = new Link();
-      linkObj.relation = Constants.SELF;
-      linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
-      log.debug("Link Url: " + fullUrl);
       let revincludeValue = "";
       if (queryParams._revinclude) {
         revincludeValue = queryParams._revinclude[0].split(":")[0];
@@ -255,6 +244,24 @@ class ResponseBuilderService {
         resourceArray = objectArray.filter((eachResource: any) => eachResource.resourceType != revincludeValue);
         revincludeArray = objectArray.filter((eachResource: any) => eachResource.resourceType == revincludeValue);
       }
+      for (const eachObject of resourceArray) {
+        const entry: any = {};
+        entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
+        entry.search = { mode: Constants.MATCH };
+        entry.resource = eachObject;
+        entryArray.push(Object.assign(new Entry(), entry));
+      }
+      for (const eachObject of revincludeArray) {
+        const entry: any = {};
+        entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
+        entry.search = { mode: Constants.INCLUDE };
+        entry.resource = eachObject;
+        entryArray.push(Object.assign(new Entry(), entry));
+      }
+      const linkObj: Link = new Link();
+      linkObj.relation = Constants.SELF;
+      linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
+      log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
       if (resourceArray.length == queryParams.limit + 1) {
         entryArray = [...resourceArray.slice(0, resourceArray.length - 1), ...revincludeArray];
