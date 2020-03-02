@@ -107,6 +107,56 @@ const settings = {
       },
       { map: "subject", to: "subject", type: "string" }
     ]
+  },
+  careTeamSearchAttributes: {
+    status: {
+      to: [
+        {
+          columnHierarchy: "status",
+          columnValueType: "string"
+        }
+      ],
+      dataType: "string",
+      isMultiple: true
+    },
+    participant: {
+      to: [
+        {
+          columnHierarchy: "dataResource.participant[*].member.reference",
+          columnValueType: "array"
+        }
+      ],
+      dataType: "string"
+    },
+    site: {
+      to: [
+        {
+          columnHierarchy: "dataResource.site.reference",
+          columnValueType: "string"
+        }
+      ],
+      dataType: "string",
+      isMultiple: true
+    },
+    participantStatus: {
+      to: [
+        {
+          columnHierarchy: "dataResource.participant[*].status",
+          columnValueType: "array"
+        }
+      ],
+      dataType: "string",
+      isMultiple: true
+    },
+    isDeleted: {
+      to: [
+        {
+          columnHierarchy: "meta.isDeleted",
+          columnValueType: "boolean"
+        }
+      ],
+      dataType: "boolean"
+    }
   }
 };
 

@@ -107,11 +107,29 @@ export class DAOService {
   public static async bulkSave(records, model: any): Promise<any> {
     log.info("Entering DAOService :: bulkSave()");
     try {
-      await model.bulkCreate(records);
+      await model.bulkCreate(records.savedRecords);
       log.debug("Resource saved ");
+      return records;
     } catch (err) {
       log.error("Error while saving Record: " + err.stack);
-      throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      if (err.name === Constants.SEQUELIZE_UNIQUECONSTRAINT_ERROR && err.fields.hasOwnProperty(Constants.SEQUELIZE_CLIENTREQUESTID_ERROR)) {
+        const badRequest = new BadRequestResult(
+          errorCodeMap.ResourceExists.value,
+          errorCodeMap.ResourceExists.description + Constants.CLIENT_REQUEST_ID_ATTRIBUTE
+        );
+        badRequest.clientRequestId = err.fields[Constants.SEQUELIZE_CLIENTREQUESTID_ERROR];
+        records.errorRecords.push(badRequest);
+        const validRecords = records.savedRecords.filter(
+          (record) => record.meta.clientRequestId !== err.fields[Constants.SEQUELIZE_CLIENTREQUESTID_ERROR].toString()
+        );
+        records.savedRecords = [...validRecords];
+        if (records.savedRecords.length > 0) {
+          await this.bulkSave(records, model);
+        }
+        return records;
+      } else {
+        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+      }
     }
   }
 
@@ -131,6 +149,14 @@ export class DAOService {
       });
     } catch (err) {
       log.error("Error in updating record: " + err);
+      if (err.name === Constants.SEQUELIZE_UNIQUECONSTRAINT_ERROR && err.fields.hasOwnProperty(Constants.SEQUELIZE_CLIENTREQUESTID_ERROR)) {
+        const badRequest = new BadRequestResult(
+          errorCodeMap.ResourceExists.value,
+          errorCodeMap.ResourceExists.description + " " + Constants.CLIENT_REQUEST_ID_ATTRIBUTE
+        );
+        badRequest.clientRequestId = err.fields[Constants.SEQUELIZE_CLIENTREQUESTID_ERROR];
+        throw badRequest;
+      }
       throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
     }
   }

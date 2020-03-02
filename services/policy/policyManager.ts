@@ -4,9 +4,11 @@
 
 import * as log from "lambda-log";
 import { Constants } from "../../common/constants/constants";
+import { CareTeamDataResource } from "../../models/CPH/policy/careTeamDataResource";
 import { PolicyAssignmentDataResource } from "../../models/CPH/policy/policyAssignmentDataResource";
 import { PolicyDataResource } from "../../models/CPH/policy/policyDataResource";
 import { ResearchSubjectDataResource } from "../../models/CPH/researchSubject/researchSubjectDataResource";
+import { CareTeamDAO } from "../dao/careTeamDAO";
 import { PolicyAssignmentDAO } from "../dao/policyAssignmentDAO";
 import { PolicyDAO } from "../dao/policyDAO";
 import { ResearchSubjectDAO } from "../dao/researchSubjectDAO";
@@ -81,6 +83,7 @@ class PolicyManager {
    * @param {ResourceAccessRequest} accessRequest
    */
   public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest): Promise<ResourceAccessResponse> {
+    log.info("Inside PolicyManager :: requestResourceScopedAccess()");
     const resourceAccessResponse: ResourceAccessResponse = {
       grantedPolicies: [],
       grantedResources: [],
@@ -95,30 +98,11 @@ class PolicyManager {
       log.info("PolicyManager - resourceAction not available. policy based access cannot be determined.");
       return resourceAccessResponse;
     }
-    // TODO: move care team in cph-common and apply filtering here
-    // look up care team with this below query
-    // const query = {
-    //   where: {
-    //     study; [] OR  site: [],
-    //     member: requester
-    //     period
-    //     meta.isdeleted = false
-    //     status: active
-    //   }
-    // };
-    // 999
-    // scope=study/000 site/555
-    // careteam[] = careTeamDAO.findAll(query) careteam[000, 111]  careteam[000, 555]
-    //     // scope=study/000
-
-    // if no care team return no access
-    // if at least one care team found, then gather all allowed Site+Study, then apply filter to original scopedResource
-    // if the filtered scopedResource is empty, return from here
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
-      accessRequest.requesterReference,
-      accessRequest.scopedResources
+        accessRequest.requesterReference,
+        accessRequest.scopedResources
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
@@ -136,7 +120,29 @@ class PolicyManager {
         grantedResources.push(grantedPolicyAssignment.resourceScope.resource.reference);
       }
     });
-
+    // 1. grantedResources equal ["Study/111", "Site/111", "Site/222", "Site/111"]
+    log.info("grantedResources: " + grantedResources.length);
+    if (grantedResources.length > 0) {
+      const siteReferences: string[] = ReferenceUtility.getUniqueReferences(grantedResources, Constants.STUDY_SITE_REFERENCE);
+      log.info("Site references: " , siteReferences);
+      if (siteReferences.length > 0) {
+        // check if care team is active and not expired, member is active and not expired for given member and site reference
+        // siteReferences= ["Site/111", "Site/222"]
+        const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, siteReferences);
+        if (!careTeams || careTeams.length < 1) {
+          // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
+          log.info("CareTeams are not present for sites = " , siteReferences);
+          return resourceAccessResponse;
+        }
+        // careTeam[] to siteArray[]
+        // allowed sites = ["Site/222"]
+        // sitesToBeRemoved = siteReferences - allowedSite
+        // option 1. grantedResources = grantedResources - sitesToBeRemoved, if we do this we could be keeping unrelated studies
+        // option 2. grantedResources = allowedSite, if we do this we will remove any non site references from grantedResources
+      }
+      log.info("PolicyManager - CareTeam validation successful");
+    }
+    // filtered grantedResources equal ["Study/111", "Site/111", "Site/222", "Site/111"]
     // populating the response
     resourceAccessResponse.grantedPolicies = grantedPolices;
     resourceAccessResponse.grantedResources = [...new Set(grantedResources)];

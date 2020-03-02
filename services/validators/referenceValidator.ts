@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import * as sequelize from "sequelize";
 import { Constants } from "../../common/constants/constants";
 import { errorCodeMap } from "../../common/constants/error-codes-map";
-import { BadRequestResult, InternalServerErrorResult } from "../../common/objects/custom-errors";
+import { BadRequestResult } from "../../common/objects/custom-errors";
 import { resourceTypeToTableNameMapping } from "../../common/objects/resourceTypeToTableNameMapping";
 import { DataSource } from "../../dataSource";
 import { JsonParser } from "../utilities/jsonParser";
@@ -77,7 +77,7 @@ export class ReferenceValidator {
       const tableName = resourceTypeToTableNameMapping[resourceType];
       if (!tableName) {
         log.error("Error occoured in validateReferenceValue, tablename not present for resourceType: " + resourceType);
-        throw new InternalServerErrorResult(errorCodeMap.InternalError.value, errorCodeMap.InternalError.description);
+        throw new BadRequestResult(errorCodeMap.InvalidReferenceValue.value, errorCodeMap.InvalidReferenceValue.description + resourceType);
       }
       let searchQuery = `SELECT distinct(id) FROM "${tableName}" WHERE id in (:id) and CAST(("meta"#>>'{isDeleted}') AS BOOLEAN) = false`;
       const replacementValues: any = { id: resourceIds };
