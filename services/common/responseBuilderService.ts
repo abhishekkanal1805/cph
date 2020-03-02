@@ -238,7 +238,7 @@ class ResponseBuilderService {
       if (queryParams._revinclude) {
         revincludeValue = queryParams._revinclude[0].split(":")[0];
       }
-      let resourceArray = entryArray;
+      let resourceArray = objectArray;
       let revincludeArray = [];
       if (revincludeValue) {
         resourceArray = objectArray.filter((eachResource: any) => eachResource.resourceType != revincludeValue);
@@ -253,6 +253,8 @@ class ResponseBuilderService {
       }
       for (const eachObject of revincludeArray) {
         const entry: any = {};
+        const resource = fullUrl.split(Constants.URL_SPLIT_OPERATOR)[1];
+        fullUrl = fullUrl.replace(resource, revincludeValue);
         entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
         entry.search = { mode: Constants.INCLUDE };
         entry.resource = eachObject;
