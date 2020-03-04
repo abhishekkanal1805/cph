@@ -977,7 +977,7 @@ export class AuthService {
         resourceScope = resourceScope.concat(scope);
       });
       log.info("Authorizing authorizePolicyBased :: authorizePolicyManagerBased()");
-      authResponse = await AuthService.authorizePolicyBased(requesterId, resourceActions, resourceScope, resourceType, Constants.ACCESS_EDIT);
+      authResponse = await AuthService.authorizePolicyBased(requesterId, resourceActions, resourceScope, resourceType, accessType);
       if (authResponse.fullAuthGranted || !_.isEmpty(authResponse.authorizedResourceScopes)) {
         log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have access to get this resource.");
         authGranted = true;
@@ -988,7 +988,7 @@ export class AuthService {
     if (!authGranted) {
       if (subjectReferences.length > 0) {
         log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
-        authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, Constants.ACCESS_EDIT, resourceActions);
+        authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
         if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
           log.info(
             "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to post this resource."
@@ -996,7 +996,7 @@ export class AuthService {
           throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
         }
       } else {
-        log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you no have access to post this resource.");
+        log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to post this resource.");
         throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
       }
     }
