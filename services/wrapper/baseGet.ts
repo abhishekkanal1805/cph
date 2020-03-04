@@ -13,6 +13,7 @@ import { tableNameToResourceTypeMapping } from "../../common/objects/tableNameTo
 import { DAOService } from "../dao/daoService";
 import { I18N } from "../i18n/i18n";
 import { AuthService } from "../security/authService";
+import { DataFetch } from "../utilities/dataFetch";
 import { JsonParser } from "../utilities/jsonParser";
 import { QueryGenerator } from "../utilities/queryGenerator";
 import { SharingRulesHelper } from "../utilities/sharingRulesHelper";
@@ -183,7 +184,11 @@ export class BaseGet {
     }
     const serviceName: string = tableNameToResourceTypeMapping[model.getTableName()];
     const isResoucePublicAccessable: boolean = await AuthService.getResourceAccessLevel(serviceName, Constants.ACCESS_READ);
-    if (isResoucePublicAccessable) {
+    const fetchedProfiles = await DataFetch.getUserProfile([requestorProfileId]);
+    if (fetchedProfiles[requestorProfileId] && fetchedProfiles[requestorProfileId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
+      log.info("Exiting AuthService, Requester is system user :: authorizeMultipleConnectionsBasedSharingRules");
+      isSharingRuleCheckRequired = false;
+    } else if (isResoucePublicAccessable) {
       log.info("Resource access type is public, no authorization required");
       isSharingRuleCheckRequired = false;
     } else if (resourceOwnerElement) {
