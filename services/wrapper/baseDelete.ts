@@ -142,6 +142,7 @@ export class BaseDelete {
       for (let eachRecord of resourcesToBeDeleted) {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
+        eachRecord.meta.versionId = eachRecord.meta.versionId + 1;
         eachRecord.meta.lastUpdated = new Date().toISOString();
         if (requestParams.requestLogRef) {
           eachRecord.meta.requestLogRef = requestParams.requestLogRef;
