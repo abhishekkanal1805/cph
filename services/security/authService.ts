@@ -616,7 +616,9 @@ export class AuthService {
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(accessType);
     filteredReferences = [...new Set(filteredReferences)];
     const subjectToProfileMap = await AuthService.validateProfiles(filteredReferences, researchSubjectCriteria);
-    if (Object.values(subjectToProfileMap).length != filteredReferences.length) {
+    let uniqReferences: any = Object.values(subjectToProfileMap);
+    uniqReferences = [...new Set(uniqReferences.flat())];
+    if (uniqReferences.length != filteredReferences.length) {
       log.error("Error in DataFetch: Record doesn't exists for all requested profile ids");
       throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
     }
