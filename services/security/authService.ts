@@ -129,9 +129,10 @@ export class AuthService {
 
     // check 1. if loggedin user is a valid profile
     const requesterDetails: any = await DataFetch.getUserProfile([authorizationRequest.requester]);
-
+    const profileReferences = [authorizationRequest.ownerReference, authorizationRequest.informationSourceReference];
     // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
     if (requesterDetails[authorizationRequest.requester] && requesterDetails[authorizationRequest.requester].profileType === Constants.SYSTEM_USER) {
+      await this.validateProfileReferences(profileReferences, authorizationRequest.accessType);
       log.info("requester is a system user and it is submitting request for a valid owner");
       return [];
     }
@@ -139,6 +140,7 @@ export class AuthService {
     // check 3. If resourceType publicly accessible, then no connection check required
     const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
     if (isPublicResource) {
+      await this.validateProfileReferences(profileReferences, authorizationRequest.accessType);
       log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
       return [];
     }
@@ -292,9 +294,11 @@ export class AuthService {
     );
     // check 1. if loggedin user is a valid profile
     const requesterDetails: any = await DataFetch.getUserProfile([authorizationRequest.requester]);
+    const profileReferences = [authorizationRequest.ownerReference, authorizationRequest.informationSourceReference];
 
     // check 2. is requester the System user. A system user can submit request on its or someone else's behalf
     if (requesterDetails[authorizationRequest.requester] && requesterDetails[authorizationRequest.requester].profileType === Constants.SYSTEM_USER) {
+      await this.validateProfileReferences(profileReferences, authorizationRequest.accessType);
       log.info("requester is a system user and it is submitting request for a valid owner");
       return [];
     }
@@ -302,6 +306,7 @@ export class AuthService {
     // check 3. If resourceType publicly accessible, then no connection check required
     const isPublicResource: boolean = await AuthService.getResourceAccessLevel(authorizationRequest.resourceType, authorizationRequest.accessType);
     if (isPublicResource) {
+      await this.validateProfileReferences(profileReferences, authorizationRequest.accessType);
       log.info("Exiting AuthService, Resource type is public :: authorizeRequestSharingRules()");
       return [];
     }
@@ -581,6 +586,41 @@ export class AuthService {
     return subjectToProfileMap;
   }
 
+  /**
+   * For admin/public endpoint it will validate if owner & informationSource references are valid or not
+   *
+   * @static
+   * @param {AuthorizationRequest} authorizationRequest
+   * @memberof AuthService
+   */
+  public static async validateProfileReferences(profileReferences: string[], accessType: string) {
+    log.info("Entering AuthService :: validateOwnerReferences()");
+    let filteredReferences = profileReferences.filter(Boolean);
+    if (!filteredReferences.length) {
+      log.info("No references present to validate");
+      return;
+    }
+    if (accessType == Constants.ACCESS_READ) {
+      log.info("Access type is read, we won't won't validate researchsubject references");
+      return;
+    }
+    // Validate all UserProfile/ResearchSubject profiles
+    filteredReferences = filteredReferences.filter((eachProfile: string) => {
+      const profileArray = eachProfile.split(Constants.FORWARD_SLASH);
+      if (profileArray.length === 1) {
+        return true;
+      }
+      return [Constants.USER_PROFILE, Constants.RESEARCH_SUBJECT].includes(profileArray[0]);
+    });
+    // Get research subject criteria for edit/read access type
+    const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(accessType);
+    const subjectToProfileMap = await AuthService.validateProfiles(filteredReferences, researchSubjectCriteria);
+    if (Object.values(subjectToProfileMap).length != filteredReferences.length) {
+      log.error("Error in DataFetch: Record doesn't exists for all requested profile ids");
+      throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+    }
+    log.info("Exiting AuthService :: validateOwnerReferences()");
+  }
   /**
    * Validate connectionbased sharing rules between loggedin user and requested user
    *
@@ -867,12 +907,14 @@ export class AuthService {
     // check 2: if requester should be system user then allow access
     if (fetchedProfiles[requesterId] && fetchedProfiles[requesterId].profileType.toLowerCase() === Constants.SYSTEM_USER) {
       log.info("Exiting AuthService, Requester is system user :: authorizeMultipleOwnerBased");
+      await this.validateProfileReferences(requesteeIds, accessType);
       return authResponse;
     }
 
     // check 3. If resourceType publicly accessible, then no connection check required
     const isPublicResource: boolean = await AuthService.getResourceAccessLevel(resourceType, accessType);
     if (isPublicResource) {
+      await this.validateProfileReferences(requesteeIds, accessType);
       log.info("Exiting AuthService, Resource type is public :: authorizeConnectionBasedSharingRules()");
       return authResponse;
     }

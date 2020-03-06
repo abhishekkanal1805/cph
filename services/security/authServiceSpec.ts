@@ -1013,6 +1013,7 @@ describe("AuthService", () => {
       const testInformationSourceProfile = UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0];
       const testRequesterProfile = UserProfileRepositoryStub.ACTIVE_SYSTEM_USER_PROFILES[0];
       spyOn(DataFetch, "getUserProfile").and.returnValue(DataFetchStub.getUserAccess(testOwnerProfile, testInformationSourceProfile, testRequesterProfile));
+      spyOn(AuthService, "validateProfileReferences").and.returnValue([]);
 
       try {
         // the provided id/references need to match ones returned by the mocked DataFetch
