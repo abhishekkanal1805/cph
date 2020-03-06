@@ -105,6 +105,7 @@ export class BaseDelete {
       log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
+      record.meta.versionId = record.meta.versionId + 1;
       if (requestParams.requestLogRef) {
         record.meta.requestLogRef = requestParams.requestLogRef;
       }
