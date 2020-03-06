@@ -138,6 +138,16 @@ const settings = {
       dataType: "string",
       isMultiple: true
     },
+    study: {
+      to: [
+        {
+          columnHierarchy: "dataResource.study.reference",
+          columnValueType: "string"
+        }
+      ],
+      dataType: "string",
+      isMultiple: true
+    },
     participantStatus: {
       to: [
         {
