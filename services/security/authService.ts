@@ -614,6 +614,7 @@ export class AuthService {
     });
     // Get research subject criteria for edit/read access type
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(accessType);
+    filteredReferences = [...new Set(filteredReferences)];
     const subjectToProfileMap = await AuthService.validateProfiles(filteredReferences, researchSubjectCriteria);
     if (Object.values(subjectToProfileMap).length != filteredReferences.length) {
       log.error("Error in DataFetch: Record doesn't exists for all requested profile ids");
