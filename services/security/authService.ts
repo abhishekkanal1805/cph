@@ -1040,7 +1040,6 @@ export class AuthService {
       });
       log.info("Authorizing authorizePolicyBased :: authorizePolicyManagerBased()");
       authResponse = await AuthService.authorizePolicyBased(requesterId, resourceActions, resourceScope, resourceType, accessType);
-      log.info("AuthResponse: " + JSON.stringify(authResponse));
       if (!authResponse.fullAuthGranted) {
         if (_.isEmpty(authResponse.authorizedResourceScopes) || authResponse.authorizedResourceScopes.length != resourceScope.length) {
           log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to post this resource.");
@@ -1054,7 +1053,6 @@ export class AuthService {
     if (subjectReferences.length > 0) {
       log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
       authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
-      log.info("AuthResponse: " + JSON.stringify(authResponse));
       if (!authResponse.fullAuthGranted) {
         const authRequesteesLength = !_.isEmpty(authResponse.authorizedRequestees) ? authResponse.authorizedRequestees.length : 0;
         const authConnectionsLength = !_.isEmpty(authResponse.authorizedConnections) ? authResponse.authorizedConnections.length : 0;

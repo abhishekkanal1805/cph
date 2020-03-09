@@ -122,7 +122,6 @@ class PolicyManager {
         grantedResources.push(grantedPolicyAssignment.resourceScope.resource.reference);
       }
     });
-    // check if all
     // 1. grantedResources equal ["Study/111",  "Site/333"]
     log.info("grantedResources: ", grantedResources);
     if (grantedResources.length > 0) {
