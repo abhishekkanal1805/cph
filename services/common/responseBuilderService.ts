@@ -230,6 +230,7 @@ class ResponseBuilderService {
   public static createResponseObject(objectArray: any, fullUrl?: string, type?: string, queryParams?: any, createBundle?: boolean) {
     log.info("Entering ResponseBuilderService :: createResponseObject()");
     let entryArray = [];
+    const revincludeResourceArray = [];
     const links = [];
     let responseObject: any;
     if (fullUrl) {
@@ -258,21 +259,24 @@ class ResponseBuilderService {
         entry.fullUrl = fullUrl + Constants.FORWARD_SLASH + eachObject.id;
         entry.search = { mode: Constants.INCLUDE };
         entry.resource = eachObject;
-        entryArray.push(Object.assign(new Entry(), entry));
+        revincludeResourceArray.push(Object.assign(new Entry(), entry));
       }
       const linkObj: Link = new Link();
       linkObj.relation = Constants.SELF;
       linkObj.url = Utility.createLinkUrl(fullUrl, queryParams);
       log.debug("Link Url: " + fullUrl);
       links.push(linkObj);
-      if (resourceArray.length == queryParams.limit + 1) {
-        entryArray = [...resourceArray.slice(0, resourceArray.length - 1), ...revincludeArray];
+      if (entryArray.length == queryParams.limit + 1) {
+        entryArray = entryArray.slice(0, entryArray.length - 1);
         const nextLinkObj: Link = new Link();
         nextLinkObj.relation = Constants.NEXT;
         queryParams.limit = queryParams.limit;
         queryParams.offset += queryParams.limit;
         nextLinkObj.url = Utility.createNextLinkUrl(fullUrl, queryParams);
         links.push(nextLinkObj);
+      }
+      if (revincludeResourceArray.length) {
+        entryArray = [...entryArray, ...revincludeResourceArray];
       }
       responseObject = this.createBundle(entryArray, links, true);
     } else {

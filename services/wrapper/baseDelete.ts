@@ -105,6 +105,7 @@ export class BaseDelete {
       log.info("Soft deleting the item" + record.id);
       record.meta.isDeleted = true;
       record.meta.lastUpdated = new Date().toISOString();
+      record.meta.versionId = record.meta.versionId + 1;
       if (requestParams.requestLogRef) {
         record.meta.requestLogRef = requestParams.requestLogRef;
       }
@@ -142,6 +143,7 @@ export class BaseDelete {
       for (let eachRecord of resourcesToBeDeleted) {
         log.info("Soft deleting the item" + eachRecord.id);
         eachRecord.meta.isDeleted = true;
+        eachRecord.meta.versionId = eachRecord.meta.versionId + 1;
         eachRecord.meta.lastUpdated = new Date().toISOString();
         if (requestParams.requestLogRef) {
           eachRecord.meta.requestLogRef = requestParams.requestLogRef;
