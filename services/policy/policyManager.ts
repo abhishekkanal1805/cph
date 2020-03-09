@@ -130,11 +130,11 @@ class PolicyManager {
       const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, grantedResources);
       if (!careTeams || careTeams.length < 1) {
         // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
-        log.info("CareTeams are not present for = " , grantedResources);
+        log.info("CareTeams are not present for = ", grantedResources);
         return resourceAccessResponse;
       } else if (careTeams.length != grantedResources.length) {
         // option 1. grantedResources = grantedResources - careTeamValidatedResources, if we do this we could be keeping unrelated studies
-        const  careTeamValidatedResources: string[] = [];
+        const careTeamValidatedResources: string[] = [];
         careTeams.forEach((careTeam) => {
           // collect site references of active careTeam
           if (careTeam.site) {
