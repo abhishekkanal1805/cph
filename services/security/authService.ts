@@ -39,20 +39,20 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeRequest(
-    requester: string,
-    informationSourceReference: string,
-    ownerReference: string,
-    resourceType: string,
-    accessType: string,
-    ownerType?: string
+      requester: string,
+      informationSourceReference: string,
+      ownerReference: string,
+      resourceType: string,
+      accessType: string,
+      ownerType?: string
   ) {
     log.info("Entering AuthService :: authorizeRequest()");
     // Check if informationSourceReference & ownerReference belongs to userProfile or ResearchStudy
     const researchSubjectCriteria = this.getResearchSubjectFilterCriteria(accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(ownerReference, informationSourceReference, researchSubjectCriteria);
     informationSourceReference = researchSubjectProfiles[informationSourceReference]
-      ? researchSubjectProfiles[informationSourceReference]
-      : informationSourceReference;
+        ? researchSubjectProfiles[informationSourceReference]
+        : informationSourceReference;
     ownerReference = researchSubjectProfiles[ownerReference] ? researchSubjectProfiles[ownerReference] : ownerReference;
     const informationSourceId = informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const ownerId = ownerReference.split(Constants.USERPROFILE_REFERENCE)[1];
@@ -83,10 +83,10 @@ export class AuthService {
     // check 5. is Practitioner or Care Partner submitting request for owner
     const fetchedInformationSourceProfile = fetchedProfiles[informationSourceId];
     if (
-      fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
-      (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER ||
-        fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&
-      requester === informationSourceId
+        fetchedProfiles[requester].profileType != Constants.SYSTEM_USER &&
+        (fetchedInformationSourceProfile.profileType === Constants.PRACTITIONER_USER ||
+            fetchedInformationSourceProfile.profileType === Constants.CAREPARTNER_USER) &&
+        requester === informationSourceId
     ) {
       log.info("requester is of type Practitioner or Care Partner and requestee is owner, checking Connection");
       const connectionType = [Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
@@ -120,7 +120,7 @@ export class AuthService {
    */
   public static async authorizeRequestSharingRules(authorizationRequest: AuthorizationRequest) {
     log.info(
-      "Entering AuthService :: authorizeRequestSharingRules() requester=" +
+        "Entering AuthService :: authorizeRequestSharingRules() requester=" +
         authorizationRequest.requester +
         ", ownerReference=" +
         authorizationRequest.ownerReference +
@@ -151,25 +151,25 @@ export class AuthService {
 
     // if ownerReference is researchSubject save it for policy check
     const ownerOrignalSubjectReference: string =
-      authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 ? authorizationRequest.ownerReference : null;
+        authorizationRequest.ownerReference.indexOf(Constants.RESEARCHSUBJECT_REFERENCE) > -1 ? authorizationRequest.ownerReference : null;
     // builds a condition for querying ResearchSubject. Example: status: { [Op.notIn]: ["withdrawn", "ineligible", "not-registered"] }
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
     // returns a maps of RS reference to the corresponding profile
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(
-      authorizationRequest.ownerReference,
-      authorizationRequest.informationSourceReference,
-      researchSubjectCriteria
+        authorizationRequest.ownerReference,
+        authorizationRequest.informationSourceReference,
+        researchSubjectCriteria
     );
 
     // reset the Request's informationSourceReference with UserProfile reference if ResearchSubject was provided
     authorizationRequest.informationSourceReference = researchSubjectProfiles[authorizationRequest.informationSourceReference]
-      ? researchSubjectProfiles[authorizationRequest.informationSourceReference]
-      : authorizationRequest.informationSourceReference;
+        ? researchSubjectProfiles[authorizationRequest.informationSourceReference]
+        : authorizationRequest.informationSourceReference;
 
     // reset the Request's ownerReference with UserProfile reference if ResearchSubject was provided
     authorizationRequest.ownerReference = researchSubjectProfiles[authorizationRequest.ownerReference]
-      ? researchSubjectProfiles[authorizationRequest.ownerReference]
-      : authorizationRequest.ownerReference;
+        ? researchSubjectProfiles[authorizationRequest.ownerReference]
+        : authorizationRequest.ownerReference;
 
     // by now the ownerRef and infoSrcRef are both UserProfile
     const informationSourceId = authorizationRequest.informationSourceReference.split(Constants.USERPROFILE_REFERENCE)[1];
@@ -207,7 +207,7 @@ export class AuthService {
       }
     } else {
       log.info(
-        "AuthService::authorizeRequestSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
+          "AuthService::authorizeRequestSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
       );
     }
 
@@ -284,7 +284,7 @@ export class AuthService {
    */
   public static async authorizeConnectionBasedSharingRules(authorizationRequest: AuthorizationRequest) {
     log.info(
-      "Entering AuthService :: authorizeConnectionBasedSharingRules() requester=" +
+        "Entering AuthService :: authorizeConnectionBasedSharingRules() requester=" +
         authorizationRequest.requester +
         ", ownerReference=" +
         authorizationRequest.ownerReference +
@@ -314,8 +314,8 @@ export class AuthService {
     const researchSubjectCriteria = AuthService.getResearchSubjectFilterCriteria(authorizationRequest.accessType);
     const researchSubjectProfiles: any = await AuthService.getResearchSubjectProfiles(authorizationRequest.ownerReference, null, researchSubjectCriteria);
     const requesteeReference = researchSubjectProfiles[authorizationRequest.ownerReference]
-      ? researchSubjectProfiles[authorizationRequest.ownerReference]
-      : authorizationRequest.ownerReference;
+        ? researchSubjectProfiles[authorizationRequest.ownerReference]
+        : authorizationRequest.ownerReference;
     const requesteeId = requesteeReference.split(Constants.USERPROFILE_REFERENCE)[1];
     const requestProfileIds = [authorizationRequest.requester, requesteeId];
     // query userprofile for the unique profile ids
@@ -350,7 +350,7 @@ export class AuthService {
       }
     } else {
       log.info(
-        "AuthService::authorizeConnectionBasedSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
+          "AuthService::authorizeConnectionBasedSharingRules() Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access."
       );
     }
 
@@ -457,7 +457,7 @@ export class AuthService {
       if (reasearchSubjectProfiles[informationSourceReference]) {
         researchProfileIdx = _.findIndex(researchSubjectIdsProfiles, { [Constants.ID]: reasearchSubjectProfiles[informationSourceReference] });
         reasearchSubjectToUserProfiles[informationSourceReference] =
-          researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
+            researchSubjectIdsProfiles[researchProfileIdx][Constants.INDIVIDUAL][Constants.REFERENCE_ATTRIBUTE];
       }
     }
     return reasearchSubjectToUserProfiles;
@@ -561,11 +561,11 @@ export class AuthService {
     if (userProfileReferences.length) {
       validUserProfiles = await DataFetch.getUserProfiles({
         [Constants.ID]: _.uniq(
-          _.map(userProfileReferences, (userProfileReference) => {
-            return userProfileReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1
-              ? userProfileReference
-              : userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
-          })
+            _.map(userProfileReferences, (userProfileReference) => {
+              return userProfileReference.indexOf(Constants.USERPROFILE_REFERENCE) == -1
+                  ? userProfileReference
+                  : userProfileReference.split(Constants.USERPROFILE_REFERENCE)[1];
+            })
         ),
         status: Constants.ACTIVE,
         [Constants.META_IS_DELETED_KEY]: false
@@ -596,11 +596,11 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeMultipleConnectionsBased(
-    requesterId: string,
-    requesteeIds: string[],
-    resourceType: string,
-    accessType: string,
-    resourceActions?: string[]
+      requesterId: string,
+      requesteeIds: string[],
+      resourceType: string,
+      accessType: string,
+      resourceActions?: string[]
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -705,11 +705,11 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizePolicyBased(
-    requesterId: string,
-    resourceActions: string[],
-    resourceScope: string[],
-    resourceType?: string,
-    accessType?: string
+      requesterId: string,
+      resourceActions: string[],
+      resourceScope: string[],
+      resourceType?: string,
+      accessType?: string
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -848,11 +848,11 @@ export class AuthService {
    * @memberof AuthService
    */
   public static async authorizeMultipleOwnerBased(
-    requesterId: string,
-    requesteeIds: string[],
-    resourceType: string,
-    accessType: string,
-    resourceActions?: string[]
+      requesterId: string,
+      requesteeIds: string[],
+      resourceType: string,
+      accessType: string,
+      resourceActions?: string[]
   ) {
     const authResponse = {
       fullAuthGranted: true,
@@ -928,19 +928,31 @@ export class AuthService {
         const accessGrantedSubjects = Array.from(grantedPolicies.keys());
         log.info("AuthService:: accessGrantedSubjects = ", accessGrantedSubjects);
         authResponse.authorizedRequestees = authResponse.authorizedRequestees.concat(accessGrantedSubjects);
-        return authResponse;
       } else {
         log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
       }
-    } else {
-      log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
-    log.info("AuthService:: checking Connections for requesteeIds = ", validRequesteeIds);
-    // check 8. validate connection between requester and requestee
-    const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
-    const connectionStatus = [Constants.ACTIVE];
-    authResponse.authorizedConnections = await AuthService.getConnections(validRequesteeIds, requesterId, connectionType, connectionStatus);
-    log.info("Exiting AuthService :: authorizeMultipleOwnerBased, authResponse = ", authResponse);
+    log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
+    // filter ResearchSubjects who has policy access granted
+    const requesteeIdsForConnectionCheck: string[] = [];
+    for (const subjectToProfileMapKey in authResponse.subjectToProfileMap) {
+      // get the value array for key. Here key is userProfile reference and values array contains researchSubject references or user profile references
+      const profileValues: any[] = authResponse.subjectToProfileMap[subjectToProfileMapKey];
+      // check if authorizedRequestee is present in profileValues
+      const isProfileValueAuthorized = authResponse.authorizedRequestees.some((authorizedRequestee) => profileValues.indexOf(authorizedRequestee) >= 0);
+      // if authorizedRequestee not present in profileValues then we need to validate the researchSubject's profile for connection check
+      if (!isProfileValueAuthorized) {
+        requesteeIdsForConnectionCheck.push(subjectToProfileMapKey);
+      }
+    }
+    if (requesteeIdsForConnectionCheck.length > 0) {
+      log.info("AuthService:: checking Connections for requesteeIds = ", validRequesteeIds);
+      // check 8. validate connection between requester and requestee
+      const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
+      const connectionStatus = [Constants.ACTIVE];
+      authResponse.authorizedConnections = await AuthService.getConnections(requesteeIdsForConnectionCheck, requesterId, connectionType, connectionStatus);
+      log.info("Exiting AuthService :: authorizeMultipleOwnerBased, authResponse = ", authResponse);
+    }
     return authResponse;
   }
 
@@ -959,12 +971,12 @@ export class AuthService {
    * @memberOf AuthService
    */
   public static async authorizePolicyManagerBased(
-    requesterId: string,
-    resourceType: string,
-    accessType: string,
-    resourceScopeMap?: Map<string, string[]>,
-    subjectReferences?: string[],
-    resourceActions?: string[]
+      requesterId: string,
+      resourceType: string,
+      accessType: string,
+      resourceScopeMap?: Map<string, string[]>,
+      subjectReferences?: string[],
+      resourceActions?: string[]
   ) {
     log.info("Entering AuthService :: authorizePolicyManagerBased()");
     let authGranted: boolean = false;
@@ -978,7 +990,8 @@ export class AuthService {
       });
       log.info("Authorizing authorizePolicyBased :: authorizePolicyManagerBased()");
       authResponse = await AuthService.authorizePolicyBased(requesterId, resourceActions, resourceScope, resourceType, accessType);
-      if (authResponse.fullAuthGranted || !_.isEmpty(authResponse.authorizedResourceScopes)) {
+      log.info("AuthResponse: " + JSON.stringify(authResponse));
+      if (authResponse.fullAuthGranted || (!_.isEmpty(authResponse.authorizedResourceScopes) && authResponse.authorizedResourceScopes.length == resourceScope.length)) {
         log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have access to get this resource.");
         authGranted = true;
       }
@@ -989,11 +1002,16 @@ export class AuthService {
       if (subjectReferences.length > 0) {
         log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
         authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
-        if (!authResponse.fullAuthGranted && (_.isEmpty(authResponse.authorizedRequestees) && _.isEmpty(authResponse.authorizedConnections))) {
-          log.info(
-            "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to post this resource."
-          );
-          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        log.info("AuthResponse: " + JSON.stringify(authResponse));
+        if (!authResponse.fullAuthGranted) {
+          const authRequesteesLength = !_.isEmpty(authResponse.authorizedRequestees) ? authResponse.authorizedRequestees.length : 0;
+          const authConnectionsLength = !_.isEmpty(authResponse.authorizedConnections) ? authResponse.authorizedConnections.length : 0;
+          if (subjectReferences.length != (authRequesteesLength + authConnectionsLength)) {
+            log.info(
+                "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to this resource."
+            );
+            throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+          }
         }
       } else {
         log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to post this resource.");
