@@ -935,7 +935,7 @@ export class AuthService {
     authResponse.subjectToProfileMap = subjectToProfileMap;
 
     // check 5. if requester accessing his own ResearchSubject then allow access
-    if (validRequesteeIds.length == 1 && requesteeIds[0] == requesterId) {
+    if (validRequesteeIds.length == 1 && validRequesteeIds[0] == requesterId) {
       log.info("Exiting AuthService, requester and requestee are same profiles and are valid and active :: authorizeMultipleOwnerBased");
       return authResponse;
     }
@@ -945,19 +945,24 @@ export class AuthService {
     authResponse.fullAuthGranted = false;
 
     // check 6. check if any references belong to the owner, no need to check policies for them
-    const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, requesteeIds, Constants.ACCESS_READ);
+    let uniqReferences: any = Object.values(subjectToProfileMap);
+    uniqReferences = [...new Set(uniqReferences.flat())];
+    const requesterOwnedReferences = await AuthService.getRequesterOwnedReferences(requesterId, uniqReferences, Constants.ACCESS_READ);
     log.info("AuthService:: requesterOwnedReferences = ", requesterOwnedReferences);
     if (requesterOwnedReferences.length >= 1) {
       authResponse.authorizedRequestees = requesterOwnedReferences;
       return authResponse;
     }
+    // remove authorizedResearchSubjects
+    uniqReferences = ReferenceUtility.removeReferences(uniqReferences, requesterOwnedReferences);
 
     // check 7. study/site based access control can only be determined if the owner is ResearchSubject
     // TODO: maybe we should not limit policy based access check based on presence of subject reference.
     // TODO: invoke policyManger.requestResourceScopedAccess if subject is not there but resource is provided
     // This is okay only if this function is only called from clinical resource perspective.
     // if we use requesteeIds the UserProfile for these subjects may not be valid
-    const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(requesteeIds, Constants.RESEARCHSUBJECT_REFERENCE);
+    let requesteeIdsForConnectionCheck: string[] = [];
+    const uniqueSubjectReferences = ReferenceUtility.getUniqueReferences(uniqReferences, Constants.RESEARCHSUBJECT_REFERENCE);
     log.info("AuthService:: uniqueSubjectReferences = ", uniqueSubjectReferences);
     // let allowedSubjects: string[] = null;
     if (uniqueSubjectReferences.length > 0 && resourceActions) {
@@ -976,22 +981,23 @@ export class AuthService {
       } else {
         log.info("AuthService:: Policy based access was not granted, checking for connection based access.");
       }
-    }
-    log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
-    // filter ResearchSubjects who has policy access granted
-    const requesteeIdsForConnectionCheck: string[] = [];
-    for (const subjectToProfileMapKey in authResponse.subjectToProfileMap) {
-      // get the value array for key. Here key is userProfile reference and values array contains researchSubject references or user profile references
-      const profileValues: any[] = authResponse.subjectToProfileMap[subjectToProfileMapKey];
-      // check if authorizedRequestee is present in profileValues
-      const isProfileValueAuthorized = authResponse.authorizedRequestees.some((authorizedRequestee) => profileValues.indexOf(authorizedRequestee) >= 0);
-      // if authorizedRequestee not present in profileValues then we need to validate the researchSubject's profile for connection check
-      if (!isProfileValueAuthorized) {
-        requesteeIdsForConnectionCheck.push(subjectToProfileMapKey);
+      // filter ResearchSubjects who has policy access granted
+      for (const subjectToProfileMapKey in authResponse.subjectToProfileMap) {
+        // get the value array for key. Here key is userProfile reference and values array contains researchSubject references or user profile references
+        const profileValues: any[] = authResponse.subjectToProfileMap[subjectToProfileMapKey];
+        // check if authorizedRequestee is present in profileValues
+        const isProfileValueAuthorized = authResponse.authorizedRequestees.some((authorizedRequestee) => profileValues.indexOf(authorizedRequestee) >= 0);
+        // if authorizedRequestee not present in profileValues then we need to validate the researchSubject's profile for connection check
+        if (!isProfileValueAuthorized) {
+          requesteeIdsForConnectionCheck.push(subjectToProfileMapKey);
+        }
       }
+    } else {
+      requesteeIdsForConnectionCheck = uniqReferences;
+      log.info("AuthService:: Owner is not ResearchSubject or resourceAction was not provided. Skipping to check Connection based access.");
     }
     if (requesteeIdsForConnectionCheck.length > 0) {
-      log.info("AuthService:: checking Connections for requesteeIds = ", validRequesteeIds);
+      log.info("AuthService:: checking Connections for requesteeIds = ", requesteeIdsForConnectionCheck);
       // check 8. validate connection between requester and requestee
       const connectionType = [Constants.CONNECTION_TYPE_FRIEND, Constants.CONNECTION_TYPE_PARTNER, Constants.CONNECTION_TYPE_DELIGATE];
       const connectionStatus = [Constants.ACTIVE];
@@ -1024,7 +1030,6 @@ export class AuthService {
     resourceActions?: string[]
   ) {
     log.info("Entering AuthService :: authorizePolicyManagerBased()");
-    let authGranted: boolean = false;
     let authResponse;
     // check if scope map is present to determine policy authorization flow
     if (resourceScopeMap.size > 0) {
@@ -1036,34 +1041,29 @@ export class AuthService {
       log.info("Authorizing authorizePolicyBased :: authorizePolicyManagerBased()");
       authResponse = await AuthService.authorizePolicyBased(requesterId, resourceActions, resourceScope, resourceType, accessType);
       log.info("AuthResponse: " + JSON.stringify(authResponse));
-      if (
-        authResponse.fullAuthGranted ||
-        (!_.isEmpty(authResponse.authorizedResourceScopes) && authResponse.authorizedResourceScopes.length == resourceScope.length)
-      ) {
-        log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have access to get this resource.");
-        authGranted = true;
-      }
-    }
-    log.info("authGranted :" + authGranted);
-    // if authGranted is false and subject references are present then perform multiple owner based authorization
-    if (!authGranted) {
-      if (subjectReferences.length > 0) {
-        log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
-        authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
-        log.info("AuthResponse: " + JSON.stringify(authResponse));
-        if (!authResponse.fullAuthGranted) {
-          const authRequesteesLength = !_.isEmpty(authResponse.authorizedRequestees) ? authResponse.authorizedRequestees.length : 0;
-          const authConnectionsLength = !_.isEmpty(authResponse.authorizedConnections) ? authResponse.authorizedConnections.length : 0;
-          if (subjectReferences.length != authRequesteesLength + authConnectionsLength) {
-            log.info(
-              "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to this resource."
-            );
-            throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
-          }
+      if (!authResponse.fullAuthGranted) {
+        if (_.isEmpty(authResponse.authorizedResourceScopes) || authResponse.authorizedResourceScopes.length != resourceScope.length) {
+          log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to post this resource.");
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
         }
-      } else {
-        log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to post this resource.");
-        throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+      }
+      log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have access to get this resource.");
+      return authResponse;
+    }
+    // if authGranted is false and subject references are present then perform multiple owner based authorization
+    if (subjectReferences.length > 0) {
+      log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
+      authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
+      log.info("AuthResponse: " + JSON.stringify(authResponse));
+      if (!authResponse.fullAuthGranted) {
+        const authRequesteesLength = !_.isEmpty(authResponse.authorizedRequestees) ? authResponse.authorizedRequestees.length : 0;
+        const authConnectionsLength = !_.isEmpty(authResponse.authorizedConnections) ? authResponse.authorizedConnections.length : 0;
+        if (subjectReferences.length != authRequesteesLength + authConnectionsLength) {
+          log.info(
+            "fullAuthGranted was not granted, authorizedRequestees are empty or authorizedConnections are empty, This means you have no access to this resource."
+          );
+          throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
+        }
       }
     }
     log.info("Exiting AuthService :: authorizePolicyManagerBased()");

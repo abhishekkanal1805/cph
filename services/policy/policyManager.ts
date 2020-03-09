@@ -124,7 +124,7 @@ class PolicyManager {
     });
     // check if all
     // 1. grantedResources equal ["Study/111",  "Site/333"]
-    log.info("grantedResources: " + grantedResources.length);
+    log.info("grantedResources: ", grantedResources);
     if (grantedResources.length > 0) {
       // check if care team is active and not expired, member is active and not expired for given member, study and site reference
       const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, grantedResources);
@@ -171,7 +171,7 @@ class PolicyManager {
     // populating the response
     resourceAccessResponse.grantedPolicies = grantedPolices;
     resourceAccessResponse.grantedResources = [...new Set(grantedResources)];
-    log.info("grantedResources = ", resourceAccessResponse.grantedResources);
+    log.info("resourceAccessResponse = ", resourceAccessResponse);
     return resourceAccessResponse;
   }
 }
