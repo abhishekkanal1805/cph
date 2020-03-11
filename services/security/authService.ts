@@ -1032,7 +1032,7 @@ export class AuthService {
     log.info("Entering AuthService :: authorizePolicyManagerBased()");
     let authResponse;
     // check if scope map is present to determine policy authorization flow
-    if (resourceScopeMap.size > 0) {
+    if (resourceScopeMap && resourceScopeMap.size > 0) {
       let resourceScope: string[] = [];
       // concatenating all resources in the map values
       Array.from(resourceScopeMap.values()).forEach((scope: string[]) => {
@@ -1049,7 +1049,7 @@ export class AuthService {
       log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have scope access to get this resource.");
     }
     // if authGranted is false and subject references are present then perform multiple owner based authorization
-    if (subjectReferences.length > 0) {
+    if (subjectReferences && subjectReferences.length > 0) {
       log.info("Authorizing authorizeMultipleOwnerBased :: authorizePolicyManagerBased()");
       authResponse = await AuthService.authorizeMultipleOwnerBased(requesterId, subjectReferences, resourceType, accessType, resourceActions);
       if (!authResponse.fullAuthGranted) {
