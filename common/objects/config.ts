@@ -128,26 +128,6 @@ const settings = {
       ],
       dataType: "string"
     },
-    site: {
-      to: [
-        {
-          columnHierarchy: "dataResource.site.reference",
-          columnValueType: "string"
-        }
-      ],
-      dataType: "string",
-      isMultiple: true
-    },
-    participantStatus: {
-      to: [
-        {
-          columnHierarchy: "dataResource.participant[*].status",
-          columnValueType: "array"
-        }
-      ],
-      dataType: "string",
-      isMultiple: true
-    },
     isDeleted: {
       to: [
         {

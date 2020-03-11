@@ -80,6 +80,7 @@ class PolicyManager {
    * The function determines whether the requester has access to perform the specified action by the invoked resource handler.
    * PolicyAssignments will be looked up for the requester with the scope of provided resources.
    * We will then search in the all the assigned/applicable policies whether the provided action is permitted.
+   * FIXME: Remove careTeam validation outside of PolicyManager
    * @param {ResourceAccessRequest} accessRequest
    */
   public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest): Promise<ResourceAccessResponse> {
@@ -89,6 +90,7 @@ class PolicyManager {
       grantedResources: [],
       requestToken: accessRequest.requestToken
     };
+    const policyToResourceGrants = new Map<string, string>();
 
     if (!accessRequest.scopedResources || accessRequest.scopedResources.length < 1) {
       log.info("PolicyManager - scopedResources not available. policy based access cannot be determined.");
@@ -101,54 +103,75 @@ class PolicyManager {
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
-      accessRequest.requesterReference,
-      accessRequest.scopedResources
+        accessRequest.requesterReference,
+        accessRequest.scopedResources
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
-    const grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
+    let grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
     if (grantedPolices.length < 1) {
       return resourceAccessResponse;
     }
     // create an array of IDs from Policies
     const grantedPolicyIds: string[] = grantedPolices.map((grantedPolicy: PolicyDataResource) => grantedPolicy.id);
     // see which policyAssignments are actually available based on granted policies. for that assignment capture the resourceScope.resource.reference
-    const grantedResources: string[] = [];
+    let grantedResources: string[] = [];
     grantedPolicyAssignments.forEach((grantedPolicyAssignment: PolicyAssignmentDataResource) => {
       const grantedPolicyId: string = ReferenceUtility.convertToResourceId(grantedPolicyAssignment.policy.reference, Constants.POLICY_REFERENCE);
       if (grantedPolicyIds.includes(grantedPolicyId)) {
+        policyToResourceGrants.set(grantedPolicyId, grantedPolicyAssignment.resourceScope.resource.reference);
         grantedResources.push(grantedPolicyAssignment.resourceScope.resource.reference);
       }
     });
-    // 1. grantedResources equal ["Study/111", "Site/111", "Site/222", "Site/111"]
-    log.info("grantedResources: " + grantedResources.length);
+    // 1. grantedResources equal ["Study/111",  "Site/333"]
+    log.info("grantedResources: ", grantedResources);
     if (grantedResources.length > 0) {
-      const siteReferences: string[] = ReferenceUtility.getUniqueReferences(grantedResources, Constants.STUDY_SITE_REFERENCE);
-      log.info("Site references: ", siteReferences);
-      if (siteReferences.length > 0) {
-        // check if care team is active and not expired, member is active and not expired for given member and site reference
-        // siteReferences= ["Site/111", "Site/222"]
-        const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, siteReferences);
-        if (!careTeams || careTeams.length < 1) {
-          // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
-          log.info("CareTeams are not present for sites = ", siteReferences);
-          return resourceAccessResponse;
-        }
-        // careTeam[] to siteArray[]
-        // allowed sites = ["Site/222"]
-        // sitesToBeRemoved = siteReferences - allowedSite
-        // option 1. grantedResources = grantedResources - sitesToBeRemoved, if we do this we could be keeping unrelated studies
-        // option 2. grantedResources = allowedSite, if we do this we will remove any non site references from grantedResources
+      // check if care team is active and not expired, member is active and not expired for given member, study and site reference
+      const careTeams: CareTeamDataResource[] = await CareTeamDAO.findAll(accessRequest.requesterReference, grantedResources);
+      if (!careTeams || careTeams.length < 1) {
+        // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
+        log.info("CareTeams are not present for = ", grantedResources);
+        return resourceAccessResponse;
       }
+      // option 1. grantedResources = grantedResources - careTeamValidatedResources, if we do this we could be keeping unrelated studies
+      const careTeamValidatedResources: string[] = [];
+      careTeams.forEach((careTeam) => {
+        // collect site references of active careTeam
+        if (careTeam.site) {
+          careTeamValidatedResources.push(careTeam.site.reference);
+        }
+        // collect study references of active careTeam
+        if (careTeam.study) {
+          careTeamValidatedResources.push(careTeam.study.reference);
+        }
+        // careTeamValidatedResources equal ["Study/111",Site/222"]
+      });
+      // grantedResources equal  ["Study/111",  "Site/333"]
+      // keep resources from careTeamValidatedResources if they are part of grantedResources
+      grantedResources = grantedResources.filter((reference) => {
+        return careTeamValidatedResources.indexOf(reference) > -1;
+      });
+      // filtered grantedResources = ["Study/111"]
+      // remove policyIds from policyToResourceGrants if active care team is not found for given scope reference
+      Object.keys(policyToResourceGrants).forEach((policyId: string) => {
+        const resourceReference: string = policyToResourceGrants.get(policyId);
+        if (!grantedResources.includes(resourceReference)) {
+          delete policyToResourceGrants[policyId];
+        }
+      });
+      // collect all the policyIds of granted sites
+      const keys = Array.from(policyToResourceGrants.keys());
+      // collect all the policies whose id matches with the policyId of granted sites
+      grantedPolices = grantedPolices.filter((policy) => {
+        return keys.includes(policy.id);
+      });
       log.info("PolicyManager - CareTeam validation successful");
     }
-    // filtered grantedResources equal ["Study/111", "Site/111", "Site/222", "Site/111"]
     // populating the response
     resourceAccessResponse.grantedPolicies = grantedPolices;
     resourceAccessResponse.grantedResources = [...new Set(grantedResources)];
-    log.info("grantedResources = ", resourceAccessResponse.grantedResources);
+    log.info("resourceAccessResponse = ", resourceAccessResponse);
     return resourceAccessResponse;
   }
 }
-
 export { PolicyManager };
