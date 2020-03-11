@@ -102,8 +102,8 @@ class PolicyManager {
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
-      accessRequest.requesterReference,
-      accessRequest.scopedResources
+        accessRequest.requesterReference,
+        accessRequest.scopedResources
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
@@ -131,40 +131,39 @@ class PolicyManager {
         // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
         log.info("CareTeams are not present for = ", grantedResources);
         return resourceAccessResponse;
-      } else {
-        // option 1. grantedResources = grantedResources - careTeamValidatedResources, if we do this we could be keeping unrelated studies
-        const careTeamValidatedResources: string[] = [];
-        careTeams.forEach((careTeam) => {
-          // collect site references of active careTeam
-          if (careTeam.site) {
-            careTeamValidatedResources.push(careTeam.site.reference);
-          }
-          // collect study references of active careTeam
-          if (careTeam.study) {
-            careTeamValidatedResources.push(careTeam.study.reference);
-          }
-          // careTeamValidatedResources equal ["Study/111",Site/222"]
-        });
-        // grantedResources equal  ["Study/111",  "Site/333"]
-        // keep resources from careTeamValidatedResources if they are part of grantedResources
-        grantedResources = grantedResources.filter((reference) => {
-          return careTeamValidatedResources.indexOf(reference) > -1;
-        });
-        // filtered grantedResources = ["Study/111"]
-        // remove policyIds from policyToResourceGrants if active care team is not found for given scope reference
-        Object.keys(policyToResourceGrants).forEach((policyId: string) => {
-          const resourceReference: string = policyToResourceGrants.get(policyId);
-          if (!grantedResources.includes(resourceReference)) {
-            delete policyToResourceGrants[policyId];
-          }
-        });
-        // collect all the policyIds of granted sites
-        const keys = Array.from(policyToResourceGrants.keys());
-        // collect all the policies whose id matches with the policyId of granted sites
-        grantedPolices = grantedPolices.filter((policy) => {
-          return keys.includes(policy.id);
-        });
       }
+      // option 1. grantedResources = grantedResources - careTeamValidatedResources, if we do this we could be keeping unrelated studies
+      const careTeamValidatedResources: string[] = [];
+      careTeams.forEach((careTeam) => {
+        // collect site references of active careTeam
+        if (careTeam.site) {
+          careTeamValidatedResources.push(careTeam.site.reference);
+        }
+        // collect study references of active careTeam
+        if (careTeam.study) {
+          careTeamValidatedResources.push(careTeam.study.reference);
+        }
+        // careTeamValidatedResources equal ["Study/111",Site/222"]
+      });
+      // grantedResources equal  ["Study/111",  "Site/333"]
+      // keep resources from careTeamValidatedResources if they are part of grantedResources
+      grantedResources = grantedResources.filter((reference) => {
+        return careTeamValidatedResources.indexOf(reference) > -1;
+      });
+      // filtered grantedResources = ["Study/111"]
+      // remove policyIds from policyToResourceGrants if active care team is not found for given scope reference
+      Object.keys(policyToResourceGrants).forEach((policyId: string) => {
+        const resourceReference: string = policyToResourceGrants.get(policyId);
+        if (!grantedResources.includes(resourceReference)) {
+          delete policyToResourceGrants[policyId];
+        }
+      });
+      // collect all the policyIds of granted sites
+      const keys = Array.from(policyToResourceGrants.keys());
+      // collect all the policies whose id matches with the policyId of granted sites
+      grantedPolices = grantedPolices.filter((policy) => {
+        return keys.includes(policy.id);
+      });
       log.info("PolicyManager - CareTeam validation successful");
     }
     // populating the response
