@@ -1046,8 +1046,7 @@ export class AuthService {
           throw new ForbiddenResult(errorCodeMap.Forbidden.value, errorCodeMap.Forbidden.description);
         }
       }
-      log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have access to get this resource.");
-      return authResponse;
+      log.info("fullAuthGranted is granted, authorizedResourceScopes are not empty, This means you have scope access to get this resource.");
     }
     // if authGranted is false and subject references are present then perform multiple owner based authorization
     if (subjectReferences.length > 0) {
