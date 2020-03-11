@@ -131,7 +131,7 @@ class PolicyManager {
         // if at this point the filtered scopedResource is empty, "return resourceAccessResponse". no need to check assignments and policies
         log.info("CareTeams are not present for = ", grantedResources);
         return resourceAccessResponse;
-      } else if (careTeams.length != grantedResources.length) {
+      } else {
         // option 1. grantedResources = grantedResources - careTeamValidatedResources, if we do this we could be keeping unrelated studies
         const careTeamValidatedResources: string[] = [];
         careTeams.forEach((careTeam) => {
