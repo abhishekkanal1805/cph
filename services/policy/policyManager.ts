@@ -80,6 +80,7 @@ class PolicyManager {
    * The function determines whether the requester has access to perform the specified action by the invoked resource handler.
    * PolicyAssignments will be looked up for the requester with the scope of provided resources.
    * We will then search in the all the assigned/applicable policies whether the provided action is permitted.
+   * FIXME: Remove careTeam validation outside of PolicyManager
    * @param {ResourceAccessRequest} accessRequest
    */
   public static async requestResourceScopedAccess(accessRequest: ResourceAccessRequest): Promise<ResourceAccessResponse> {
