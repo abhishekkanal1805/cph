@@ -103,13 +103,13 @@ class PolicyManager {
 
     // looking up policy assignments
     const grantedPolicyAssignments: PolicyAssignmentDataResource[] = await PolicyAssignmentDAO.findAll(
-        accessRequest.requesterReference,
-        accessRequest.scopedResources
+      accessRequest.requesterReference,
+      accessRequest.scopedResources
     );
     const grantedPolicyReferences: string[] = grantedPolicyAssignments.map((policyAssignment) => policyAssignment.policy.reference);
     // looking up policy
     let grantedPolices: PolicyDataResource[] = await PolicyDAO.findAll(grantedPolicyReferences, accessRequest.resourceActions);
-    if (grantedPolices.length < 1) {
+    if (!grantedPolices || grantedPolices.length < 1) {
       return resourceAccessResponse;
     }
     // create an array of IDs from Policies
@@ -153,10 +153,10 @@ class PolicyManager {
       });
       // filtered grantedResources = ["Study/111"]
       // remove policyIds from policyToResourceGrants if active care team is not found for given scope reference
-      Object.keys(policyToResourceGrants).forEach((policyId: string) => {
+      Array.from(policyToResourceGrants.keys()).forEach((policyId: string) => {
         const resourceReference: string = policyToResourceGrants.get(policyId);
         if (!grantedResources.includes(resourceReference)) {
-          delete policyToResourceGrants[policyId];
+          policyToResourceGrants.delete(policyId);
         }
       });
       // collect all the policyIds of granted sites
