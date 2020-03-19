@@ -31,8 +31,7 @@ describe("policyManager", () => {
       expect(grantedPolicies.size).toBeLessThan(1);
       done();
     });
-
-    it("PolicyManager - policy assignments or care teams not found for all the researchSubjects. policy based access cannot be determined.", async (done) => {
+    it("PolicyManager - policy assignments or care teams not found for any of the researchSubjects. policy based access cannot be determined.", async (done) => {
       spyOn(ResearchSubjectDAO, "getByReferences").and.callFake(() => {
         // return research subjects
         return [
@@ -56,44 +55,78 @@ describe("policyManager", () => {
           }
         ];
       });
-      spyOn(PolicyAssignmentDAO, "findAll").and.returnValues(
-        [
-          {
-            policy: {
-              reference: "Policy/1"
-            },
-            resourceScope: {
-              resource: {
-                reference: "ResearchStudy/1"
-              }
-            }
-          }
-        ],
-        [
-          // return blank policy assignments for ResearchSubject/2
-        ]
-      );
-      spyOn(PolicyDAO, "findAll").and.returnValues([{ id: "1" }]);
-
-      spyOn(CareTeamDAO, "findAll").and.returnValues([
+      spyOn(PolicyManager, "requestResourceScopedAccess").and.returnValues(
         {
-          study: {
-            reference: "ResearchStudy/1"
-          },
-          site: {
-            reference: "StudySite/1"
-          }
+          grantedPolicies: [],
+          grantedResources: [],
+          requestToken: "1"
+        },
+        {
+          grantedPolicies: [],
+          grantedResources: [],
+          requestToken: "2"
         }
-      ]);
+      );
       const ownerOriginalSubjectReferences: string[] = ["ResearchSubject/1", "ResearchSubject/2"];
       const accessRequest: SubjectAccessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
         subjectReferences: ownerOriginalSubjectReferences,
         resourceActions: ["Task:create"]
       };
-      const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
-      expect(grantedPolicies.size).toBe(1);
-      expect(grantedPolicies.has("ResearchSubject/1")).toEqual(true);
+      const policyGrants: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      expect(policyGrants.size).toBeLessThan(1);
+      done();
+    });
+
+    it("PolicyManager - policy assignments or care teams found for one researchSubject. policy based access determined.", async (done) => {
+      spyOn(ResearchSubjectDAO, "getByReferences").and.callFake(() => {
+        // return research subjects
+        return [
+          {
+            id: "1",
+            study: {
+              reference: "ResearchStudy/1"
+            },
+            site: {
+              reference: "StudySite/1"
+            }
+          },
+          {
+            id: "2",
+            study: {
+              reference: "ResearchStudy/2"
+            },
+            site: {
+              reference: "StudySite/2"
+            }
+          }
+        ];
+      });
+      spyOn(PolicyManager, "requestResourceScopedAccess").and.returnValues(
+        {
+          grantedPolicies: [
+            {
+              id: "1"
+            }
+          ],
+          grantedResources: ["ResearchStudy/1"],
+          requestToken: "1"
+        },
+        {
+          grantedPolicies: [],
+          grantedResources: [],
+          requestToken: "2"
+        }
+      );
+      const ownerOriginalSubjectReferences: string[] = ["ResearchSubject/1", "ResearchSubject/2"];
+      const accessRequest: SubjectAccessRequest = {
+        requesterReference: Constants.USERPROFILE_REFERENCE + UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
+        subjectReferences: ownerOriginalSubjectReferences,
+        resourceActions: ["Task:create"]
+      };
+      const policyGrants: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      expect(policyGrants.size).toBe(1);
+      expect(policyGrants.has("ResearchSubject/1")).toEqual(true);
       done();
     });
 
@@ -121,67 +154,25 @@ describe("policyManager", () => {
           }
         ];
       });
-      spyOn(PolicyAssignmentDAO, "findAll").and.returnValues(
-        [
-          {
-            policy: {
-              reference: "Policy/1"
-            },
-            resourceScope: {
-              resource: {
-                reference: "ResearchStudy/1"
-              }
+      spyOn(PolicyManager, "requestResourceScopedAccess").and.returnValues(
+        {
+          grantedPolicies: [
+            {
+              id: "1"
             }
-          }
-        ],
-        [
-          {
-            policy: {
-              reference: "Policy/2"
-            },
-            resourceScope: {
-              resource: {
-                reference: "StudySite/2"
-              }
+          ],
+          grantedResources: ["ResearchStudy/1"],
+          requestToken: "1"
+        },
+        {
+          grantedPolicies: [
+            {
+              id: "2"
             }
-          }
-        ]
-      );
-      spyOn(PolicyDAO, "findAll").and.returnValues(
-        [
-          {
-            id: "1"
-          }
-        ],
-        [
-          {
-            id: "2"
-          }
-        ]
-      );
-
-      spyOn(CareTeamDAO, "findAll").and.returnValues(
-        // return valid care teams
-        [
-          {
-            study: {
-              reference: "ResearchStudy/1"
-            },
-            site: {
-              reference: "StudySite/3"
-            }
-          }
-        ],
-        [
-          {
-            study: {
-              reference: "ResearchStudy/3"
-            },
-            site: {
-              reference: "StudySite/2"
-            }
-          }
-        ]
+          ],
+          grantedResources: ["StudySite/2"],
+          requestToken: "2"
+        }
       );
       const ownerOriginalSubjectReferences: string[] = ["ResearchSubject/1", "ResearchSubject/2"];
       const accessRequest: SubjectAccessRequest = {
@@ -189,8 +180,8 @@ describe("policyManager", () => {
         subjectReferences: ownerOriginalSubjectReferences,
         resourceActions: ["Task:create"]
       };
-      const grantedPolicies: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
-      expect(grantedPolicies.size).toBe(2);
+      const policyGrants: Map<string, PolicyDataResource[]> = await PolicyManager.requestSubjectScopedAccess(accessRequest);
+      expect(policyGrants.size).toBe(2);
       done();
     });
   });
@@ -236,7 +227,7 @@ describe("policyManager", () => {
       const accessRequest = {
         requesterReference: Constants.USERPROFILE_REFERENCE + UserProfileRepositoryStub.ACTIVE_PATIENT_USER_PROFILES[0].id,
         scopedResources: ["StudySite/1", "ResearchStudy/1"],
-        resourceActions: [],
+        resourceActions: ["Task:create"],
         requestToken: "111"
       };
       const resourceAccessResponse: ResourceAccessResponse = await PolicyManager.requestResourceScopedAccess(accessRequest);
