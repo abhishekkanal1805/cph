@@ -152,6 +152,7 @@ export class BaseGet {
     let connections = [];
     let subjectToProfileMap = {};
     let isSharingRuleCheckRequired: boolean = true;
+    let isUserAuthorizedToSearch: boolean = true;
     const filteredQueryParameter = {};
 
     let fetchLimit = searchOptions && searchOptions.hasOwnProperty("fetchLimit") ? searchOptions.fetchLimit : Constants.FETCH_LIMIT;
@@ -229,7 +230,7 @@ export class BaseGet {
         log.info(
           "fullAuthGranted was not granted, authorizedRequestees are empty and connections are empty. This means you have no access to search this resource."
         );
-        return [];
+        isUserAuthorizedToSearch = false;
       }
     } else if (
       searchOptions &&
@@ -249,11 +250,11 @@ export class BaseGet {
       const authResponse = await AuthService.authorizePolicyBased(requestorProfileId, searchOptions.resourceActions, resourceScope);
       if (!authResponse.fullAuthGranted && _.isEmpty(authResponse.authorizedResourceScopes)) {
         log.info("fullAuthGranted was not granted, authorizedResourceScopes are empty, This means you have no access to search this resource.");
-        return [];
+        isUserAuthorizedToSearch = false;
       }
     } else {
       log.info("loggedin user don't have to search this resource.");
-      return [];
+      isUserAuthorizedToSearch = false;
     }
 
     // if isDeleted attribute not present in query parameter then return active records
@@ -301,6 +302,13 @@ export class BaseGet {
         whereClause[Op.or].push(queryObject);
       }
     }
+    // Add offset and limit to generate next url
+    queryParams.limit = fetchLimit;
+    queryParams.offset = offset;
+    if (!isUserAuthorizedToSearch) {
+      log.error("User is not authorized to search");
+      return [];
+    }
     // fetch data from db with all conditions
     const searchQuery = {
       where: whereClause,
@@ -314,9 +322,6 @@ export class BaseGet {
       attributesToRetrieve && attributesToRetrieve.length > 0 && attributesToRetrieve.indexOf(Constants.DEFAULT_SEARCH_ATTRIBUTES) == -1
         ? result
         : _.map(result, Constants.DEFAULT_SEARCH_ATTRIBUTES).filter(Boolean);
-    // Add offset and limit to generate next url
-    queryParams.limit = fetchLimit;
-    queryParams.offset = offset;
     // Translate Resource based on accept language
     const acceptLanguage = searchOptions && searchOptions.acceptLanguage;
     if (!acceptLanguage) {
