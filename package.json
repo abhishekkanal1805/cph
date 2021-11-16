@@ -22,7 +22,7 @@
     "@types/aws-lambda": "^8.10.15",
     "@types/jasmine": "^2.8.8",
     "@types/node": "^10.3.4",
-    "aws-sdk": "^2.384.0",
+    "aws-sdk": "^2.814.0",
     "jasmine": "^3.1.0",
     "nyc": "^14.1.1",
     "pg": "^7.9.0",
